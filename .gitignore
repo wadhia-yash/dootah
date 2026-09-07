@@ -1,0 +1,45 @@
+# --- Gradle ---
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# --- Kotlin ---
+.kotlin/
+
+# --- Kotlin/JS ---
+# Resolved lockfile is committed on purpose (reproducible patch builds);
+# the generated node_modules tree under build/ is not.
+node_modules/
+
+# --- Local machine configuration (never commit: contains absolute SDK paths) ---
+local.properties
+
+# --- IDE ---
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# --- OS ---
+.DS_Store
+
+# --- JVM crash / heap dumps ---
+# These are multi-hundred-MB binaries produced by OOM'd Gradle daemons.
+*.hprof
+hs_err_pid*.log
+replay_pid*.log
+
+# --- Android ---
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# --- Pravah patch signing keys ---
+# The private signing key must NEVER be committed or shipped in the APK.
+*.pem
+*.key
+pravah-signing-key*
