@@ -1,5 +1,5 @@
 plugins {
-    kotlin("multiplatform") version "2.4.10"
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 kotlin {
