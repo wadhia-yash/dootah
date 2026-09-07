@@ -1,6 +1,7 @@
 package com.pravah
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.pravah.bridge.NativeBridge
+import com.pravah.ota.PatchException
 import com.pravah.ota.PatchManager
 import com.pravah.runtime.JavaScriptRuntime
 import com.pravah.ui.PatchRenderer
@@ -25,6 +27,8 @@ import kotlinx.coroutines.launch
  * together -- see the comment in patch-bundle/build.gradle.kts.
  */
 private const val PATCH_MODULE_NAME = "patch-bundle"
+
+private const val LOG_TAG = "Pravah"
 
 class MainActivity : ComponentActivity() {
 
@@ -70,9 +74,28 @@ class MainActivity : ComponentActivity() {
 
                         lifecycleScope.launch {
 
+                            // A failed update check must never cost us the
+                            // patch that is already working. Losing the network
+                            // is not evidence that the installed patch is bad,
+                            // so this failure is reported and then ignored.
                             try {
-
                                 patchManager.checkForUpdate()
+                            } catch (e: PatchException) {
+
+                                Log.w(
+                                    LOG_TAG,
+                                    "update check failed, continuing with " +
+                                        "patch ${patchManager.installedPatchVersion}",
+                                    e,
+                                )
+
+                                result = "Update check failed: ${e.message}"
+                            }
+
+                            // Executing and rendering the patch is a separate
+                            // concern: a failure here does implicate the patch
+                            // itself.
+                            try {
 
                                 val patch =
                                     patchManager.getActivePatch()
@@ -95,7 +118,9 @@ class MainActivity : ComponentActivity() {
 
                             } catch (e: Exception) {
 
-                                patchManager.rollback()
+                                Log.e(LOG_TAG, "patch failed to render", e)
+
+                                patchManager.discardDownloadedPatch()
 
                                 result =
                                     "Patch failed: ${e.message}"
