@@ -80,6 +80,54 @@ class UpdateDecisionTest {
         assertEquals(UpdateDecision.UpToDate, decision)
     }
 
+    // --- kill switch takes precedence over everything else -------------------
+
+    @Test
+    fun `refuses a newer compatible patch when the kill switch is off`() {
+
+        val manifest = testManifest(patchVersion = 9, runtimeVersion = "1", enabled = false)
+
+        val decision = decideUpdate(
+            manifest = manifest,
+            installedPatchVersion = 3,
+            supportedRuntimeVersion = "1",
+        )
+
+        assertEquals(UpdateDecision.Disabled(manifest), decision)
+    }
+
+    /**
+     * The switch is evaluated first, so being up to date or incompatible cannot
+     * mask the fact that the publisher has turned Pravah off.
+     */
+    @Test
+    fun `reports disabled even when there is nothing newer to install`() {
+
+        val manifest = testManifest(patchVersion = 3, enabled = false)
+
+        val decision = decideUpdate(
+            manifest = manifest,
+            installedPatchVersion = 3,
+            supportedRuntimeVersion = "1",
+        )
+
+        assertEquals(UpdateDecision.Disabled(manifest), decision)
+    }
+
+    @Test
+    fun `reports disabled even when the patch targets another runtime`() {
+
+        val manifest = testManifest(patchVersion = 9, runtimeVersion = "2", enabled = false)
+
+        val decision = decideUpdate(
+            manifest = manifest,
+            installedPatchVersion = 3,
+            supportedRuntimeVersion = "1",
+        )
+
+        assertEquals(UpdateDecision.Disabled(manifest), decision)
+    }
+
     @Test
     fun `installs over the assumed bundled version on a fresh install`() {
 

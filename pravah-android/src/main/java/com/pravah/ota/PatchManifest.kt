@@ -13,6 +13,17 @@ data class PatchManifest(
     val schemaVersion: Int,
     val patchVersion: Int,
     val runtimeVersion: String,
+
+    /**
+     * Remote kill switch. When false, Pravah must stop fetching and executing
+     * remote patches and fall back to what shipped in the APK.
+     *
+     * Required rather than defaulted: a manifest that forgot the field would
+     * otherwise silently default to enabled, which is the wrong direction to
+     * fail for a switch whose entire purpose is turning remote code off.
+     */
+    val enabled: Boolean,
+
     val url: String,
 
     /** Lowercase hex SHA-256 of the patch payload, normalised by the parser. */

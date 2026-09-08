@@ -1,6 +1,7 @@
 package com.pravah.ota
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -12,6 +13,7 @@ private fun manifestJson(
     schemaVersion: String = "1",
     patchVersion: String = "4",
     runtimeVersion: String = "\"1\"",
+    enabled: String = "true",
     url: String = "\"https://example.test/patch.js\"",
     sha256: String = "\"$VALID_DIGEST\"",
 ): String = """
@@ -19,6 +21,7 @@ private fun manifestJson(
       "schemaVersion": $schemaVersion,
       "patchVersion": $patchVersion,
       "runtimeVersion": $runtimeVersion,
+      "enabled": $enabled,
       "url": $url,
       "sha256": $sha256
     }
@@ -56,6 +59,7 @@ class PatchManifestParserTest {
         assertEquals("1", manifest.runtimeVersion)
         assertEquals("https://example.test/patch.js", manifest.url)
         assertEquals(VALID_DIGEST, manifest.sha256)
+        assertTrue(manifest.enabled)
         assertNull(manifest.signature)
     }
 
@@ -67,6 +71,7 @@ class PatchManifestParserTest {
               "schemaVersion": 1,
               "patchVersion": 4,
               "runtimeVersion": "1",
+              "enabled": true,
               "url": "https://example.test/patch.js",
               "sha256": "$VALID_DIGEST",
               "signature": "abc123"
@@ -116,12 +121,53 @@ class PatchManifestParserTest {
             {
               "schemaVersion": 1,
               "patchVersion": 4,
+              "enabled": true,
               "url": "https://example.test/patch.js",
               "sha256": "$VALID_DIGEST"
             }
         """.trimIndent()
 
         assertRejected(json, "runtimeVersion", "missing")
+    }
+
+    // --- kill switch ----------------------------------------------------------
+
+    @Test
+    fun `reads the kill switch when it is off`() {
+
+        val manifest = PatchManifestParser.parse(manifestJson(enabled = "false"))
+
+        assertFalse(manifest.enabled)
+    }
+
+    /**
+     * A defaulted kill switch would fail open, which is the wrong direction for
+     * a switch whose purpose is turning remote code off.
+     */
+    @Test
+    fun `rejects a manifest with no kill switch field`() {
+
+        val json = """
+            {
+              "schemaVersion": 1,
+              "patchVersion": 4,
+              "runtimeVersion": "1",
+              "url": "https://example.test/patch.js",
+              "sha256": "$VALID_DIGEST"
+            }
+        """.trimIndent()
+
+        assertRejected(json, "enabled", "missing")
+    }
+
+    @Test
+    fun `rejects a quoted kill switch value`() {
+        assertRejected(manifestJson(enabled = "\"true\""), "enabled", "quoted string")
+    }
+
+    @Test
+    fun `rejects a non boolean kill switch value`() {
+        assertRejected(manifestJson(enabled = "7"), "enabled", "true or false")
     }
 
     @Test

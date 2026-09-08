@@ -62,6 +62,7 @@ object PatchManifestParser {
             schemaVersion = schemaVersion,
             patchVersion = patchVersion,
             runtimeVersion = root.requireString("runtimeVersion"),
+            enabled = root.requireBoolean("enabled"),
             url = root.requirePatchUrl(),
             sha256 = root.requireSha256(),
             signature = root.optionalString("signature"),
@@ -98,8 +99,8 @@ object PatchManifestParser {
         if (looksLegacy) {
             throw PatchManifestException(
                 "Legacy manifest schema rejected. Replace 'version' with " +
-                    "'patchVersion' and add 'schemaVersion': $MANIFEST_SCHEMA_VERSION " +
-                    "and 'runtimeVersion': \"$PRAVAH_RUNTIME_VERSION\""
+                    "'patchVersion' and add 'schemaVersion': $MANIFEST_SCHEMA_VERSION, " +
+                    "'runtimeVersion': \"$PRAVAH_RUNTIME_VERSION\" and 'enabled': true"
             )
         }
     }
@@ -128,6 +129,25 @@ private fun JsonObject.requireInt(field: String): Int {
         ?: throw PatchManifestException(
             "Manifest field '$field' is not an integer: '${primitive.content}'"
         )
+}
+
+private fun JsonObject.requireBoolean(field: String): Boolean {
+
+    val primitive = requirePrimitive(field)
+
+    if (primitive.isString) {
+        throw PatchManifestException(
+            "Manifest field '$field' must be a bare true or false, not a quoted string"
+        )
+    }
+
+    return when (primitive.content) {
+        "true" -> true
+        "false" -> false
+        else -> throw PatchManifestException(
+            "Manifest field '$field' must be true or false but was '${primitive.content}'"
+        )
+    }
 }
 
 private fun JsonObject.requireString(field: String): String {

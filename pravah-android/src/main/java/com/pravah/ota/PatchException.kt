@@ -46,3 +46,12 @@ class IncompatibleRuntimeException(
     "Patch targets Pravah runtime '$manifestRuntimeVersion' " +
         "but this build implements '$supportedRuntimeVersion'"
 )
+
+/**
+ * The patch failed to evaluate, exceeded its time budget, or produced UI that
+ * could not be parsed.
+ */
+class PatchExecutionException(
+    message: String,
+    cause: Throwable? = null,
+) : PatchException(message, cause)

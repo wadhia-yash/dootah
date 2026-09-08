@@ -8,10 +8,12 @@ import org.junit.Test
 internal fun testManifest(
     patchVersion: Int = 4,
     runtimeVersion: String = "1",
+    enabled: Boolean = true,
 ): PatchManifest = PatchManifest(
     schemaVersion = MANIFEST_SCHEMA_VERSION,
     patchVersion = patchVersion,
     runtimeVersion = runtimeVersion,
+    enabled = enabled,
     url = "https://example.test/patch.js",
     sha256 = "ba409aa79ea36249d61490b613164cc202365ea5e796037f1ed8766ef54d62e4",
 )

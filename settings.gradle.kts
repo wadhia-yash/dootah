@@ -26,4 +26,6 @@ rootProject.name = "Pravah"
 include(":app")
 project(":app").projectDir = file("Android-Pravah/app")
 
+include(":pravah-android")
+
 include(":patch-bundle")

@@ -13,6 +13,14 @@ sealed interface UpdateDecision {
     data object UpToDate : UpdateDecision
 
     /**
+     * The publisher has switched Pravah off. No remote patch may be downloaded
+     * or executed until the manifest says otherwise.
+     */
+    data class Disabled(
+        val manifest: PatchManifest,
+    ) : UpdateDecision
+
+    /**
      * A newer patch exists but targets a different runtime, so it must not be
      * downloaded or executed. The installed patch keeps running.
      */
@@ -28,10 +36,14 @@ sealed interface UpdateDecision {
 }
 
 /**
- * Decides whether [manifest] should be downloaded.
+ * Decides what to do about [manifest].
  *
- * Version is checked before compatibility on purpose. If the server is not
- * offering anything newer there is nothing to decide, and reporting
+ * The kill switch is evaluated first and unconditionally: when the publisher has
+ * switched Pravah off, no other property of the manifest can re-enable a
+ * download.
+ *
+ * Version is then checked before compatibility. If the server is not offering
+ * anything newer there is nothing to decide, and reporting
  * [UpdateDecision.Incompatible] for a patch we would not have installed anyway
  * would log a migration warning on every single update check.
  *
@@ -43,6 +55,10 @@ fun decideUpdate(
     installedPatchVersion: Int,
     supportedRuntimeVersion: String = PRAVAH_RUNTIME_VERSION,
 ): UpdateDecision {
+
+    if (!manifest.enabled) {
+        return UpdateDecision.Disabled(manifest)
+    }
 
     if (manifest.patchVersion <= installedPatchVersion) {
         return UpdateDecision.UpToDate

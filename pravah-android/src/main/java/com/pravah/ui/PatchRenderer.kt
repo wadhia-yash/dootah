@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun PatchRenderer(
+internal fun PatchRenderer(
     node: PatchUiNode,
     onAction: (String) -> Unit
 ) {

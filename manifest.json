@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "patchVersion": 3,
   "runtimeVersion": "1",
+  "enabled": true,
   "url": "https://wadhia-yash.github.io/dootah-manifest/patch.js",
   "sha256": "ba409aa79ea36249d61490b613164cc202365ea5e796037f1ed8766ef54d62e4"
 }
