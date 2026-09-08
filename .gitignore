@@ -7,7 +7,7 @@ build/
 .kotlin/
 
 # --- Kotlin/JS ---
-# Resolved lockfile is committed on purpose (reproducible patch builds);
+# Resolved lockfile is committed on purpose (reproducible bundle builds);
 # the generated node_modules tree under build/ is not.
 node_modules/
 
@@ -38,8 +38,8 @@ replay_pid*.log
 *.keystore
 *.jks
 
-# --- Pravah patch signing keys ---
+# --- Dootah bundle signing keys ---
 # The private signing key must NEVER be committed or shipped in the APK.
 *.pem
 *.key
-pravah-signing-key*
+dootah-signing-key*

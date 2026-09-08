@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Declared by the library so an integrating app inherits it through
+        manifest merging: Dootah cannot fetch a manifest or a bundle without it.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+</manifest>

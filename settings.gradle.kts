@@ -16,16 +16,16 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("libs") {
-            from(files("Android-Pravah/gradle/libs.versions.toml"))
+            from(files("Android-Dootah/gradle/libs.versions.toml"))
         }
     }
 }
 
-rootProject.name = "Pravah"
+rootProject.name = "Dootah"
 
 include(":app")
-project(":app").projectDir = file("Android-Pravah/app")
+project(":app").projectDir = file("Android-Dootah/app")
 
-include(":pravah-android")
+include(":dootah-android")
 
-include(":patch-bundle")
+include(":dootah-bundle")

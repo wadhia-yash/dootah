@@ -1,15 +1,15 @@
-tasks.register<Copy>("buildPatch") {
-    dependsOn(":patch-bundle:jsBrowserProductionWebpack")
+tasks.register<Copy>("buildBundle") {
+    dependsOn(":dootah-bundle:jsBrowserProductionWebpack")
 
     from(
-        "patch-bundle/build/kotlin-webpack/js/productionExecutable/patch-bundle.js"
+        "dootah-bundle/build/kotlin-webpack/js/productionExecutable/dootah-bundle.js"
     )
 
     into(
-        "Android-Pravah/app/src/main/assets"
+        "Android-Dootah/app/src/main/assets"
     )
 
     rename {
-        "patch.js"
+        "bundle.js"
     }
 }
