@@ -15,4 +15,15 @@ kotlin {
         // renaming this Gradle project is a breaking change to the bundle
         // protocol and requires updating BUNDLE_MODULE_NAME on the Android side.
     }
+
+    sourceSets {
+        jsMain {
+            dependencies {
+                // The UI DSL, native bridge and JSON escaping live in the
+                // publishable runtime, so this fixture and generated bundles
+                // compile against exactly the same code.
+                implementation(project(":dootah-bundle-runtime"))
+            }
+        }
+    }
 }

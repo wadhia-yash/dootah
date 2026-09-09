@@ -11,6 +11,14 @@ internal const val INTERCEPTION_REPORT_NAME = "dootah-ordering.txt"
  * unambiguous artifact, and grepping build output would couple the tests to log
  * formatting. Entries are sorted so the same input always produces the same
  * report.
+ *
+ * Describes **one compilation, not the module**. Under incremental compilation
+ * an unchanged file is not recompiled, so a report can legitimately say zero
+ * `@Bundlable` functions while the app's classes are all correctly intercepted
+ * -- the previously compiled class is reused, interception included. This is a
+ * diagnostic, never an inventory of what the app contains, and it is why bundle
+ * extraction runs as its own non-incremental pass instead of reading anything
+ * the app's compilation leaves behind.
  */
 internal fun writeInterceptionReport(
     reportDirectory: File,

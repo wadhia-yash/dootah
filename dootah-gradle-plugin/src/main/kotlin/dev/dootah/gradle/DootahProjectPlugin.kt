@@ -40,6 +40,8 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
             if (evaluated.tasks.findByName(DEBUG_COMPILE_TASK) != null) {
                 registerExtractTask(evaluated, DEBUG_COMPILE_TASK)
             }
+
+            registerBundleTask(evaluated)
         }
     }
 
