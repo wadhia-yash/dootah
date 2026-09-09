@@ -17,6 +17,7 @@ class CompilationResult(
     val exitCode: ExitCode,
     val messages: List<String>,
     private val reportDirectory: File,
+    private val outputDirectory: File,
 ) {
 
     val succeeded: Boolean get() = exitCode == ExitCode.OK
@@ -29,6 +30,28 @@ class CompilationResult(
 
     fun messagesContaining(fragment: String): List<String> =
         messages.filter { it.contains(fragment) }
+
+    /**
+     * A compiled class's bytes as latin-1 text.
+     *
+     * Method and string constants live in the constant pool as UTF-8, so
+     * searching this text is a direct way to assert what the compiler actually
+     * emitted -- stronger evidence than the plugin's own report, which only says
+     * what the plugin believed it did.
+     */
+    fun compiledClassText(relativePath: String): String {
+
+        val classFile = File(outputDirectory, relativePath)
+
+        require(classFile.exists()) {
+            val produced = outputDirectory.walkTopDown()
+                .filter { it.extension == "class" }
+                .joinToString("\n") { it.relativeTo(outputDirectory).path }
+            "No class at '$relativePath'. Produced:\n$produced"
+        }
+
+        return String(classFile.readBytes(), Charsets.ISO_8859_1)
+    }
 }
 
 /**
@@ -44,13 +67,16 @@ fun compileWithDootah(
     mode: String = "intercept",
     extraPluginClasspath: List<File> = emptyList(),
     dootahFirst: Boolean = true,
+    withDootahRuntime: Boolean = true,
 ): CompilationResult {
 
     val sourceDirectory = File(workingDirectory, "src").apply { mkdirs() }
     val outputDirectory = File(workingDirectory, "out").apply { mkdirs() }
     val reportDirectory = File(workingDirectory, "reports").apply { mkdirs() }
 
-    val sourceFiles = (composeStubs() + sources).map { source ->
+    val stubs = composeStubs() + if (withDootahRuntime) dootahRuntimeStubs() else emptyList()
+
+    val sourceFiles = (stubs + sources).map { source ->
         File(sourceDirectory, source.name).apply {
             parentFile.mkdirs()
             writeText(source.contents)
@@ -104,6 +130,7 @@ fun compileWithDootah(
         exitCode = exitCode,
         messages = collected.toList(),
         reportDirectory = reportDirectory,
+        outputDirectory = outputDirectory,
     )
 }
 
@@ -129,6 +156,35 @@ private fun composeStubs(): List<SourceFile> = listOf(
             annotation class Composable
 
             interface Composer
+        """.trimIndent(),
+    ),
+)
+
+/**
+ * Stand-ins for the Dootah runtime surface the transform calls into.
+ *
+ * Stubs rather than the real `dootah-android` artifact so these tests do not
+ * need an Android AAR or a Compose release on the classpath. The transform
+ * resolves this surface by fully qualified name, which is what is under test.
+ */
+private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
+    SourceFile(
+        name = "DootahRuntimeStubs.kt",
+        contents = """
+            package com.dootah.ui
+
+            import androidx.compose.runtime.Composable
+
+            class DootahScreenState(val screenId: String)
+
+            @Composable
+            fun rememberDootahScreen(screenId: String): DootahScreenState =
+                DootahScreenState(screenId)
+
+            fun hasRemoteImplementation(state: DootahScreenState): Boolean = false
+
+            @Composable
+            fun DootahRemoteContent(state: DootahScreenState) {}
         """.trimIndent(),
     ),
 )
