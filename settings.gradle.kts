@@ -29,3 +29,8 @@ project(":app").projectDir = file("Android-Dootah/app")
 include(":dootah-android")
 
 include(":dootah-bundle")
+
+// Compiler Milestone 1: annotation, compiler plugin, Gradle plugin.
+include(":dootah-annotations")
+include(":dootah-compiler-plugin")
+include(":dootah-gradle-plugin")
