@@ -1,9 +1,11 @@
 package dev.dootah.compiler
 
+import dev.dootah.compiler.fir.DootahFirExtensionRegistrar
 import dev.dootah.compiler.ir.DootahIrExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
+import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import java.io.File
@@ -44,8 +46,18 @@ class DootahCompilerPluginRegistrar : CompilerPluginRegistrar() {
                     )
                 )
 
-            // Registered in Spike 3.
-            DootahMode.EXTRACT -> Unit
+            DootahMode.EXTRACT -> {
+
+                // Extraction has nowhere to write without one, and silently
+                // producing no bundle would look like a screen that simply
+                // cannot be patched.
+                val directory = reportDirectory
+                    ?: error("Dootah extraction requires the reportDir option")
+
+                FirExtensionRegistrarAdapter.registerExtension(
+                    DootahFirExtensionRegistrar(directory)
+                )
+            }
         }
     }
 }

@@ -28,6 +28,18 @@ class CompilationResult(
             .takeIf { it.exists() }
             ?.readText()
 
+    /** The extraction pass's record for one screen, or null when it found none. */
+    fun extractionReport(screenId: String): String? {
+
+        val flattened = screenId.map { character ->
+            if (character.isLetterOrDigit() || character == '-') character else '_'
+        }.joinToString("")
+
+        return File(reportDirectory, "extract/$flattened.txt")
+            .takeIf { it.exists() }
+            ?.readText()
+    }
+
     fun messagesContaining(fragment: String): List<String> =
         messages.filter { it.contains(fragment) }
 
@@ -135,11 +147,14 @@ fun compileWithDootah(
 }
 
 /**
- * Minimal stand-ins for the Compose declarations the plugin reasons about.
+ * Minimal stand-ins for the Compose declarations the plugin reasons about:
+ * the annotation and composer it detects lowering by, and the four composables
+ * Milestone 1 supports.
  *
  * Stubs rather than the real artifacts so these tests stay independent of a
- * Compose release: the plugin identifies both by fully qualified name, which is
- * precisely what is being tested.
+ * Compose release and of Android packaging. The plugin identifies all of them by
+ * fully qualified name, which is precisely what is being tested -- and the same
+ * names are verified against the real artifacts by the Cahier run.
  */
 private fun composeStubs(): List<SourceFile> = listOf(
     SourceFile(
@@ -156,6 +171,37 @@ private fun composeStubs(): List<SourceFile> = listOf(
             annotation class Composable
 
             interface Composer
+        """.trimIndent(),
+    ),
+    SourceFile(
+        name = "ComposeLayoutStubs.kt",
+        contents = """
+            package androidx.compose.foundation.layout
+
+            import androidx.compose.runtime.Composable
+
+            interface ColumnScope
+            interface RowScope
+
+            @Composable
+            fun Column(content: @Composable ColumnScope.() -> Unit) {}
+
+            @Composable
+            fun Row(content: @Composable RowScope.() -> Unit) {}
+        """.trimIndent(),
+    ),
+    SourceFile(
+        name = "ComposeMaterialStubs.kt",
+        contents = """
+            package androidx.compose.material3
+
+            import androidx.compose.runtime.Composable
+
+            @Composable
+            fun Text(text: String) {}
+
+            @Composable
+            fun Button(onClick: () -> Unit, content: @Composable () -> Unit) {}
         """.trimIndent(),
     ),
 )

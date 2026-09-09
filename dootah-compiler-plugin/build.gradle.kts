@@ -14,6 +14,10 @@ kotlin {
         // here rather than at every use site keeps the opt-in a property of
         // the module, which is where the version coupling actually lives.
         optIn.add("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")
+
+        // The FIR checker API declares its receivers as context parameters,
+        // so implementing it requires the language feature.
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 

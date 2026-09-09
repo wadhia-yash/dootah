@@ -33,6 +33,14 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         rejectComposeDeclaredFirst(target)
         gateKotlinVersion(target)
         addAnnotationDependency(target)
+
+        // Milestone 1 wires the debug variant only. Per-variant registration
+        // follows once the bundle build is in place.
+        target.afterEvaluate { evaluated ->
+            if (evaluated.tasks.findByName(DEBUG_COMPILE_TASK) != null) {
+                registerExtractTask(evaluated, DEBUG_COMPILE_TASK)
+            }
+        }
     }
 
     /**
@@ -115,5 +123,7 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
     private companion object {
         /** Used when running from a build output that carries no jar manifest. */
         const val FALLBACK_VERSION = "0.1.0-SNAPSHOT"
+
+        const val DEBUG_COMPILE_TASK = "compileDebugKotlin"
     }
 }
