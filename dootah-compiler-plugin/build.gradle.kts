@@ -21,7 +21,14 @@ kotlin {
     }
 }
 
+// The Kotlin/JS standard library, as the klib a bundle compiles against.
+val jsStdlib: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
 dependencies {
+    jsStdlib("org.jetbrains.kotlin:kotlin-stdlib-js:${libs.versions.kotlin.get()}@klib")
     // Fixtures compile against the real annotation, not a stub of it.
     testImplementation(project(":dootah-annotations"))
     // compileOnly on purpose: the host compiler supplies these classes at run
@@ -43,9 +50,21 @@ tasks.test {
     // would skip the service-loader registration that wiring depends on.
     val pluginJar = tasks.jar.flatMap { it.archiveFile }
     inputs.file(pluginJar)
+
+    // Generated bundle Kotlin is compiled against the real bundle runtime
+    // sources, so the test proves the generator's output works with the code it
+    // will actually ship beside -- not with a stand-in.
+    val runtimeSources = rootProject.file("dootah-bundle-runtime/src/jsMain/kotlin")
+    inputs.dir(runtimeSources)
+    inputs.files(jsStdlib)
+
     jvmArgumentProviders.add(
         CommandLineArgumentProvider {
-            listOf("-Ddootah.plugin.jar=${pluginJar.get().asFile.absolutePath}")
+            listOf(
+                "-Ddootah.plugin.jar=${pluginJar.get().asFile.absolutePath}",
+                "-Ddootah.js.stdlib=${jsStdlib.asPath}",
+                "-Ddootah.runtime.sources=${runtimeSources.absolutePath}",
+            )
         }
     )
     useJUnit()

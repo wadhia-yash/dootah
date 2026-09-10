@@ -18,6 +18,7 @@ class CompilationResult(
     val messages: List<String>,
     private val reportDirectory: File,
     private val outputDirectory: File,
+    val generatedDirectory: File,
 ) {
 
     val succeeded: Boolean get() = exitCode == ExitCode.OK
@@ -39,6 +40,27 @@ class CompilationResult(
             .takeIf { it.exists() }
             ?.readText()
     }
+
+    /** Every generated bundle source file, keyed by name. */
+    fun generatedSources(): Map<String, String> =
+        generatedDirectory.walkTopDown()
+            .filter { it.isFile && it.extension == "kt" }
+            .associate { it.name to it.readText() }
+
+    /** The generated screen implementation, which there is exactly one of. */
+    fun generatedScreen(): String =
+        generatedSources()
+            .entries
+            .single { it.key.startsWith("DootahScreen_") }
+            .value
+
+    /** Why the compiler refused to bundle a screen, as the build would report it. */
+    fun rejectionReport(): String? =
+        File(reportDirectory, "unsupported")
+            .takeIf { it.isDirectory }
+            ?.listFiles()
+            ?.singleOrNull()
+            ?.readText()
 
     fun messagesContaining(fragment: String): List<String> =
         messages.filter { it.contains(fragment) }
@@ -85,6 +107,7 @@ fun compileWithDootah(
     val sourceDirectory = File(workingDirectory, "src").apply { mkdirs() }
     val outputDirectory = File(workingDirectory, "out").apply { mkdirs() }
     val reportDirectory = File(workingDirectory, "reports").apply { mkdirs() }
+    val generatedDirectory = File(workingDirectory, "generated").apply { mkdirs() }
 
     val stubs = composeStubs() + if (withDootahRuntime) dootahRuntimeStubs() else emptyList()
 
@@ -113,6 +136,7 @@ fun compileWithDootah(
         pluginOptions = arrayOf(
             "plugin:dev.dootah:mode=$mode",
             "plugin:dev.dootah:reportDir=${reportDirectory.absolutePath}",
+            "plugin:dev.dootah:generatedDir=${generatedDirectory.absolutePath}",
         )
     }
 
@@ -143,6 +167,7 @@ fun compileWithDootah(
         messages = collected.toList(),
         reportDirectory = reportDirectory,
         outputDirectory = outputDirectory,
+        generatedDirectory = generatedDirectory,
     )
 }
 
@@ -174,6 +199,16 @@ private fun composeStubs(): List<SourceFile> = listOf(
         """.trimIndent(),
     ),
     SourceFile(
+        name = "ComposeUiStubs.kt",
+        contents = """
+            package androidx.compose.ui
+
+            interface Modifier {
+                companion object : Modifier
+            }
+        """.trimIndent(),
+    ),
+    SourceFile(
         name = "ComposeLayoutStubs.kt",
         contents = """
             package androidx.compose.foundation.layout
@@ -196,9 +231,16 @@ private fun composeStubs(): List<SourceFile> = listOf(
             package androidx.compose.material3
 
             import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
 
             @Composable
             fun Text(text: String) {}
+
+            // The real Text takes a modifier. Kept here so a styled call
+            // resolves to Compose's Text and is refused by lowering, rather
+            // than failing to compile in the fixture.
+            @Composable
+            fun Text(text: String, modifier: Modifier) {}
 
             @Composable
             fun Button(onClick: () -> Unit, content: @Composable () -> Unit) {}
