@@ -1,6 +1,10 @@
 package dev.dootah.gradle.tasks
 
+import dev.dootah.gradle.internal.describeRejections
+import dev.dootah.gradle.internal.readLoweredScreens
+import dev.dootah.gradle.internal.readRejectedConstructs
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -50,8 +54,19 @@ abstract class DootahExtractTask @Inject constructor(
     @get:Input
     abstract val jvmTarget: Property<String>
 
+    /** Diagnostics and per-screen metadata. */
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
+
+    /**
+     * Generated bundle Kotlin.
+     *
+     * This is the bundle build's source directory, so extraction writes straight
+     * into what the bundle compilation reads. Copying it afterwards would add a
+     * step whose only job is to be forgotten.
+     */
+    @get:OutputDirectory
+    abstract val generatedSourceDirectory: DirectoryProperty
 
     @TaskAction
     fun extract() {
@@ -59,6 +74,13 @@ abstract class DootahExtractTask @Inject constructor(
         val output = outputDirectory.get().asFile
         output.deleteRecursively()
         output.mkdirs()
+
+        // Cleared so a screen that stops being @Bundlable, or stops being
+        // supported, cannot leave last run's generated source behind to be
+        // compiled into the next bundle.
+        val generated = generatedSourceDirectory.get().asFile
+        generated.deleteRecursively()
+        generated.mkdirs()
 
         val throwawayClasses = temporaryDir.resolve("classes").apply {
             deleteRecursively()
@@ -81,6 +103,7 @@ abstract class DootahExtractTask @Inject constructor(
                 sources = kotlinSources.map { it.absolutePath },
                 classesOutput = throwawayClasses.absolutePath,
                 reportDirectory = output.absolutePath,
+                generatedDirectory = generated.absolutePath,
             ).joinToString("\n")
         )
 
@@ -91,12 +114,52 @@ abstract class DootahExtractTask @Inject constructor(
             spec.mainClass.set(KOTLIN_CLI_MAIN_CLASS)
             spec.args("@${argumentFile.absolutePath}")
         }
+
+        reportOutcome(output)
+    }
+
+    /**
+     * Turns what the compiler recorded into a build result.
+     *
+     * A screen Dootah cannot bundle fails the build rather than being skipped.
+     * Skipping would publish a bundle missing that screen, and the app would
+     * quietly render its native version -- correct behaviour arrived at for a
+     * reason nobody was told about.
+     */
+    private fun reportOutcome(reportDirectory: java.io.File) {
+
+        val rejections = readRejectedConstructs(reportDirectory)
+        if (rejections.isNotEmpty()) {
+            throw GradleException(describeRejections(rejections))
+        }
+
+        val screens = readLoweredScreens(reportDirectory)
+
+        when (screens.size) {
+
+            0 -> throw GradleException(
+                "Dootah found no @Bundlable functions in this module.\n" +
+                    "Mark a zero-argument @Composable function with @Bundlable to " +
+                    "make it updatable over the air."
+            )
+
+            1 -> logger.lifecycle("Dootah lowered ${screens.single().screenId}")
+
+            else -> throw GradleException(
+                "Dootah currently bundles one @Bundlable screen per app, but found " +
+                    "${screens.size}:\n" +
+                    screens.joinToString("\n") { "  ${it.screenId}" } + "\n" +
+                    "Leave one @Bundlable and keep the others native until the " +
+                    "multi-screen bundle format lands."
+            )
+        }
     }
 
     private fun buildCompilerArguments(
         sources: List<String>,
         classesOutput: String,
         reportDirectory: String,
+        generatedDirectory: String,
     ): List<String> = buildList {
 
         add("-no-stdlib")
@@ -122,6 +185,8 @@ abstract class DootahExtractTask @Inject constructor(
         add("plugin:dev.dootah:mode=extract")
         add("-P")
         add("plugin:dev.dootah:reportDir=$reportDirectory")
+        add("-P")
+        add("plugin:dev.dootah:generatedDir=$generatedDirectory")
 
         addAll(sources)
     }

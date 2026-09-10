@@ -29,6 +29,8 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
             .create("dootah", DootahExtension::class.java)
 
         extension.runtimeVersion.convention("1")
+        extension.bundleVersion.convention(1)
+        extension.bundleUrl.convention("https://example.invalid/bundle.js")
 
         rejectComposeDeclaredFirst(target)
         gateKotlinVersion(target)
@@ -38,10 +40,13 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         // follows once the bundle build is in place.
         target.afterEvaluate { evaluated ->
             if (evaluated.tasks.findByName(DEBUG_COMPILE_TASK) != null) {
-                registerExtractTask(evaluated, DEBUG_COMPILE_TASK)
-            }
 
-            registerBundleTask(evaluated)
+                val generatedSources = evaluated.layout.buildDirectory
+                    .dir(GENERATED_SOURCES_PATH).get()
+
+                registerExtractTask(evaluated, DEBUG_COMPILE_TASK, generatedSources)
+                registerBundleTask(evaluated, EXTRACT_TASK, generatedSources)
+            }
         }
     }
 
@@ -127,5 +132,9 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         const val FALLBACK_VERSION = "0.1.0-SNAPSHOT"
 
         const val DEBUG_COMPILE_TASK = "compileDebugKotlin"
+        const val EXTRACT_TASK = "dootahExtract"
+
+        /** Where the compiler writes bundle Kotlin, and the bundle task reads it. */
+        const val GENERATED_SOURCES_PATH = "dootah/generated/jsMain/kotlin"
     }
 }

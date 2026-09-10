@@ -40,13 +40,4 @@ class KotlinVersionGateTest {
         assertTrue(message, message.contains("""id("dev.dootah")"""))
         assertTrue(message, message.contains("org.jetbrains.kotlin.plugin.compose"))
     }
-
-    @Test
-    fun `the missing settings plugin failure names the line to add`() {
-
-        val message = missingSettingsPluginMessage()
-
-        assertTrue(message, message.contains("""id("dev.dootah.settings")"""))
-        assertTrue(message, message.contains("settings.gradle.kts"))
-    }
 }

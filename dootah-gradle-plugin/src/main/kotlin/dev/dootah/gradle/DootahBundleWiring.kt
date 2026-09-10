@@ -1,47 +1,59 @@
 package dev.dootah.gradle
 
-import dev.dootah.gradle.internal.BUNDLE_BUILD_NAME
-import dev.dootah.gradle.internal.BUNDLE_MODULE_NAME
 import dev.dootah.gradle.tasks.DootahBundleTask
-import org.gradle.api.GradleException
 import org.gradle.api.Project
-import java.io.File
 
-private const val WEBPACK_TASK = ":jsBrowserProductionWebpack"
+private const val BUNDLE_RUNTIME_CONFIGURATION = "dootahBundleRuntime"
 
 /**
- * Wires `dootahBundle` to the bundle build the settings plugin added.
+ * Registers `dootahBundle`, which compiles the generated bundle Kotlin.
  *
- * Fails with the missing line rather than silently registering no task: a build
- * where `dootahBundle` simply does not exist is far harder to diagnose than one
- * that says what to add.
+ * The bundle's Kotlin/JS dependencies are requested as `@klib` artifacts
+ * directly. Resolving them through Gradle metadata would need a configuration
+ * carrying Kotlin/JS attributes, which is a lot of machinery for two fixed
+ * files whose classified artifacts can simply be named.
  */
-internal fun registerBundleTask(project: Project) {
+internal fun registerBundleTask(
+    project: Project,
+    extractTaskName: String,
+    generatedSourceDirectory: org.gradle.api.file.Directory,
+) {
 
-    val bundleBuild = project.gradle.includedBuilds
-        .firstOrNull { it.name == BUNDLE_BUILD_NAME }
-        ?: throw GradleException(missingSettingsPluginMessage())
+    val bundleRuntime = project.configurations
+        .maybeCreate(BUNDLE_RUNTIME_CONFIGURATION).apply {
+            isCanBeConsumed = false
+            isCanBeResolved = true
+        }
+
+    project.dependencies.add(
+        BUNDLE_RUNTIME_CONFIGURATION,
+        "org.jetbrains.kotlin:kotlin-stdlib-js:$SUPPORTED_KOTLIN_VERSION@klib",
+    )
+    project.dependencies.add(
+        BUNDLE_RUNTIME_CONFIGURATION,
+        "dev.dootah:dootah-bundle-runtime-js:$DOOTAH_VERSION@klib",
+    )
+
+    val extension = project.extensions.getByType(DootahExtension::class.java)
 
     project.tasks.register("dootahBundle", DootahBundleTask::class.java) { task ->
 
         task.group = "dootah"
         task.description = "Builds the Dootah bundle from this app's @Bundlable functions"
 
-        task.dependsOn(project.gradle.includedBuild(BUNDLE_BUILD_NAME).task(WEBPACK_TASK))
+        // Same build, so this ordering is guaranteed rather than hoped for.
+        task.dependsOn(extractTaskName)
 
-        task.compiledBundle.set(
-            File(
-                bundleBuild.projectDir,
-                "build/kotlin-webpack/js/productionExecutable/$BUNDLE_MODULE_NAME.js",
-            )
+        task.generatedSourceDirectory.set(generatedSourceDirectory)
+        task.kotlinCompilerClasspath.from(
+            project.configurations.getByName(KOTLIN_COMPILER_CONFIGURATION)
         )
+        task.bundleRuntimeClasspath.from(bundleRuntime)
+
+        task.runtimeVersion.set(extension.runtimeVersion)
+        task.bundleVersion.set(extension.bundleVersion)
+        task.bundleUrl.set(extension.bundleUrl)
+
         task.outputDirectory.set(project.layout.buildDirectory.dir("dootah/out"))
     }
 }
-
-internal fun missingSettingsPluginMessage(): String =
-    "Dootah's bundle build is missing, so the bundle cannot be compiled.\n" +
-        "Add the Dootah settings plugin to settings.gradle.kts:\n" +
-        "    plugins {\n" +
-        "        id(\"dev.dootah.settings\") version \"$DOOTAH_VERSION\"\n" +
-        "    }"

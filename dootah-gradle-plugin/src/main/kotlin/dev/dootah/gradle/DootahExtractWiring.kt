@@ -13,7 +13,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
  */
 private const val KSP_PLUGIN_MARKER = "symbol-processing"
 
-private const val COMPILER_CLASSPATH_CONFIGURATION = "dootahKotlinCompiler"
+/** Shared with the bundle task, which runs the same compiler. */
+internal const val KOTLIN_COMPILER_CONFIGURATION = "dootahKotlinCompiler"
 
 /**
  * Registers `dootahExtract` against a host app's Kotlin compilation.
@@ -22,16 +23,20 @@ private const val COMPILER_CLASSPATH_CONFIGURATION = "dootahKotlinCompiler"
  * extraction sees the same sources and the same classpath the app itself is
  * compiled with.
  */
-internal fun registerExtractTask(project: Project, compileTaskName: String) {
+internal fun registerExtractTask(
+    project: Project,
+    compileTaskName: String,
+    generatedSourceDirectory: org.gradle.api.file.Directory,
+) {
 
     val compilerClasspath = project.configurations
-        .maybeCreate(COMPILER_CLASSPATH_CONFIGURATION).apply {
+        .maybeCreate(KOTLIN_COMPILER_CONFIGURATION).apply {
             isCanBeConsumed = false
             isCanBeResolved = true
         }
 
     project.dependencies.add(
-        COMPILER_CLASSPATH_CONFIGURATION,
+        KOTLIN_COMPILER_CONFIGURATION,
         "org.jetbrains.kotlin:kotlin-compiler-embeddable:$SUPPORTED_KOTLIN_VERSION",
     )
 
@@ -62,5 +67,6 @@ internal fun registerExtractTask(project: Project, compileTaskName: String) {
             }
         )
         task.outputDirectory.set(project.layout.buildDirectory.dir("dootah/extract"))
+        task.generatedSourceDirectory.set(generatedSourceDirectory)
     }
 }

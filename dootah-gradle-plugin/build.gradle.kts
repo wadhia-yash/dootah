@@ -29,12 +29,6 @@ gradlePlugin {
             displayName = "Dootah"
             description = "Over-the-air updates for @Bundlable Compose functions"
         }
-        create("dootahSettings") {
-            id = "dev.dootah.settings"
-            implementationClass = "dev.dootah.gradle.DootahSettingsPlugin"
-            displayName = "Dootah settings"
-            description = "Adds the Kotlin/JS build that produces Dootah bundles"
-        }
     }
 }
 

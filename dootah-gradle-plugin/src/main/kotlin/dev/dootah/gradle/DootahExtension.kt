@@ -14,10 +14,27 @@ abstract class DootahExtension {
     abstract val runtimeVersion: Property<String>
 
     /**
+     * The version of the bundle being built.
+     *
+     * The installed app only accepts a bundle strictly newer than the one it
+     * has, so this has to be raised for each publish. It is explicit rather than
+     * derived: a version that moved on its own could roll a device backwards or
+     * silently skip a release.
+     */
+    abstract val bundleVersion: Property<Int>
+
+    /**
+     * The HTTPS URL the published `bundle.js` will be served from.
+     *
+     * Written into the generated manifest, which is what the installed app
+     * follows to download it.
+     */
+    abstract val bundleUrl: Property<String>
+
+    /**
      * Directory for Dootah compiler reports.
      *
-     * Present so the Phase 0 spikes and their tests can assert on what the
-     * compiler observed. Not part of the eventual product surface.
+     * Present so builds and tests can inspect what the compiler observed.
      */
     abstract val reportDirectory: Property<String>
 }

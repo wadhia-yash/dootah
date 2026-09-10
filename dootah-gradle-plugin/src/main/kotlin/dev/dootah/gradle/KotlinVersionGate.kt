@@ -38,3 +38,13 @@ internal fun composeDeclaredFirstMessage(): String =
         "        id(\"dev.dootah\")\n" +
         "        id(\"org.jetbrains.kotlin.plugin.compose\")\n" +
         "    }"
+
+/**
+ * The Dootah release these plugins belong to.
+ *
+ * Read from the jar so the compiler plugin, the annotation and the bundle
+ * runtime cannot drift apart from the Gradle plugin that wires them.
+ */
+internal val DOOTAH_VERSION: String
+    get() = DootahProjectPlugin::class.java.`package`?.implementationVersion
+        ?: "0.1.0-SNAPSHOT"
