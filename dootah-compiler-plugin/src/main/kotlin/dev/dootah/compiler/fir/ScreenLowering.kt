@@ -378,7 +378,7 @@ internal class ScreenLowering(
 
         val known = name != null && locals.any { it.name == name }
 
-        if (!known) {
+        if (name == null || !known) {
             reject(
                 access.source?.startOffset,
                 "the reference `${name ?: "unknown"}`",
@@ -387,7 +387,7 @@ internal class ScreenLowering(
             return null
         }
 
-        return BundleExpression.LocalReference(name!!)
+        return BundleExpression.LocalReference(name)
     }
 
     private fun lowerInterpolation(call: FirStringConcatenationCall): BundleExpression? {

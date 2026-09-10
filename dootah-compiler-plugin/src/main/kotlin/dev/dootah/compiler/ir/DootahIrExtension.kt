@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import java.io.File
 
@@ -55,22 +54,24 @@ internal class DootahIrExtension(
     }
 
     private fun intercept(
-        bundlable: List<IrSimpleFunction>,
+        bundlable: List<BundlableFunction>,
         pluginContext: IrPluginContext,
-    ): List<String> {
+    ): List<String> = bundlable
+        .groupBy { it.file }
+        .flatMap { (file, screens) ->
 
-        val symbols = DootahRuntimeSymbols.resolve(pluginContext)
+            val symbols = DootahRuntimeSymbols.resolve(pluginContext, file)
 
-        if (symbols == null) {
-            messageCollector.report(CompilerMessageSeverity.ERROR, missingRuntimeMessage())
-            return emptyList()
+            if (symbols == null) {
+                messageCollector.report(CompilerMessageSeverity.ERROR, missingRuntimeMessage())
+                return emptyList()
+            }
+
+            val transformer = InterceptionTransformer(pluginContext, symbols)
+
+            screens.mapNotNull { screen -> transformer.transform(screen.function) }
         }
-
-        val transformer = InterceptionTransformer(pluginContext, symbols)
-
-        return bundlable.mapNotNull { function -> transformer.transform(function) }
-    }
 }
 
-private fun IrSimpleFunction.reportName(): String =
-    fqNameWhenAvailable?.asString() ?: name.asString()
+private fun BundlableFunction.reportName(): String =
+    function.fqNameWhenAvailable?.asString() ?: function.name.asString()

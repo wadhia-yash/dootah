@@ -1,6 +1,7 @@
 package dev.dootah.compiler.ir
 
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.FqName
@@ -23,12 +24,20 @@ internal class DootahRuntimeSymbols private constructor(
 
     companion object {
 
-        /** Null when the Dootah runtime is not on the compilation classpath. */
-        fun resolve(pluginContext: IrPluginContext): DootahRuntimeSymbols? {
+        /**
+         * Null when the Dootah runtime is not on the compilation classpath.
+         *
+         * Resolution is scoped to [fromFile] -- the file whose screens are about
+         * to be rewritten -- because the supported API resolves names as they
+         * are visible from a given file.
+         */
+        fun resolve(pluginContext: IrPluginContext, fromFile: IrFile): DootahRuntimeSymbols? {
 
-            val rememberScreen = pluginContext.singleFunction("rememberDootahScreen")
-            val hasRemote = pluginContext.singleFunction("hasRemoteImplementation")
-            val renderRemote = pluginContext.singleFunction("DootahRemoteContent")
+            val finder = pluginContext.finderForSource(fromFile)
+
+            val rememberScreen = finder.singleFunction("rememberDootahScreen")
+            val hasRemote = finder.singleFunction("hasRemoteImplementation")
+            val renderRemote = finder.singleFunction("DootahRemoteContent")
 
             if (rememberScreen == null || hasRemote == null || renderRemote == null) return null
 
@@ -39,8 +48,9 @@ internal class DootahRuntimeSymbols private constructor(
             )
         }
 
-        private fun IrPluginContext.singleFunction(name: String): IrSimpleFunctionSymbol? =
-            referenceFunctions(
+        private fun org.jetbrains.kotlin.backend.common.extensions.DeclarationFinder
+            .singleFunction(name: String): IrSimpleFunctionSymbol? =
+            findFunctions(
                 CallableId(DOOTAH_UI_PACKAGE, Name.identifier(name))
             ).singleOrNull()
     }

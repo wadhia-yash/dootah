@@ -48,12 +48,12 @@ internal enum class ComposeOrdering {
  * so their state is the one that matters.
  */
 internal fun composeOrderingOf(
-    bundlableFunctions: List<IrSimpleFunction>,
+    bundlableFunctions: List<BundlableFunction>,
 ): ComposeOrdering {
 
     if (bundlableFunctions.isEmpty()) return ComposeOrdering.INCONCLUSIVE
 
-    val anyAlreadyLowered = bundlableFunctions.any { it.carriesComposerParameter() }
+    val anyAlreadyLowered = bundlableFunctions.any { it.function.carriesComposerParameter() }
 
     return if (anyAlreadyLowered) ComposeOrdering.AFTER_COMPOSE
     else ComposeOrdering.BEFORE_COMPOSE
