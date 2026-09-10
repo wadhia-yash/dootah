@@ -1,6 +1,7 @@
 package com.dootah.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 
 /**
  * Marks the surface Dootah's compiler plugin generates calls to.
@@ -45,6 +46,17 @@ class DootahScreenState internal constructor(
 fun rememberDootahScreen(screenId: String): DootahScreenState {
 
     val host = rememberDootahHostState()
+
+    // An intercepted screen looks for a newer implementation when it appears.
+    // Without this an app would have to call Dootah itself to ever receive an
+    // update, which is the manual wiring the compiler exists to remove.
+    //
+    // The check runs after the first load, so the screen draws immediately from
+    // whatever is already on the device and swaps only once something newer has
+    // been downloaded and verified.
+    LaunchedEffect(host) {
+        host.checkForUpdate()
+    }
 
     return androidx.compose.runtime.remember(screenId, host) {
         DootahScreenState(screenId = screenId, host = host)
