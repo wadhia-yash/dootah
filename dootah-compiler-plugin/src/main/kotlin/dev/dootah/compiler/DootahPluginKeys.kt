@@ -38,7 +38,11 @@ object DootahConfigurationKeys {
     val MODE: CompilerConfigurationKey<DootahMode> =
         CompilerConfigurationKey.create("dootah mode")
 
-    /** Where spike/diagnostic reports are written. Absent in normal builds. */
+    /** Where diagnostics and per-screen metadata are written. */
     val REPORT_DIR: CompilerConfigurationKey<String> =
         CompilerConfigurationKey.create("dootah report directory")
+
+    /** Where generated bundle Kotlin is written. Extraction only. */
+    val GENERATED_DIR: CompilerConfigurationKey<String> =
+        CompilerConfigurationKey.create("dootah generated source directory")
 }

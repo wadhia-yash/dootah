@@ -31,6 +31,12 @@ class DootahCommandLineProcessor : CommandLineProcessor {
             description = "Directory for Dootah compiler reports",
             required = false,
         ),
+        CliOption(
+            optionName = OPTION_GENERATED_DIR,
+            valueDescription = "<path>",
+            description = "Directory for generated Dootah bundle sources",
+            required = false,
+        ),
     )
 
     override fun processOption(
@@ -52,6 +58,9 @@ class DootahCommandLineProcessor : CommandLineProcessor {
             OPTION_REPORT_DIR ->
                 configuration.put(DootahConfigurationKeys.REPORT_DIR, value)
 
+            OPTION_GENERATED_DIR ->
+                configuration.put(DootahConfigurationKeys.GENERATED_DIR, value)
+
             else -> throw CliOptionProcessingException(
                 "Unknown Dootah compiler option '${option.optionName}'"
             )
@@ -61,5 +70,6 @@ class DootahCommandLineProcessor : CommandLineProcessor {
     private companion object {
         const val OPTION_MODE = "mode"
         const val OPTION_REPORT_DIR = "reportDir"
+        const val OPTION_GENERATED_DIR = "generatedDir"
     }
 }

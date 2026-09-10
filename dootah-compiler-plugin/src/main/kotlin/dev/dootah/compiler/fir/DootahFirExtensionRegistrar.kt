@@ -19,21 +19,25 @@ import java.io.File
  */
 internal class DootahFirExtensionRegistrar(
     private val reportDirectory: File,
+    private val generatedDirectory: File?,
 ) : FirExtensionRegistrar() {
 
     override fun ExtensionRegistrarContext.configurePlugin() {
-        +{ session: FirSession -> DootahCheckersExtension(session, reportDirectory) }
+        +{ session: FirSession ->
+            DootahCheckersExtension(session, reportDirectory, generatedDirectory)
+        }
     }
 }
 
 private class DootahCheckersExtension(
     session: FirSession,
     reportDirectory: File,
+    generatedDirectory: File?,
 ) : FirAdditionalCheckersExtension(session) {
 
     override val declarationCheckers: DeclarationCheckers = object : DeclarationCheckers() {
 
         override val simpleFunctionCheckers: Set<FirDeclarationChecker<FirNamedFunction>> =
-            setOf(BundlableExtractionChecker(reportDirectory))
+            setOf(BundlableExtractionChecker(reportDirectory, generatedDirectory))
     }
 }

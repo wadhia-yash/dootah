@@ -55,7 +55,12 @@ class DootahCompilerPluginRegistrar : CompilerPluginRegistrar() {
                     ?: error("Dootah extraction requires the reportDir option")
 
                 FirExtensionRegistrarAdapter.registerExtension(
-                    DootahFirExtensionRegistrar(directory)
+                    DootahFirExtensionRegistrar(
+                        reportDirectory = directory,
+                        generatedDirectory = configuration
+                            .get(DootahConfigurationKeys.GENERATED_DIR)
+                            ?.let(::File),
+                    )
                 )
             }
         }
