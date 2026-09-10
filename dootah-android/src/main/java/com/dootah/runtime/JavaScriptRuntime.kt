@@ -127,14 +127,45 @@ internal class JavaScriptRuntime(
         val startedIsolate = createIsolate(startedSandbox)
         isolate = startedIsolate
 
-        if (!startedSandbox.isFeatureSupported(JavaScriptSandbox.JS_FEATURE_MESSAGE_PORTS)) {
-            throw BundleExecutionException(
-                "This device's sandbox does not support message ports, " +
-                    "so the Dootah native bridge cannot be established"
+        installNativeBridge(startedSandbox, startedIsolate)
+
+        return startedIsolate
+    }
+
+    /**
+     * Gives the bundle its one route to native code, when the device can carry
+     * one.
+     *
+     * Message ports are not available on every WebView, and a bundle that never
+     * calls native does not need them. Refusing to run any bundle without them
+     * denied over-the-air updates to devices over a capability the bundle was
+     * not going to use.
+     *
+     * So the bridge is best effort. Where it cannot be established the bundle
+     * gets a stub that throws, and a bundle that does try to reach native fails
+     * on that call and falls back to native content -- which is the same outcome
+     * as before, but only for the bundles it actually applies to.
+     *
+     * This narrows what a bundle can do; it never widens it. The route to
+     * Android is still the bridge and nothing else.
+     */
+    private suspend fun installNativeBridge(
+        sandbox: JavaScriptSandbox,
+        isolate: JavaScriptIsolate,
+    ) {
+        if (!sandbox.isFeatureSupported(JavaScriptSandbox.JS_FEATURE_MESSAGE_PORTS)) {
+
+            Log.w(
+                DOOTAH_LOG_TAG,
+                "sandbox has no message ports; bundles on this device cannot reach " +
+                    "native capabilities, but can still render",
             )
+
+            isolate.evaluateJavaScriptAsync(BRIDGE_UNAVAILABLE_BOOTSTRAP).await()
+            return
         }
 
-        nativePort = startedIsolate.createMessageChannel(
+        nativePort = isolate.createMessageChannel(
             NATIVE_PORT_NAME,
             ContextCompat.getMainExecutor(context),
             object : MessagePortClient {
@@ -146,9 +177,7 @@ internal class JavaScriptRuntime(
             },
         )
 
-        startedIsolate.evaluateJavaScriptAsync(BRIDGE_BOOTSTRAP).await()
-
-        return startedIsolate
+        isolate.evaluateJavaScriptAsync(BRIDGE_BOOTSTRAP).await()
     }
 
     private fun createIsolate(sandbox: JavaScriptSandbox): JavaScriptIsolate {
@@ -185,6 +214,25 @@ internal class JavaScriptRuntime(
  * bundle can do is a deliberate change to [com.dootah.bridge.NativeBridge], never
  * a side effect of loading a new bundle.
  */
+/**
+ * Stands in for the bridge on a device that cannot provide one.
+ *
+ * A function that throws rather than a missing one, so a bundle reaching for
+ * native code produces an error naming the reason instead of "undefined is not
+ * a function".
+ */
+private val BRIDGE_UNAVAILABLE_BOOTSTRAP = """
+    globalThis.__dootahNativeCall =
+        function(message) {
+            throw new Error(
+                "Dootah: this device's JavaScript sandbox has no message ports, " +
+                "so native capabilities are unavailable to this bundle"
+            );
+        };
+
+    "bridge-unavailable";
+""".trimIndent()
+
 private val BRIDGE_BOOTSTRAP = """
     globalThis.__dootahNativePort =
         android.getNamedPort("$NATIVE_PORT_NAME");
