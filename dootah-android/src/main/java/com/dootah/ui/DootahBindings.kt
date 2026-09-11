@@ -2,7 +2,13 @@ package com.dootah.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import org.json.JSONObject
+import android.util.Log
+import com.dootah.DOOTAH_LOG_TAG
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /**
  * The screen values Dootah carries to a remote implementation.
@@ -22,21 +28,42 @@ class DootahArguments internal constructor(
     /**
      * The arguments as the JSON a bundle reads.
      *
-     * Built with `JSONObject` so escaping is the platform's problem rather than
-     * this class's: a note title with a quote in it is exactly the input a
-     * hand-rolled encoder gets wrong.
+     * Encoded by the same library that parses what comes back, so escaping is
+     * not this class's problem: a note title with a quote in it is exactly the
+     * input a hand-rolled encoder gets wrong.
+     *
+     * A value of a type Dootah cannot carry is sent as null rather than
+     * stringified. Lowering already refuses those, so reaching this branch means
+     * the app and the compiler disagree -- and the bundle, which requires every
+     * declared argument, reports it and falls back instead of rendering a screen
+     * built from a coerced value.
      */
     fun toJson(): String {
 
         if (names.isEmpty()) return ""
 
-        val json = JSONObject()
+        return buildJsonObject {
+            names.forEachIndexed { index, name ->
+                put(name, encode(name, values.getOrNull(index)))
+            }
+        }.toString()
+    }
 
-        names.forEachIndexed { index, name ->
-            json.put(name, values.getOrNull(index) ?: JSONObject.NULL)
+    private fun encode(name: String, value: Any?): JsonElement = when (value) {
+
+        null -> JsonNull
+        is String -> JsonPrimitive(value)
+        is Int -> JsonPrimitive(value)
+        is Boolean -> JsonPrimitive(value)
+
+        else -> {
+            Log.e(
+                DOOTAH_LOG_TAG,
+                "screen argument '$name' is a ${value::class.java.simpleName}, " +
+                    "which Dootah cannot carry",
+            )
+            JsonNull
         }
-
-        return json.toString()
     }
 
     companion object {

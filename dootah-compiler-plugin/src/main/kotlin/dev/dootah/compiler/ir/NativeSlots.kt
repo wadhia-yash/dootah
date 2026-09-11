@@ -172,6 +172,16 @@ private fun IrCall.suppliedArgumentNames(): List<String> =
  * component -- reported rather than drawn as a gap.
  */
 internal fun nativeSlotShape(callee: String, argumentNames: List<String>): String =
-    "$callee(${argumentNames.sorted().joinToString(",")})"
+    "$callee(${argumentNames.sorted().joinToString(ARGUMENT_SEPARATOR)})"
+
+/**
+ * Separates argument names inside a shape.
+ *
+ * Not a comma. The compiler hands the app its slot names as one comma-separated
+ * constant, so a comma inside a name splits it into pieces and the app builds
+ * its slot table from fragments -- every lookup then misses, and every native
+ * component silently disappears. Found exactly that way, on a device.
+ */
+private const val ARGUMENT_SEPARATOR = "|"
 
 internal fun nativeSlotName(shape: String, ordinal: Int): String = "$shape#$ordinal"
