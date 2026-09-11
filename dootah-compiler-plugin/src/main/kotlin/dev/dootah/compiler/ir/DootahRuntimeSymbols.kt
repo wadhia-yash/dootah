@@ -1,5 +1,6 @@
 package dev.dootah.compiler.ir
 
+import org.jetbrains.kotlin.backend.common.extensions.DeclarationFinder
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
@@ -20,6 +21,10 @@ internal class DootahRuntimeSymbols private constructor(
     val rememberScreen: IrSimpleFunctionSymbol,
     val hasRemoteImplementation: IrSimpleFunctionSymbol,
     val renderRemoteContent: IrSimpleFunctionSymbol,
+    val arguments: IrSimpleFunctionSymbol,
+    val modifiedArguments: IrSimpleFunctionSymbol,
+    val callbacks: IrSimpleFunctionSymbol,
+    val slots: IrSimpleFunctionSymbol,
 ) {
 
     companion object {
@@ -35,21 +40,20 @@ internal class DootahRuntimeSymbols private constructor(
 
             val finder = pluginContext.finderForSource(fromFile)
 
-            val rememberScreen = finder.singleFunction("rememberDootahScreen")
-            val hasRemote = finder.singleFunction("hasRemoteImplementation")
-            val renderRemote = finder.singleFunction("DootahRemoteContent")
-
-            if (rememberScreen == null || hasRemote == null || renderRemote == null) return null
-
             return DootahRuntimeSymbols(
-                rememberScreen = rememberScreen,
-                hasRemoteImplementation = hasRemote,
-                renderRemoteContent = renderRemote,
+                rememberScreen = finder.singleFunction("rememberDootahScreen") ?: return null,
+                hasRemoteImplementation =
+                    finder.singleFunction("hasRemoteImplementation") ?: return null,
+                renderRemoteContent = finder.singleFunction("DootahRemoteContent") ?: return null,
+                arguments = finder.singleFunction("dootahArguments") ?: return null,
+                modifiedArguments =
+                    finder.singleFunction("dootahModifiedArguments") ?: return null,
+                callbacks = finder.singleFunction("dootahCallbacks") ?: return null,
+                slots = finder.singleFunction("dootahSlots") ?: return null,
             )
         }
 
-        private fun org.jetbrains.kotlin.backend.common.extensions.DeclarationFinder
-            .singleFunction(name: String): IrSimpleFunctionSymbol? =
+        private fun DeclarationFinder.singleFunction(name: String): IrSimpleFunctionSymbol? =
             findFunctions(
                 CallableId(DOOTAH_UI_PACKAGE, Name.identifier(name))
             ).singleOrNull()

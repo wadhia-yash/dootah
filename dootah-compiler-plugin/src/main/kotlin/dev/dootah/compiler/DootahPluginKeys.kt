@@ -17,6 +17,21 @@ val COMPOSABLE_ANNOTATION: FqName = FqName("androidx.compose.runtime.Composable"
 val COMPOSER_CLASS: FqName = FqName("androidx.compose.runtime.Composer")
 
 /**
+ * The layouts whose children Dootah describes remotely.
+ *
+ * Declared here rather than beside the rest of the supported catalogue because
+ * both passes need it and they must agree: the extraction pass never turns one
+ * of these into a native slot, and the app's build must not register one as a
+ * slot either. A layout kept native would swallow the children that are meant to
+ * be updatable.
+ */
+val LAYOUT_COMPOSABLES: Set<FqName> = setOf(
+    FqName("androidx.compose.foundation.layout.Column"),
+    FqName("androidx.compose.foundation.layout.Row"),
+    FqName("androidx.compose.foundation.layout.Box"),
+)
+
+/**
  * What this compiler plugin invocation is for.
  *
  * The same jar runs in two places with two jobs, and they must not be confused:

@@ -172,13 +172,12 @@ fun compileWithDootah(
 }
 
 /**
- * Minimal stand-ins for the Compose declarations the plugin reasons about:
- * the annotation and composer it detects lowering by, and the four composables
- * Milestone 1 supports.
+ * Stand-ins for the Compose declarations the plugin reasons about.
  *
  * Stubs rather than the real artifacts so these tests stay independent of a
- * Compose release and of Android packaging. The plugin identifies all of them by
- * fully qualified name, which is precisely what is being tested -- and the same
+ * Compose release and of Android packaging. Every one mirrors the real
+ * declaration's fully qualified name and the shape of its parameter list,
+ * because those are exactly what the plugin resolves against -- and the same
  * names are verified against the real artifacts by the Cahier run.
  */
 private fun composeStubs(): List<SourceFile> = listOf(
@@ -186,6 +185,8 @@ private fun composeStubs(): List<SourceFile> = listOf(
         name = "ComposeStubs.kt",
         contents = """
             package androidx.compose.runtime
+
+            import kotlin.reflect.KProperty
 
             @Target(
                 AnnotationTarget.FUNCTION,
@@ -196,6 +197,29 @@ private fun composeStubs(): List<SourceFile> = listOf(
             annotation class Composable
 
             interface Composer
+
+            @Composable
+            fun <T> remember(calculation: () -> T): T = calculation()
+
+            interface MutableState<T> {
+                var value: T
+            }
+
+            fun <T> mutableStateOf(initial: T): MutableState<T> =
+                object : MutableState<T> {
+                    override var value: T = initial
+                }
+
+            operator fun <T> MutableState<T>.getValue(owner: Any?, property: KProperty<*>): T =
+                value
+
+            operator fun <T> MutableState<T>.setValue(
+                owner: Any?,
+                property: KProperty<*>,
+                newValue: T,
+            ) {
+                value = newValue
+            }
         """.trimIndent(),
     ),
     SourceFile(
@@ -209,20 +233,103 @@ private fun composeStubs(): List<SourceFile> = listOf(
         """.trimIndent(),
     ),
     SourceFile(
+        name = "ComposeUnitStubs.kt",
+        contents = """
+            package androidx.compose.ui.unit
+
+            class Dp(val value: Float)
+
+            val Int.dp: Dp get() = Dp(toFloat())
+            val Float.dp: Dp get() = Dp(this)
+        """.trimIndent(),
+    ),
+    SourceFile(
+        name = "ComposeGraphicsStubs.kt",
+        contents = """
+            package androidx.compose.ui.graphics
+
+            // Compose declares Color as a value class over ULong with a
+            // top-level Long factory. The factory is what a call site resolves
+            // to, and what Dootah reads.
+            class Color(val packed: ULong)
+
+            fun Color(color: Long): Color = Color(color.toULong())
+        """.trimIndent(),
+    ),
+    SourceFile(
         name = "ComposeLayoutStubs.kt",
         contents = """
             package androidx.compose.foundation.layout
 
             import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import androidx.compose.ui.unit.Dp
 
-            interface ColumnScope
-            interface RowScope
+            interface ColumnScope {
+                fun Modifier.weight(weight: Float): Modifier
+            }
+
+            interface RowScope {
+                fun Modifier.weight(weight: Float): Modifier
+            }
+
+            interface BoxScope
 
             @Composable
-            fun Column(content: @Composable ColumnScope.() -> Unit) {}
+            fun Column(
+                modifier: Modifier = Modifier,
+                verticalArrangement: Int = 0,
+                content: @Composable ColumnScope.() -> Unit,
+            ) {}
 
             @Composable
-            fun Row(content: @Composable RowScope.() -> Unit) {}
+            fun Row(
+                modifier: Modifier = Modifier,
+                verticalAlignment: Int = 0,
+                content: @Composable RowScope.() -> Unit,
+            ) {}
+
+            @Composable
+            fun Box(
+                modifier: Modifier = Modifier,
+                content: @Composable BoxScope.() -> Unit,
+            ) {}
+
+            fun Modifier.padding(all: Dp): Modifier = this
+
+            fun Modifier.padding(horizontal: Dp, vertical: Dp): Modifier = this
+
+            fun Modifier.padding(
+                start: Dp = Dp(0f),
+                top: Dp = Dp(0f),
+                end: Dp = Dp(0f),
+                bottom: Dp = Dp(0f),
+            ): Modifier = this
+
+            fun Modifier.fillMaxWidth(fraction: Float = 1f): Modifier = this
+
+            fun Modifier.fillMaxHeight(fraction: Float = 1f): Modifier = this
+
+            fun Modifier.fillMaxSize(fraction: Float = 1f): Modifier = this
+
+            fun Modifier.size(size: Dp): Modifier = this
+
+            fun Modifier.size(width: Dp, height: Dp): Modifier = this
+
+            fun Modifier.width(width: Dp): Modifier = this
+
+            fun Modifier.height(height: Dp): Modifier = this
+        """.trimIndent(),
+    ),
+    SourceFile(
+        name = "ComposeFoundationStubs.kt",
+        contents = """
+            package androidx.compose.foundation
+
+            import androidx.compose.ui.Modifier
+            import androidx.compose.ui.graphics.Color
+
+            fun Modifier.background(color: Color): Modifier = this
         """.trimIndent(),
     ),
     SourceFile(
@@ -232,18 +339,28 @@ private fun composeStubs(): List<SourceFile> = listOf(
 
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
+            import androidx.compose.ui.graphics.Color
 
             @Composable
-            fun Text(text: String) {}
+            fun Text(
+                text: String,
+                modifier: Modifier = Modifier,
+                color: Color = Color(0L),
+                fontWeight: Int = 0,
+            ) {}
 
-            // The real Text takes a modifier. Kept here so a styled call
-            // resolves to Compose's Text and is refused by lowering, rather
-            // than failing to compile in the fixture.
             @Composable
-            fun Text(text: String, modifier: Modifier) {}
+            fun Button(
+                onClick: () -> Unit,
+                modifier: Modifier = Modifier,
+                enabled: Boolean = true,
+                content: @Composable () -> Unit,
+            ) {}
 
+            // Stands in for the styled components a real screen leans on, which
+            // Dootah keeps native rather than reimplementing.
             @Composable
-            fun Button(onClick: () -> Unit, content: @Composable () -> Unit) {}
+            fun Icon(name: String, tint: Color = Color(0L)) {}
         """.trimIndent(),
     ),
 )
@@ -253,7 +370,8 @@ private fun composeStubs(): List<SourceFile> = listOf(
  *
  * Stubs rather than the real `dootah-android` artifact so these tests do not
  * need an Android AAR or a Compose release on the classpath. The transform
- * resolves this surface by fully qualified name, which is what is under test.
+ * resolves this surface by fully qualified name and reads the declared vararg
+ * element types out of it, which is what is under test.
  */
 private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
     SourceFile(
@@ -262,12 +380,40 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
             package com.dootah.ui
 
             import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+
+            class DootahArguments
+            class DootahCallbacks
+            class DootahSlots
 
             class DootahScreenState(val screenId: String)
 
+            fun dootahArguments(names: String, vararg values: Any?): DootahArguments =
+                DootahArguments()
+
+            fun dootahModifiedArguments(
+                modifier: Modifier,
+                names: String,
+                vararg values: Any?,
+            ): DootahArguments = DootahArguments()
+
+            fun dootahCallbacks(
+                names: String,
+                vararg callbacks: () -> Unit,
+            ): DootahCallbacks = DootahCallbacks()
+
+            fun dootahSlots(
+                ids: String,
+                vararg slots: @Composable () -> Unit,
+            ): DootahSlots = DootahSlots()
+
             @Composable
-            fun rememberDootahScreen(screenId: String): DootahScreenState =
-                DootahScreenState(screenId)
+            fun rememberDootahScreen(
+                screenId: String,
+                arguments: DootahArguments,
+                callbacks: DootahCallbacks,
+                slots: DootahSlots,
+            ): DootahScreenState = DootahScreenState(screenId)
 
             fun hasRemoteImplementation(state: DootahScreenState): Boolean = false
 

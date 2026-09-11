@@ -1,6 +1,7 @@
 package dev.dootah.compiler.fir
 
 import dev.dootah.compiler.generate.BundleSourceWriter
+import dev.dootah.compiler.generate.ScreenEntry
 import dev.dootah.compiler.generate.sanitizeForIdentifier
 import dev.dootah.compiler.model.BundleScreen
 import java.io.File
@@ -14,11 +15,7 @@ internal const val UNSUPPORTED_DIRECTORY = "unsupported"
 /** Package path the generated screen implementations are written under. */
 private const val GENERATED_PACKAGE_PATH = "dev/dootah/generated"
 
-/**
- * The bundle entry points. A fixed name because there is exactly one set of
- * them; a second lowered screen would overwrite this file, which is why the
- * build refuses to continue with more than one.
- */
+/** The bundle entry points, which dispatch to every screen in the app. */
 private const val EXPORTS_FILE_NAME = "DootahExports.kt"
 
 /**
@@ -40,10 +37,8 @@ internal fun writeGeneratedBundle(
     File(packageDirectory, "${BundleSourceWriter.screenObjectName(screen)}.kt")
         .writeText(BundleSourceWriter.writeScreen(screen))
 
-    File(generatedDirectory, EXPORTS_FILE_NAME)
-        .writeText(BundleSourceWriter.writeExports(screen))
-
     writeScreenMetadata(reportDirectory, screen)
+    writeExports(generatedDirectory, reportDirectory)
 }
 
 /**
@@ -60,10 +55,50 @@ private fun writeScreenMetadata(reportDirectory: File, screen: BundleScreen) {
         "screenId=${screen.screenId}",
         "functionName=${screen.functionName}",
         "objectName=${BundleSourceWriter.screenObjectName(screen)}",
+        "parameters=${screen.parameters.joinToString(",") { it.name }}",
+        "callbacks=${screen.callbacks.joinToString(",")}",
+        "actions=${screen.actions.joinToString(",") { it.name }}",
+        "nativeComponents=${screen.nativeComponents.joinToString(", ")}",
     )
 
     File(directory, "${sanitizeForIdentifier(screen.screenId)}.properties")
         .writeText(lines.joinToString("\n", postfix = "\n"))
+}
+
+/**
+ * Rewrites the entry points to cover every screen lowered so far.
+ *
+ * A checker is handed one declaration at a time and has no "end of module"
+ * hook, so the file is rebuilt from the metadata directory after each screen.
+ * The last screen of a compilation therefore writes a file naming all of them,
+ * and sorting by id keeps the result identical for identical input.
+ */
+private fun writeExports(generatedDirectory: File, reportDirectory: File) {
+
+    val screens = File(reportDirectory, SCREEN_METADATA_DIRECTORY)
+        .listFiles()
+        .orEmpty()
+        .filter { it.extension == "properties" }
+        .mapNotNull { file ->
+
+            val values = file.readLines()
+                .mapNotNull { line ->
+                    line.split("=", limit = 2).takeIf { it.size == 2 }?.let { it[0] to it[1] }
+                }
+                .toMap()
+
+            val screenId = values["screenId"] ?: return@mapNotNull null
+
+            ScreenEntry(
+                screenId = screenId,
+                objectName = values["objectName"]
+                    ?: BundleSourceWriter.screenObjectName(screenId),
+            )
+        }
+        .sortedBy { it.screenId }
+
+    File(generatedDirectory, EXPORTS_FILE_NAME)
+        .writeText(BundleSourceWriter.writeExports(screens))
 }
 
 /**

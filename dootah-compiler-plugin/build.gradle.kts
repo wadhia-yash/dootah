@@ -15,6 +15,12 @@ kotlin {
         // the module, which is where the version coupling actually lives.
         optIn.add("org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi")
 
+        // Lowering reads resolved FIR declarations -- a parameter's type, a
+        // function's body -- which the compiler marks as internal to discourage
+        // reaching past symbols. Reading them is the job: a checker is handed
+        // the declaration, and there is no symbol-level view of a body.
+        optIn.add("org.jetbrains.kotlin.fir.symbols.SymbolInternals")
+
         // The FIR checker API declares its receivers as context parameters,
         // so implementing it requires the language feature.
         freeCompilerArgs.add("-Xcontext-parameters")

@@ -3,8 +3,8 @@ package dev.dootah.compiler.model
 /**
  * A value a bundle can compute.
  *
- * Closed on purpose. Lowering maps a resolved FIR expression onto one of these
- * or rejects it, so there is no path by which an expression Dootah does not
+ * Closed on purpose. Lowering maps a resolved expression onto one of these or
+ * rejects it, so there is no path by which an expression Dootah does not
  * understand reaches generated code.
  */
 internal sealed interface BundleExpression {
@@ -15,13 +15,45 @@ internal sealed interface BundleExpression {
 
     data class BooleanConstant(val value: Boolean) : BundleExpression
 
-    /** A reference to a local declared earlier in the same screen. */
+    /** A `val` declared earlier in the screen, or one of its parameters. */
     data class LocalReference(val name: String) : BundleExpression
+
+    /** A `var` declared in the screen, which lives in the screen's remote state. */
+    data class StateReference(val name: String, val type: BundleType) : BundleExpression
 
     data class Arithmetic(
         val operator: ArithmeticOperator,
         val left: BundleExpression,
         val right: BundleExpression,
+    ) : BundleExpression
+
+    data class Comparison(
+        val operator: ComparisonOperator,
+        val left: BundleExpression,
+        val right: BundleExpression,
+    ) : BundleExpression
+
+    data class Logical(
+        val operator: LogicalOperator,
+        val left: BundleExpression,
+        val right: BundleExpression,
+    ) : BundleExpression
+
+    data class Not(val value: BundleExpression) : BundleExpression
+
+    data class Negate(val value: BundleExpression) : BundleExpression
+
+    /** An `if` used as a value, and what a `when` expression lowers to. */
+    data class Conditional(
+        val condition: BundleExpression,
+        val ifTrue: BundleExpression,
+        val ifFalse: BundleExpression,
+    ) : BundleExpression
+
+    /** A call to a function the same screen bundles alongside it. */
+    data class Invoke(
+        val functionName: String,
+        val arguments: List<BundleExpression>,
     ) : BundleExpression
 
     /**
@@ -40,4 +72,18 @@ internal enum class ArithmeticOperator(val symbol: String) {
     TIMES("*"),
     DIV("/"),
     REM("%"),
+}
+
+internal enum class ComparisonOperator(val symbol: String) {
+    LESS("<"),
+    LESS_OR_EQUAL("<="),
+    GREATER(">"),
+    GREATER_OR_EQUAL(">="),
+    EQUAL("=="),
+    NOT_EQUAL("!="),
+}
+
+internal enum class LogicalOperator(val symbol: String) {
+    AND("&&"),
+    OR("||"),
 }
