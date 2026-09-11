@@ -83,6 +83,9 @@ class DootahSlots internal constructor(
 
     internal fun ids(): Set<String> = byId.keys
 
+    internal fun missingFrom(requested: List<String>): List<String> =
+        requested.filterNot { slot -> slot in byId }
+
     /**
      * Draws a slot, or nothing when the bundle names one this build has not got.
      *

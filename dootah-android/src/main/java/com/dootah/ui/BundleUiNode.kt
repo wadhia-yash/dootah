@@ -89,3 +89,10 @@ sealed interface BundleUiModifier {
 
     data class Background(val color: Long) : BundleUiModifier
 }
+
+/** Every native component this tree asks the app to draw. */
+fun BundleUiNode.nativeSlots(): List<String> = when (this) {
+    is BundleUiNode.Container -> children.flatMap { child -> child.nativeSlots() }
+    is BundleUiNode.NativeSlot -> listOf(slot)
+    else -> emptyList()
+}

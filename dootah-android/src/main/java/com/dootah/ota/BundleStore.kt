@@ -7,7 +7,7 @@ import java.io.File
 
 private const val BUNDLE_DIRECTORY_NAME = "dootah"
 private const val BUNDLE_FILE_NAME = "bundle.js"
-private const val TEMP_BUNDLE_FILE_NAME = "bundle.js.tmp"
+private const val TEMP_BUNDLE_PREFIX = "bundle-"
 
 private const val PREFERENCES_NAME = "dootah"
 private const val KEY_BUNDLE_VERSION = "bundle_version"
@@ -63,7 +63,10 @@ internal class BundleStore(
 
         bundleDirectory.mkdirs()
 
-        val temporaryFile = File(bundleDirectory, TEMP_BUNDLE_FILE_NAME)
+        // A name of its own per write. A shared scratch file means two writers
+        // clobber each other's bytes and then race to rename, and the survivor
+        // could be a mixture of two bundles rather than either one.
+        val temporaryFile = File.createTempFile(TEMP_BUNDLE_PREFIX, ".tmp", bundleDirectory)
         temporaryFile.writeBytes(payload)
 
         if (!temporaryFile.renameTo(bundleFile)) {

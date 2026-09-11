@@ -46,17 +46,15 @@ class NativeSlotAgreementTest {
             .map { it.value }
             .toSet()
 
-        val registeredSlots = SLOT_PATTERN
-            .findAll(intercepted.compiledClassText("com/example/ScreenKt.class"))
-            .map { it.value }
-            .toSet()
+        val compiled = intercepted.compiledClassText("com/example/ScreenKt.class")
 
         assertTrue("the bundle refers to no native slots", bundleSlots.isNotEmpty())
 
         assertEquals(
-            "the app does not register every slot the bundle refers to",
-            emptySet<String>(),
-            bundleSlots - registeredSlots,
+            "the app does not register every slot the bundle refers to.\n" +
+                "bundle refers to: $bundleSlots",
+            emptyList<String>(),
+            bundleSlots.filterNot { slot -> compiled.contains(slot) },
         )
     }
 
@@ -69,6 +67,54 @@ class NativeSlotAgreementTest {
      * composer, which fails the build. That the fixture compiles at all is the
      * assertion.
      */
+    /**
+     * The case that matters, and the one a same-source check misses entirely.
+     *
+     * An update exists precisely because the source changed. The APK was built
+     * from one version and the bundle is published from another, so a slot name
+     * that depends on where a component sits in the file is renamed by any edit
+     * above it -- and the app, still registering the old names, quietly draws
+     * nothing where those components were.
+     *
+     * This is what happened on a device: an unrelated edit ten lines higher made
+     * a native component disappear from a shipped screen.
+     */
+    @Test
+    fun `slot names survive an edit elsewhere in the file`() {
+
+        val installed = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(screenWithNativeComponents()),
+            mode = "intercept",
+        )
+
+        assertTrue("interception failed: ${installed.messages}", installed.succeeded)
+
+        val published = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(editedScreen()),
+            mode = "extract",
+        )
+
+        assertTrue("extraction failed: ${published.messages}", published.succeeded)
+
+        val bundleSlots = SLOT_PATTERN
+            .findAll(published.generatedSources().values.joinToString("\n"))
+            .map { it.value }
+            .toSet()
+
+        val compiled = installed.compiledClassText("com/example/ScreenKt.class")
+
+        assertTrue("the bundle refers to no native slots", bundleSlots.isNotEmpty())
+
+        assertEquals(
+            "an edit renamed slots the installed app still registers under the old names.\n" +
+                "bundle refers to: $bundleSlots",
+            emptyList<String>(),
+            bundleSlots.filterNot { slot -> compiled.contains(slot) },
+        )
+    }
+
     @Test
     fun `a registered slot is a composable lambda`() {
 
@@ -139,8 +185,45 @@ class NativeSlotAgreementTest {
         """.trimIndent(),
     )
 
+    /**
+     * The same screen after an ordinary edit: a line added above, and a
+     * component's text changed. Neither touches the components kept native.
+     */
+    private fun editedScreen(): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.Button
+            import androidx.compose.material3.Icon
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import androidx.compose.ui.graphics.Color
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen(
+                title: String,
+                onSave: () -> Unit,
+                modifier: Modifier = Modifier,
+            ) {
+                val heading = "Now with a heading"
+                Column(modifier = modifier) {
+                    Text(heading)
+                    Icon(title)
+                    Text(title, color = Color(0xFF2196F3L))
+                    Button(onClick = onSave) { Text("Save now") }
+                }
+            }
+        """.trimIndent(),
+    )
+
     private companion object {
-        val SLOT_PATTERN = Regex("slot@[0-9]+")
+        /** `Icon(name)#0`: what the component is, and which one of those it is. */
+        val SLOT_PATTERN = Regex("[A-Za-z0-9_]+\\([A-Za-z0-9_,]*\\)#[0-9]+")
     }
 }
 

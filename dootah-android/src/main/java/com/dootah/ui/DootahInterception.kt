@@ -13,6 +13,7 @@ import com.dootah.BundleLoadResult
 import com.dootah.DOOTAH_LOG_TAG
 import com.dootah.Dootah
 import com.dootah.DootahStatus
+import com.dootah.FallbackReason
 import com.dootah.UpdateResult
 import com.dootah.ota.shouldReloadAfterCheck
 import kotlinx.coroutines.CoroutineScope
@@ -108,12 +109,35 @@ class DootahScreenState internal constructor(
 
     private fun apply(result: BundleLoadResult) {
 
-        if (result is BundleLoadResult.Loaded) {
-            result.commands.forEach { command -> execute(command) }
-        }
-
         content = when (result) {
-            is BundleLoadResult.Loaded -> DootahContent.Bundle(result.ui)
+
+            is BundleLoadResult.Loaded -> {
+
+                val missing = slots.missingFrom(result.ui.nativeSlots())
+
+                if (missing.isEmpty()) {
+                    result.commands.forEach { command -> execute(command) }
+                    DootahContent.Bundle(result.ui)
+                } else {
+                    // Reported loudly. A component that quietly stops appearing
+                    // is a defect nobody notices until a user does, and the
+                    // cause -- an edit to a component Dootah keeps native -- is
+                    // impossible to guess from the symptom.
+                    Log.e(
+                        DOOTAH_LOG_TAG,
+                        "the bundle for $screenId draws " +
+                            missing.joinToString(", ") +
+                            ", which this build of the app does not have; " +
+                            "using the native implementation",
+                    )
+
+                    DootahContent.Fallback(
+                        reason = FallbackReason.UNKNOWN_NATIVE_COMPONENT,
+                        message = "This build has no " + missing.joinToString(", "),
+                    )
+                }
+            }
+
             is BundleLoadResult.Unavailable ->
                 DootahContent.Fallback(result.reason, result.message)
         }

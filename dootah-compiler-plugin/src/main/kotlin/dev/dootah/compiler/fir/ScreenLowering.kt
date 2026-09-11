@@ -38,6 +38,9 @@ import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.contracts.description.LogicOperationKind
 import org.jetbrains.kotlin.name.FqName
+import dev.dootah.compiler.ir.nativeSlotName
+import dev.dootah.compiler.ir.nativeSlotShape
+import java.util.IdentityHashMap
 
 /** The outcome of lowering one screen. */
 internal sealed interface LoweringResult {
@@ -96,6 +99,14 @@ internal class ScreenLowering(
     /** Components kept native, so the build can say what will not update. */
     private val nativeSlots = linkedSetOf<String>()
 
+    /**
+     * What each call in the body would be called if it became a native slot.
+     *
+     * Computed once, over the whole body, so that a component's name does not
+     * depend on which of its neighbours turned out to be slots.
+     */
+    private var slotNames: Map<FirFunctionCall, String> = emptyMap()
+
     private val prelude = mutableListOf<BundleStatement>()
     private val actions = mutableListOf<BundleAction>()
     private val functions = LinkedHashMap<String, BundleFunction>()
@@ -116,6 +127,8 @@ internal class ScreenLowering(
             reject(null, "a function with no body", "Give the function a body.")
             return LoweringResult.Rejected(reasons)
         }
+
+        slotNames = body.nativeSlotNames()
 
         val ui = lowerBody(body)
 
@@ -543,16 +556,18 @@ internal class ScreenLowering(
             return null
         }
 
-        val offset = call.sourceOffset()
+        val name = slotNames[call]
 
-        if (offset == null) {
-            reject(null, "`$shortName()` with no source position", "Simplify the call.")
+        if (name == null) {
+            reject(call.sourceOffset(), "`$shortName()`, which Dootah could not name", "Simplify the call.")
             return null
         }
 
-        nativeSlots += "$shortName()"
+        // Recorded under the name the app registers it by, so a developer
+        // reading the build output can match it against what a device reports.
+        nativeSlots += name
 
-        return BundleUi.NativeSlotUi(nativeSlotId(offset))
+        return BundleUi.NativeSlotUi(name)
     }
 
     /** Names declared in this body that [this] reads, which a slot may not. */
@@ -1129,13 +1144,52 @@ internal class ScreenLowering(
 }
 
 /**
- * The slot name for a component kept native, derived from where it is written.
+ * Names every call in a screen body: what it is called, and which one it is.
  *
- * A source position rather than a counter, because the same rule has to produce
- * the same name in two separate compilations: the extraction pass that writes
- * the bundle, and the app's own build that registers what each slot draws.
+ * Must agree with the walk the app's own build does, because the two run over
+ * two different versions of the source -- the one the APK was built from, and
+ * the edited one a bundle is published from. Counting per callee name, over the
+ * whole body, is what makes a name survive an edit somewhere else in the file.
  */
-internal fun nativeSlotId(sourceOffset: Int): String = "slot@$sourceOffset"
+private fun FirElement.nativeSlotNames(): Map<FirFunctionCall, String> {
+
+    val counts = mutableMapOf<String, Int>()
+    val names = IdentityHashMap<FirFunctionCall, String>()
+
+    accept(object : org.jetbrains.kotlin.fir.visitors.FirVisitorVoid() {
+
+        override fun visitElement(element: FirElement) {
+
+            if (element is FirFunctionCall) {
+
+                val callee = element.calleeReference
+                    .toResolvedCallableSymbol()
+                    ?.callableId
+                    ?.callableName
+                    ?.asString()
+                    ?: UNNAMED_CALLEE
+
+                val shape = nativeSlotShape(
+                    callee = callee,
+                    argumentNames = element.resolvedArgumentMapping
+                        ?.values
+                        ?.map { parameter -> parameter.name.asString() }
+                        .orEmpty(),
+                )
+
+                val ordinal = counts.getOrElse(shape) { 0 }
+                counts[shape] = ordinal + 1
+                names[element] = nativeSlotName(shape, ordinal)
+            }
+
+            element.acceptChildren(this)
+        }
+    })
+
+    return names
+}
+
+private const val UNNAMED_CALLEE = "unknown"
 
 /**
  * Looks through the implicit `return` a block's last expression carries.

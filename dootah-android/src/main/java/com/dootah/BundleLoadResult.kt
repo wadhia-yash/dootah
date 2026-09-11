@@ -44,6 +44,16 @@ enum class FallbackReason {
      */
     SCREEN_NOT_IN_BUNDLE,
 
+    /**
+     * The bundle draws a native component this build of the app does not have.
+     *
+     * What an edit to a component Dootah keeps native looks like from the other
+     * side. Falling back is deliberate: drawing the rest of the screen with a
+     * gap where that component belongs is a defect nobody can see, and a screen
+     * missing a button is worse than one that is simply a version behind.
+     */
+    UNKNOWN_NATIVE_COMPONENT,
+
     /** The bundle failed to evaluate, or exceeded its time budget. */
     EXECUTION_FAILED,
 

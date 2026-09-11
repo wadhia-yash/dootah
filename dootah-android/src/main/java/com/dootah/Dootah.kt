@@ -181,12 +181,29 @@ private class DootahClient(
      */
     private val engineLock = Mutex()
 
+    /** Serialises update checks; see [checkForUpdate]. */
+    private val updateLock = Mutex()
+
     /** The screens the loaded bundle implements, or null when nothing is loaded. */
     private var loadedScreenIds: List<String>? = null
 
     private var currentSource: BundleSource = BundleSource.NATIVE_FALLBACK
 
-    suspend fun checkForUpdate(): UpdateResult {
+    /**
+     * Runs one update check, and only one at a time.
+     *
+     * Every `@Bundlable` screen checks when it appears, so an app showing two of
+     * them checks twice at once. Two concurrent checks each downloaded the same
+     * bundle and each tried to move it into place; the second move failed,
+     * because the first had already renamed the file out from under it. The
+     * result was a logged failure for an update that had in fact succeeded, and
+     * with two genuinely different versions in flight it could have installed
+     * either one.
+     *
+     * Serialised here rather than deduplicated, so the second caller still gets
+     * a truthful answer -- it simply finds there is nothing left to do.
+     */
+    suspend fun checkForUpdate(): UpdateResult = updateLock.withLock {
 
         val result = updater.checkForUpdate()
 
@@ -197,7 +214,7 @@ private class DootahClient(
             engineLock.withLock { loadedScreenIds = null }
         }
 
-        return result
+        result
     }
 
     suspend fun renderScreen(

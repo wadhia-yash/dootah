@@ -2,6 +2,7 @@ package dev.dootah.compiler.ir
 
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -13,6 +14,7 @@ import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.name.FqName
+import java.util.IdentityHashMap
 
 /** A component that stays in the APK, and where the bundle refers to it. */
 internal data class NativeSlot(
@@ -41,6 +43,8 @@ internal data class NativeSlot(
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrBody.nativeSlots(layouts: Set<FqName>): List<NativeSlot> {
 
+    val names = nativeSlotNames(this)
+
     val declaredInBody = mutableSetOf<IrVariable>()
 
     acceptVoid(object : IrVisitorVoid() {
@@ -57,7 +61,7 @@ internal fun IrBody.nativeSlots(layouts: Set<FqName>): List<NativeSlot> {
         override fun visitElement(element: IrElement) {
 
             if (element is IrCall && element.isSlotCandidate(layouts, declaredInBody)) {
-                slots += NativeSlot(id = nativeSlotId(element.startOffset), call = element)
+                names[element]?.let { id -> slots += NativeSlot(id = id, call = element) }
                 // Not descending: a component kept native is kept whole, and a
                 // component nested inside one is drawn by its parent.
                 return
@@ -68,6 +72,39 @@ internal fun IrBody.nativeSlots(layouts: Set<FqName>): List<NativeSlot> {
     })
 
     return slots.distinctBy { it.id }
+}
+
+/**
+ * Names every call in a screen body, the same way the extraction pass does.
+ *
+ * See [nativeSlotName] for why the name is what it is. The walk covers the whole
+ * body, including inside components that will become slots, so that adding or
+ * removing a slot does not renumber the others.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun nativeSlotNames(body: IrBody): Map<IrCall, String> {
+
+    val counts = mutableMapOf<String, Int>()
+    val names = IdentityHashMap<IrCall, String>()
+
+    body.acceptVoid(object : IrVisitorVoid() {
+        override fun visitElement(element: IrElement) {
+
+            if (element is IrCall) {
+                val shape = nativeSlotShape(
+                    callee = element.symbol.owner.name.asString(),
+                    argumentNames = element.suppliedArgumentNames(),
+                )
+                val ordinal = counts.getOrElse(shape) { 0 }
+                counts[shape] = ordinal + 1
+                names[element] = nativeSlotName(shape, ordinal)
+            }
+
+            element.acceptChildrenVoid(this)
+        }
+    })
+
+    return names
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -106,11 +143,35 @@ private fun IrCall.isSlotCandidate(
     return !readsOuterLocal
 }
 
+/** The arguments a call actually supplies, named and ordered so two passes agree. */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrCall.suppliedArgumentNames(): List<String> =
+    symbol.owner.parameters
+        .filter { parameter -> parameter.kind == IrParameterKind.Regular }
+        .filterIndexed { index, _ -> arguments.getOrNull(index) != null }
+        .map { parameter -> parameter.name.asString() }
+
 /**
- * The slot name for a component kept native, derived from where it is written.
+ * What a component is, as a name that survives editing the screen around it.
  *
- * A source position rather than a counter, because the same rule has to produce
- * the same name in two separate compilations: the extraction pass that writes
- * the bundle, and the app's own build that registers what each slot draws.
+ * This name has to mean the same thing in two compilations of two *different*
+ * versions of the source -- the one the installed APK was built from, and the
+ * edited one a bundle is published from. That is the whole point of an update,
+ * and it rules out anything positional.
+ *
+ * A source offset fails immediately: inserting a line anywhere above renames
+ * every component below it, and on a device that looks like components silently
+ * vanishing from a shipped screen. Counting per callee name fails more subtly --
+ * adding one ordinary `Text` renumbers every styled `Text` -- and `Text` is the
+ * most commonly added component there is.
+ *
+ * So a component is named by its call shape: what it is called and which
+ * arguments it was given. Changing an argument's *value* keeps the name, which
+ * is what should happen, because the APK's copy is the one that will draw either
+ * way. Adding or removing an argument changes it, and the app then has no such
+ * component -- reported rather than drawn as a gap.
  */
-internal fun nativeSlotId(sourceOffset: Int): String = "slot@$sourceOffset"
+internal fun nativeSlotShape(callee: String, argumentNames: List<String>): String =
+    "$callee(${argumentNames.sorted().joinToString(",")})"
+
+internal fun nativeSlotName(shape: String, ordinal: Int): String = "$shape#$ordinal"
