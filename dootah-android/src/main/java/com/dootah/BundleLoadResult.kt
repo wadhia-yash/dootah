@@ -1,14 +1,16 @@
 package com.dootah
 
+import com.dootah.ui.BundleCommand
 import com.dootah.ui.BundleUiNode
 
-/** The outcome of loading and rendering the active bundle. */
+/** The outcome of rendering one screen from the active bundle. */
 sealed interface BundleLoadResult {
 
-    /** The bundle produced a UI tree ready to render. */
+    /** The bundle produced a UI tree, and possibly work for the app to do. */
     data class Loaded(
         val ui: BundleUiNode,
         val source: BundleSource,
+        val commands: List<BundleCommand> = emptyList(),
     ) : BundleLoadResult
 
     /**
@@ -16,7 +18,8 @@ sealed interface BundleLoadResult {
      *
      * This is an expected outcome, not an error: it is what happens when the
      * kill switch is on, the device has never downloaded a bundle and has no
-     * bundled one, or a bundle failed to run.
+     * bundled one, the bundle does not implement this screen, or a bundle
+     * failed to run.
      */
     data class Unavailable(
         val reason: FallbackReason,
@@ -32,6 +35,14 @@ enum class FallbackReason {
 
     /** No bundle is available on disk or in the APK. */
     NO_BUNDLE_AVAILABLE,
+
+    /**
+     * The bundle loaded, but has no implementation for this screen.
+     *
+     * Ordinary and expected: a screen marked `@Bundlable` after the installed
+     * bundle was published simply has no remote version yet.
+     */
+    SCREEN_NOT_IN_BUNDLE,
 
     /** The bundle failed to evaluate, or exceeded its time budget. */
     EXECUTION_FAILED,

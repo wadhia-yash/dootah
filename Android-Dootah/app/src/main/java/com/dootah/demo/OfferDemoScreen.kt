@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.dootah.FallbackReason
 import com.dootah.UpdateFailure
 import com.dootah.UpdateResult
-import com.dootah.ui.DootahHostState
+import com.dootah.ui.DootahScreenState
 import com.dootah.ui.DootahBundleHost
 import com.dootah.ui.rememberDootahHostState
 
@@ -38,7 +38,8 @@ import com.dootah.ui.rememberDootahHostState
 @Composable
 fun OfferDemoScreen() {
 
-    val dootah = rememberDootahHostState()
+    // The hand-written conformance bundle implements exactly this screen id.
+    val dootah = rememberDootahHostState(screenId = "com.dootah.demo.OfferDemoScreen")
 
     Column(
         modifier = Modifier
@@ -110,7 +111,7 @@ private fun NativeOfferContent(
 
 @Composable
 private fun DootahDiagnostics(
-    state: DootahHostState,
+    state: DootahScreenState,
     onCheckForUpdate: () -> Unit,
 ) {
 

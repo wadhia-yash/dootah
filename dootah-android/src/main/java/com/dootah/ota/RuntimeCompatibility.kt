@@ -3,13 +3,18 @@ package com.dootah.ota
 /**
  * The Dootah runtime contract this build of the app implements.
  *
- * A bundle is written against a specific runtime: the JavaScript bootstrap, the
- * set of UI node types the renderer understands, and the native bridge command
- * vocabulary. Bump this whenever a change to any of those would break bundles
- * built before it, and treat it as an opaque token rather than a number to be
- * compared numerically.
+ * A bundle is written against a specific runtime: the exported function
+ * signatures, the set of UI node types and modifiers the renderer understands,
+ * and the command vocabulary. Bump this whenever a change to any of those would
+ * break bundles built before it, and treat it as an opaque token rather than a
+ * number to be compared numerically.
+ *
+ * "2" is the screen-addressed protocol: `screenIds()`, `renderScreen(id, args)`
+ * and `handleAction(id, action, args)`, returning a UI-and-commands envelope.
+ * "1" was single-screen and took no arguments, so no "1" bundle can run here --
+ * which is what the version gate is for.
  */
-const val DOOTAH_RUNTIME_VERSION: String = "1"
+const val DOOTAH_RUNTIME_VERSION: String = "2"
 
 /**
  * True when [manifest] targets exactly the runtime named by [supportedVersion].

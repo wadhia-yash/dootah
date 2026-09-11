@@ -79,7 +79,16 @@ class RuntimeCompatibilityTest {
     }
 
     @Test
-    fun `declares runtime version 1`() {
-        assertEquals("1", DOOTAH_RUNTIME_VERSION)
+    fun `declares runtime version 2`() {
+        assertEquals("2", DOOTAH_RUNTIME_VERSION)
+    }
+
+    @Test
+    fun `refuses a bundle built for the previous runtime`() {
+
+        // The version gate is the only thing standing between a runtime "1"
+        // bundle -- single-screen, no arguments, no command envelope -- and an
+        // app that would call it with three arguments and fail at render time.
+        assertFalse(isRuntimeCompatible(testManifest(runtimeVersion = "1")))
     }
 }

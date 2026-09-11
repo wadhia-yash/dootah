@@ -1,21 +1,10 @@
 package com.dootah.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import com.dootah.FallbackReason
-import com.dootah.BundleLoadResult
-import com.dootah.Dootah
-import com.dootah.DootahStatus
-import com.dootah.UpdateResult
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
-/** What [DootahBundleHost] is currently showing. */
+/** What a Dootah-backed screen is currently showing. */
 sealed interface DootahContent {
 
     data object Loading : DootahContent
@@ -30,87 +19,22 @@ sealed interface DootahContent {
 }
 
 /**
- * Observable state for a Dootah-backed screen.
+ * Prepares Dootah for a screen wired by hand.
  *
- * Owns the load/reload lifecycle and action dispatch so a host app only has to
- * decide what to draw. Actions are forwarded to the bundle and the resulting UI
- * replaces the current one; a bundle that fails mid-interaction degrades to the
- * fallback rather than leaving a stale screen.
+ * The compiler plugin is the supported route -- a `@Bundlable` annotation and
+ * nothing else -- and this exists for Dootah's own validation app, which needs
+ * to drive update checks and read status directly. It takes a screen id because
+ * the bundle protocol addresses screens: there is no "the screen" any more.
  */
-class DootahHostState internal constructor(
-    private val scope: CoroutineScope,
-) {
-
-    var content: DootahContent by mutableStateOf(DootahContent.Loading)
-        private set
-
-    var status: DootahStatus by mutableStateOf(Dootah.status())
-        private set
-
-    /** Result of the most recent manual update check, for display. */
-    var lastUpdateResult: UpdateResult? by mutableStateOf(null)
-        private set
-
-    var isCheckingForUpdate: Boolean by mutableStateOf(false)
-        private set
-
-    suspend fun load() {
-        apply(Dootah.loadBundle())
-    }
-
-    /**
-     * Runs an update check and reloads the bundle when one was installed.
-     *
-     * Reloading only on [UpdateResult.Updated] keeps a no-op check from
-     * restarting a perfectly good isolate.
-     */
-    fun checkForUpdate() {
-
-        if (isCheckingForUpdate) return
-
-        scope.launch {
-            isCheckingForUpdate = true
-            try {
-                val result = Dootah.checkForUpdate()
-                lastUpdateResult = result
-
-                if (result is UpdateResult.Updated) {
-                    load()
-                } else {
-                    status = Dootah.status()
-                }
-            } finally {
-                isCheckingForUpdate = false
-            }
-        }
-    }
-
-    internal fun dispatch(action: String) {
-        scope.launch { apply(Dootah.dispatchAction(action)) }
-    }
-
-    private fun apply(result: BundleLoadResult) {
-
-        content = when (result) {
-            is BundleLoadResult.Loaded -> DootahContent.Bundle(result.ui)
-            is BundleLoadResult.Unavailable ->
-                DootahContent.Fallback(result.reason, result.message)
-        }
-
-        status = Dootah.status()
-    }
-}
-
+@OptIn(DootahGeneratedApi::class)
 @Composable
-fun rememberDootahHostState(): DootahHostState {
-
-    val scope = rememberCoroutineScope()
-    val state = remember(scope) { DootahHostState(scope) }
-
-    LaunchedEffect(state) { state.load() }
-
-    return state
-}
+fun rememberDootahHostState(screenId: String): DootahScreenState =
+    rememberDootahScreen(
+        screenId = screenId,
+        arguments = DootahArguments.EMPTY,
+        callbacks = DootahCallbacks.EMPTY,
+        slots = DootahSlots.EMPTY,
+    )
 
 /**
  * Renders bundle-provided UI, or [fallback] when Dootah has nothing to show.
@@ -121,7 +45,7 @@ fun rememberDootahHostState(): DootahHostState {
  */
 @Composable
 fun DootahBundleHost(
-    state: DootahHostState = rememberDootahHostState(),
+    state: DootahScreenState,
     loading: @Composable () -> Unit = {},
     fallback: @Composable (reason: FallbackReason, message: String) -> Unit,
 ) {
@@ -132,6 +56,8 @@ fun DootahBundleHost(
 
         is DootahContent.Bundle -> BundleRenderer(
             node = current.ui,
+            slots = state.slots,
+            inherited = Modifier,
             onAction = state::dispatch,
         )
 
