@@ -135,23 +135,25 @@ abstract class DootahExtractTask @Inject constructor(
 
         val screens = readLoweredScreens(reportDirectory)
 
-        when (screens.size) {
-
-            0 -> throw GradleException(
+        if (screens.isEmpty()) {
+            throw GradleException(
                 "Dootah found no @Bundlable functions in this module.\n" +
-                    "Mark a zero-argument @Composable function with @Bundlable to " +
-                    "make it updatable over the air."
+                    "Mark a @Composable function with @Bundlable to make it " +
+                    "updatable over the air."
             )
+        }
 
-            1 -> logger.lifecycle("Dootah lowered ${screens.single().screenId}")
+        screens.forEach { screen ->
+            logger.lifecycle("Dootah lowered ${screen.screenId}")
 
-            else -> throw GradleException(
-                "Dootah currently bundles one @Bundlable screen per app, but found " +
-                    "${screens.size}:\n" +
-                    screens.joinToString("\n") { "  ${it.screenId}" } + "\n" +
-                    "Leave one @Bundlable and keep the others native until the " +
-                    "multi-screen bundle format lands."
-            )
+            // Said out loud because it is the difference between "my change did
+            // not publish" and "that part of the screen is not part of what
+            // publishes".
+            if (screen.nativeComponents.isNotEmpty()) {
+                logger.lifecycle(
+                    "  kept native: ${screen.nativeComponents.joinToString(", ")}"
+                )
+            }
         }
     }
 

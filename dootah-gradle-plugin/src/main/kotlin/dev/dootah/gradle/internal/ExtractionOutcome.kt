@@ -7,6 +7,15 @@ data class LoweredScreen(
     val screenId: String,
     val functionName: String,
     val objectName: String,
+
+    /**
+     * Components of this screen that stay in the APK.
+     *
+     * Reported to the developer because they are the parts a published bundle
+     * cannot change. Editing one and seeing nothing happen over the air is a
+     * confusing afternoon that one build line prevents.
+     */
+    val nativeComponents: List<String>,
 )
 
 /** One reason a screen could not be bundled, as recorded by the compiler. */
@@ -49,6 +58,10 @@ internal fun readLoweredScreens(reportDirectory: File): List<LoweredScreen> {
                 screenId = screenId,
                 functionName = values["functionName"] ?: screenId,
                 objectName = values["objectName"] ?: screenId,
+                nativeComponents = values["nativeComponents"]
+                    .orEmpty()
+                    .split(", ")
+                    .filter { it.isNotBlank() },
             )
         }
 }
