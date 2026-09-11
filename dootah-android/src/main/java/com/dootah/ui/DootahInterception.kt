@@ -64,8 +64,12 @@ class DootahScreenState internal constructor(
     var isCheckingForUpdate: Boolean by mutableStateOf(false)
         private set
 
+    /** The bundle version this screen last drew from. */
+    private var loadedBundleVersion: Int = Dootah.status().bundleVersion
+
     suspend fun load() {
         apply(Dootah.renderScreen(screenId, arguments.toJson()))
+        loadedBundleVersion = status.bundleVersion
     }
 
     /**
@@ -83,15 +87,15 @@ class DootahScreenState internal constructor(
         scope.launch {
             isCheckingForUpdate = true
             try {
-                val result = Dootah.checkForUpdate()
-                lastUpdateResult = result
+                lastUpdateResult = Dootah.checkForUpdate()
                 status = Dootah.status()
 
                 val reload = shouldReloadAfterCheck(
-                    result = result,
                     isShowingRemote = content is DootahContent.Bundle,
                     currentFallbackReason = (content as? DootahContent.Fallback)?.reason,
                     isRemotelyDisabled = status.isRemotelyDisabled,
+                    loadedBundleVersion = loadedBundleVersion,
+                    installedBundleVersion = status.bundleVersion,
                 )
 
                 if (reload) load()

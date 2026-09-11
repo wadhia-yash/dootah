@@ -1,38 +1,45 @@
 package com.dootah.ota
 
 import com.dootah.FallbackReason
-import com.dootah.UpdateResult
 
 /**
  * Whether a screen must reload after an update check.
  *
- * Reloading only for a downloaded update, which is what Dootah used to do, made
- * the kill switch a restart-only feature: a manifest that switched Dootah off
- * left the remote implementation on screen until the process died. The kill
- * switch is the recovery path for a bad bundle, so it has to take effect on the
- * screen the user is looking at.
+ * Decided by what is installed, not by what the check returned. Two things made
+ * that necessary.
  *
- * A pure function of the three things that decide it, so the rule can be tested
+ * Reloading only for a downloaded update made the kill switch a restart-only
+ * control: a manifest that switched Dootah off left the remote implementation on
+ * screen until the process died, which is the wrong property for the mechanism
+ * that exists to stop a bad bundle.
+ *
+ * And with several screens on display, only one of their checks does the
+ * downloading -- the rest are told there is nothing new, because by the time
+ * they look there isn't. Keying on the result meant every other screen on the
+ * page stayed native until the next launch. Comparing versions instead asks the
+ * question that actually matters: is the bundle this screen drew from still the
+ * one that is installed?
+ *
+ * A pure function of the four things that decide it, so the rule can be tested
  * without a device, a manifest server or a running isolate.
  */
 internal fun shouldReloadAfterCheck(
-    result: UpdateResult,
     isShowingRemote: Boolean,
     currentFallbackReason: FallbackReason?,
     isRemotelyDisabled: Boolean,
+    loadedBundleVersion: Int,
+    installedBundleVersion: Int,
 ): Boolean = when {
 
-    // Something newer was installed, whatever is on screen now.
-    result is UpdateResult.Updated -> true
-
-    // The kill switch arrived while remote content is showing. This is the case
-    // the old rule missed.
-    isRemotelyDisabled && isShowingRemote -> true
+    // The kill switch is on. Only a screen still showing remote content has
+    // anything to do about it.
+    isRemotelyDisabled -> isShowingRemote
 
     // Dootah was switched back on and the screen is native only because it had
     // been switched off. Without this the recovery would itself need a restart.
-    !isRemotelyDisabled && currentFallbackReason == FallbackReason.DISABLED -> true
+    currentFallbackReason == FallbackReason.DISABLED -> true
 
-    // A check that changes nothing must not restart a working isolate.
-    else -> false
+    // A different bundle is installed than the one this screen drew from --
+    // whether this screen's own check downloaded it or another screen's did.
+    else -> loadedBundleVersion != installedBundleVersion
 }

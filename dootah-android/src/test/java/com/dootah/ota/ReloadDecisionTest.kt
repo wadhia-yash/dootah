@@ -1,17 +1,18 @@
 package com.dootah.ota
 
 import com.dootah.FallbackReason
-import com.dootah.UpdateResult
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The kill switch has to take effect on the screen the user is looking at.
+ * Two failures shaped this rule, and both are pinned here.
  *
- * Dootah used to reload only when an update had been downloaded, which made
- * `enabled: false` a restart-only control -- the worst possible property for the
- * mechanism that exists to stop a bad bundle. These pin the rule that fixed it.
+ * The kill switch has to take effect on the screen the user is looking at, not
+ * on the next launch -- it is the recovery path for a bad bundle. And a screen
+ * has to pick up a bundle another screen's check downloaded, because with
+ * several screens on display only one of their checks can be the one that finds
+ * the update.
  */
 class ReloadDecisionTest {
 
@@ -20,26 +21,11 @@ class ReloadDecisionTest {
 
         assertTrue(
             shouldReloadAfterCheck(
-                result = UpdateResult.Disabled,
                 isShowingRemote = true,
                 currentFallbackReason = null,
                 isRemotelyDisabled = true,
-            )
-        )
-    }
-
-    @Test
-    fun `reloads when a check reports no update but the app has been switched off`() {
-
-        // The kill switch is persisted, so a later check can report NoUpdate
-        // while the app is disabled. The reason to reload is the disabled flag,
-        // not the shape of the check's result.
-        assertTrue(
-            shouldReloadAfterCheck(
-                result = UpdateResult.NoUpdate(bundleVersion = 5),
-                isShowingRemote = true,
-                currentFallbackReason = null,
-                isRemotelyDisabled = true,
+                loadedBundleVersion = 5,
+                installedBundleVersion = 5,
             )
         )
     }
@@ -49,23 +35,42 @@ class ReloadDecisionTest {
 
         assertTrue(
             shouldReloadAfterCheck(
-                result = UpdateResult.NoUpdate(bundleVersion = 5),
                 isShowingRemote = false,
                 currentFallbackReason = FallbackReason.DISABLED,
                 isRemotelyDisabled = false,
+                loadedBundleVersion = 5,
+                installedBundleVersion = 5,
             )
         )
     }
 
     @Test
-    fun `reloads when an update was installed`() {
+    fun `reloads when a newer bundle is installed`() {
 
         assertTrue(
             shouldReloadAfterCheck(
-                result = UpdateResult.Updated(bundleVersion = 6, previousBundleVersion = 5),
                 isShowingRemote = true,
                 currentFallbackReason = null,
                 isRemotelyDisabled = false,
+                loadedBundleVersion = 5,
+                installedBundleVersion = 6,
+            )
+        )
+    }
+
+    @Test
+    fun `reloads a screen whose own check found nothing because another screen downloaded it`() {
+
+        // The case the first version of this rule got wrong. Only one screen's
+        // check can be the one that downloads; every other screen is told there
+        // is no update, and stayed native until the next launch.
+        assertTrue(
+            shouldReloadAfterCheck(
+                isShowingRemote = false,
+                currentFallbackReason = FallbackReason.NO_BUNDLE_AVAILABLE,
+                isRemotelyDisabled = false,
+                loadedBundleVersion = 1,
+                installedBundleVersion = 2,
             )
         )
     }
@@ -75,10 +80,11 @@ class ReloadDecisionTest {
 
         assertFalse(
             shouldReloadAfterCheck(
-                result = UpdateResult.NoUpdate(bundleVersion = 5),
                 isShowingRemote = true,
                 currentFallbackReason = null,
                 isRemotelyDisabled = false,
+                loadedBundleVersion = 5,
+                installedBundleVersion = 5,
             )
         )
     }
@@ -90,10 +96,11 @@ class ReloadDecisionTest {
         // every check for a screen that will still have no bundle afterwards.
         assertFalse(
             shouldReloadAfterCheck(
-                result = UpdateResult.NoUpdate(bundleVersion = 1),
                 isShowingRemote = false,
                 currentFallbackReason = FallbackReason.NO_BUNDLE_AVAILABLE,
                 isRemotelyDisabled = false,
+                loadedBundleVersion = 1,
+                installedBundleVersion = 1,
             )
         )
     }
@@ -103,10 +110,11 @@ class ReloadDecisionTest {
 
         assertFalse(
             shouldReloadAfterCheck(
-                result = UpdateResult.Disabled,
                 isShowingRemote = false,
                 currentFallbackReason = FallbackReason.DISABLED,
                 isRemotelyDisabled = true,
+                loadedBundleVersion = 5,
+                installedBundleVersion = 5,
             )
         )
     }
