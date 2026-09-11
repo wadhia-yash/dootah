@@ -178,7 +178,37 @@ internal class ScreenLowering(
             )
         }
 
+        if (root != null) requireSingleRootPerBranch(root)
+
         return root
+    }
+
+    /**
+     * A screen's root must be one layout on every path.
+     *
+     * `if (wide) Row { } else Column { }` is a perfectly ordinary screen and is
+     * lowered as such. A branch producing nothing, or producing two layouts, has
+     * no root to return, so it is refused here rather than emitted as generated
+     * source that does not compile.
+     */
+    private fun requireSingleRootPerBranch(root: BundleUi) {
+
+        if (root !is BundleUi.ConditionalUi) return
+
+        listOf(root.ifTrue, root.ifFalse).forEach { branch ->
+
+            if (branch.size != 1) {
+                reject(
+                    function.source?.startOffset,
+                    "a screen whose top-level `if` does not always produce one layout",
+                    "Give every branch a single Column { }, Row { } or Box { }, " +
+                        "or wrap the whole body in one layout.",
+                )
+                return
+            }
+
+            requireSingleRootPerBranch(branch.single())
+        }
     }
 
     // ---- declarations ---------------------------------------------------
@@ -358,7 +388,7 @@ internal class ScreenLowering(
         val branches = lowerBranches(expression) { branch -> lowerUiStatement(branch) }
             ?: return null
 
-        return branches.fold(emptyList<BundleUi>()) { otherwise, (condition, body) ->
+        return branches.collapse { condition, body, otherwise ->
             listOf(BundleUi.ConditionalUi(condition, body, otherwise))
         }.singleOrNull()
     }
@@ -635,15 +665,15 @@ internal class ScreenLowering(
         return directName?.takeIf { it in callbacks }
     }
 
-    private fun lowerConditionalStatement(expression: FirWhenExpression): BundleStatement? {
+    private fun lowerConditionalStatement(expression: FirWhenExpression): List<BundleStatement>? {
 
         val branches = lowerBranches(expression) { branch ->
             lowerStatements(listOf(branch)) ?: emptyList()
         } ?: return null
 
-        return branches.fold(emptyList<BundleStatement>()) { otherwise, (condition, body) ->
+        return branches.collapse { condition, body, otherwise ->
             listOf(BundleStatement.Conditional(condition, body, otherwise))
-        }.singleOrNull() as? BundleStatement.Conditional
+        }
     }
 
     /**
@@ -695,6 +725,28 @@ internal class ScreenLowering(
         } finally {
             if (subject != null) subjects.removeAt(subjects.lastIndex)
         }
+    }
+
+    /**
+     * Folds branches, innermost first, into one nested conditional.
+     *
+     * An always-true branch -- the `else` -- contributes its body directly
+     * rather than as a conditional wrapping nothing. Wrapping it would produce a
+     * branch with an empty alternative, which is both redundant and, at the root
+     * of a screen, a path that produces no layout at all.
+     */
+    private fun <T> List<Pair<BundleExpression, List<T>>>.collapse(
+        wrap: (BundleExpression, List<T>, List<T>) -> List<T>,
+    ): List<T> {
+
+        var otherwise = emptyList<T>()
+
+        for ((condition, body) in this) {
+            otherwise = if (condition == BundleExpression.BooleanConstant(true)) body
+            else wrap(condition, body, otherwise)
+        }
+
+        return otherwise
     }
 
     // ---- expressions ----------------------------------------------------
@@ -855,7 +907,8 @@ internal class ScreenLowering(
                 reject(
                     expression.sourceOffset(),
                     "an `if` or `when` branch that does not produce a value",
-                    "Every branch of a value must produce one.",
+                    "Every branch of a value must produce one, and a `when` used " +
+                        "as a value needs an `else`.",
                 )
                 return null
             }

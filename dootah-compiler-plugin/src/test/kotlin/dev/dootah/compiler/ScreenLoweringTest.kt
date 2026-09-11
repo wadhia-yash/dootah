@@ -443,6 +443,74 @@ class ScreenLoweringTest {
         assertTrue(rejection, rejection.contains("`label`"))
     }
 
+    // ---- root shape ------------------------------------------------------
+
+    /**
+     * The shape a real screen takes when it lays out differently in portrait
+     * and landscape: one `if` at the top choosing between whole layouts.
+     */
+    @Test
+    fun `lowers a screen whose root is an if between two layouts`() {
+
+        val generated = lower(
+            SourceFile(
+                name = "Screen.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.foundation.layout.Column
+                    import androidx.compose.foundation.layout.Row
+                    import androidx.compose.material3.Text
+                    import androidx.compose.runtime.Composable
+                    import androidx.compose.ui.Modifier
+                    import dev.dootah.Bundlable
+
+                    @Bundlable
+                    @Composable
+                    fun Screen(vertical: Boolean, modifier: Modifier = Modifier) {
+                        if (vertical) {
+                            Column(modifier = modifier) { Text("stacked") }
+                        } else {
+                            Row(modifier = modifier) { Text("stacked") }
+                        }
+                    }
+                """.trimIndent(),
+            )
+        )
+
+        assertTrue(generated, generated.contains("return if (vertical) {"))
+        assertTrue(generated, generated.contains("ColumnNode("))
+        assertTrue(generated, generated.contains("RowNode("))
+    }
+
+    @Test
+    fun `refuses a root if whose branches do not each produce a layout`() {
+
+        val rejection = reject(
+            SourceFile(
+                name = "Screen.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.foundation.layout.Column
+                    import androidx.compose.material3.Text
+                    import androidx.compose.runtime.Composable
+                    import dev.dootah.Bundlable
+
+                    @Bundlable
+                    @Composable
+                    fun Screen(vertical: Boolean) {
+                        if (vertical) {
+                            Column { Text("stacked") }
+                        }
+                    }
+                """.trimIndent(),
+            )
+        )
+
+        assertTrue(rejection, rejection.contains("does not always produce one layout"))
+    }
+
     // ---- refusals -------------------------------------------------------
 
     @Test

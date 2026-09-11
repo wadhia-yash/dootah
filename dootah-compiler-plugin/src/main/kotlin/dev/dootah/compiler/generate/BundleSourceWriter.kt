@@ -70,7 +70,7 @@ internal object BundleSourceWriter {
         appendPrelude(screen, indent = 8)
 
         append("        return ")
-        append(renderUi(screen.ui, indent = 8).trimStart())
+        append(renderRootUi(screen.ui, indent = 8))
         appendLine("    }")
     }
 
@@ -292,6 +292,30 @@ internal object BundleSourceWriter {
     }
 
     // ---- UI -------------------------------------------------------------
+
+    /**
+     * Emits the screen's root, which is a value rather than a child to add.
+     *
+     * An `if` at the root chooses between whole layouts, so it is emitted as an
+     * `if` expression. Lowering has already established that every branch
+     * produces exactly one of them.
+     */
+    private fun renderRootUi(ui: BundleUi, indent: Int): String {
+
+        val pad = " ".repeat(indent)
+
+        if (ui !is BundleUi.ConditionalUi) return renderUi(ui, indent).trimStart()
+
+        return buildString {
+            appendLine("if (${renderExpression(ui.condition)}) {")
+            append("$pad    ")
+            append(renderRootUi(ui.ifTrue.single(), indent + 4))
+            appendLine("$pad} else {")
+            append("$pad    ")
+            append(renderRootUi(ui.ifFalse.single(), indent + 4))
+            appendLine("$pad}")
+        }
+    }
 
     private fun renderUi(ui: BundleUi, indent: Int): String {
 
