@@ -115,6 +115,60 @@ class NativeSlotAgreementTest {
         )
     }
 
+    /**
+     * A component with a receiver, called without one of its defaults.
+     *
+     * The two passes read a call's arguments from different places. Extraction
+     * reads the resolved argument mapping, which holds only the arguments the
+     * call supplies and no receiver. The app's build reads the callee's
+     * parameters against the argument list, which *is* indexed over receivers --
+     * so taking a parameter's position after filtering the receivers out shifts
+     * every later one, and the call gets named with an argument it never passed.
+     *
+     * The app then registers `Star(label|tint)#0` while the bundle asks for
+     * `Star(label)#0`, and the component is silently missing from the screen.
+     */
+    @Test
+    fun `slot names agree for a component with a receiver and an unsupplied default`() {
+
+        val source = screenWithObjectComponent()
+
+        val extracted = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(source),
+            mode = "extract",
+        )
+
+        assertTrue("extraction failed: ${extracted.messages}", extracted.succeeded)
+
+        val intercepted = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(source),
+            mode = "intercept",
+        )
+
+        assertTrue("interception failed: ${intercepted.messages}", intercepted.succeeded)
+
+        val bundleSlots = SLOT_PATTERN
+            .findAll(extracted.generatedSources().values.joinToString("\n"))
+            .map { it.value }
+            .toSet()
+
+        val compiled = intercepted.compiledClassText("com/example/ScreenKt.class")
+
+        assertTrue(
+            "the bundle refers to no component reached through an object: $bundleSlots",
+            bundleSlots.any { slot -> slot.startsWith("Star(") },
+        )
+
+        assertEquals(
+            "the app does not register every slot the bundle refers to.\n" +
+                "bundle refers to: $bundleSlots",
+            emptyList<String>(),
+            bundleSlots.filterNot { slot -> compiled.contains(slot) },
+        )
+    }
+
     @Test
     fun `a registered slot is a composable lambda`() {
 
@@ -186,6 +240,36 @@ class NativeSlotAgreementTest {
     )
 
     /**
+     * A screen whose native component is reached through an object and is called
+     * without its defaulted `tint`.
+     */
+    private fun screenWithObjectComponent(): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.Icons
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen(
+                title: String,
+                modifier: Modifier = Modifier,
+            ) {
+                Column(modifier = modifier) {
+                    Icons.Star(label = title)
+                    Text(title)
+                }
+            }
+        """.trimIndent(),
+    )
+
+    /**
      * The same screen after an ordinary edit: a line added above, and a
      * component's text changed. Neither touches the components kept native.
      */
@@ -222,8 +306,15 @@ class NativeSlotAgreementTest {
     )
 
     private companion object {
-        /** `Icon(name)#0`: what the component is, and which one of those it is. */
-        val SLOT_PATTERN = Regex("[A-Za-z0-9_]+\\([A-Za-z0-9_,]*\\)#[0-9]+")
+        /**
+         * `Icon(name)#0`, `Text(color|text)#0`: what the component is, and which
+         * one of those it is.
+         *
+         * Argument names are separated by `|`, not by a comma. Matching a comma
+         * here instead found only single-argument slots, which quietly excused
+         * every multi-argument one from the check these tests exist to make.
+         */
+        val SLOT_PATTERN = Regex("[A-Za-z0-9_]+\\([A-Za-z0-9_|]*\\)#[0-9]+")
     }
 }
 

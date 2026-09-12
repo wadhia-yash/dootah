@@ -143,13 +143,24 @@ private fun IrCall.isSlotCandidate(
     return !readsOuterLocal
 }
 
-/** The arguments a call actually supplies, named and ordered so two passes agree. */
+/**
+ * The arguments a call actually supplies, named and ordered so two passes agree.
+ *
+ * `arguments` is indexed over every parameter, receivers included, so a
+ * parameter's index has to be taken before the receivers are filtered out. Doing
+ * it the other way round reads the wrong argument slot for any callee with a
+ * receiver -- the extraction pass builds the name from the resolved argument
+ * mapping, which has no receivers in it, so the two passes would disagree and
+ * the app would have no component under the name the bundle asks for.
+ */
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrCall.suppliedArgumentNames(): List<String> =
     symbol.owner.parameters
-        .filter { parameter -> parameter.kind == IrParameterKind.Regular }
-        .filterIndexed { index, _ -> arguments.getOrNull(index) != null }
-        .map { parameter -> parameter.name.asString() }
+        .withIndex()
+        .filter { (index, parameter) ->
+            parameter.kind == IrParameterKind.Regular && arguments.getOrNull(index) != null
+        }
+        .map { (_, parameter) -> parameter.name.asString() }
 
 /**
  * What a component is, as a name that survives editing the screen around it.

@@ -361,6 +361,14 @@ private fun composeStubs(): List<SourceFile> = listOf(
             // Dootah keeps native rather than reimplementing.
             @Composable
             fun Icon(name: String, tint: Color = Color(0L)) {}
+
+            // Reached through an object, the way icon packs are usually
+            // declared. The dispatch receiver shifts every argument's position,
+            // so naming this call correctly means counting past it.
+            object Icons {
+                @Composable
+                fun Star(label: String, tint: Color = Color(0L)) {}
+            }
         """.trimIndent(),
     ),
 )
