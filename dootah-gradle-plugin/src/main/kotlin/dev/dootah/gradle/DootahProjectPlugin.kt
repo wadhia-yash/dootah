@@ -28,7 +28,11 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         val extension = target.extensions
             .create("dootah", DootahExtension::class.java)
 
-        extension.runtimeVersion.convention("1")
+        // Must match DOOTAH_RUNTIME_VERSION in dootah-android, which is the
+        // token an installed app compares a manifest against by exact equality.
+        // It said "1" while the runtime said "2", so a project that did not set
+        // this by hand published a manifest every installed app refused.
+        extension.runtimeVersion.convention("2")
         extension.bundleVersion.convention(1)
         extension.bundleUrl.convention("https://example.invalid/bundle.js")
 
