@@ -378,6 +378,15 @@ private fun composeStubs(): List<SourceFile> = listOf(
                 outlined: Boolean = false,
             ) {}
 
+            // A component that wraps content and is given a click handler --
+            // the shape almost every real toolbox is built out of.
+            @Composable
+            fun IconButton(
+                onClick: () -> Unit,
+                modifier: Modifier = Modifier,
+                content: @Composable () -> Unit,
+            ) {}
+
             // Reached through an object, the way icon packs are usually
             // declared. Has a receiver like Badge, but reads nothing around it,
             // so it is a component Dootah can keep native -- and naming it

@@ -1,5 +1,6 @@
 package dev.dootah.compiler
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -558,6 +559,114 @@ class ScreenLoweringTest {
 
         assertTrue(generated, first in 1..<second && second < third)
         assertTrue(generated, !generated.contains("ColumnNode("))
+    }
+
+    /**
+     * The shape of Cahier's real `ToolBoxContent`, which is the screen Phase 3
+     * exists to make bundlable.
+     *
+     * It receives a view model, two `MutableState`s and a list of a domain type,
+     * none of which can cross to a bundle; its body is three siblings rather
+     * than one layout; and its components are icon buttons and app composables
+     * with callbacks taking arguments. None of that has to be understood -- the
+     * view model and the rest stay native, read only by components the app
+     * draws, and what the bundle owns is the structure around them.
+     */
+    @Test
+    fun `lowers a real toolbox screen by keeping its components native`() {
+
+        val generated = lower(
+            SourceFile(
+                name = "Toolbox.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.foundation.layout.Box
+                    import androidx.compose.material3.Icon
+                    import androidx.compose.material3.IconButton
+                    import androidx.compose.runtime.Composable
+                    import androidx.compose.runtime.MutableState
+                    import androidx.compose.ui.Modifier
+                    import dev.dootah.Bundlable
+
+                    class DrawingViewModel {
+                        fun changeBrush(brush: String) {}
+                        fun setEraserMode(on: Boolean) {}
+                    }
+
+                    data class CustomBrush(val name: String)
+
+                    @Composable
+                    fun BrushesMenu(
+                        expanded: Boolean,
+                        onDismissRequest: () -> Unit,
+                        onBrushChange: (String) -> Unit,
+                        customBrushes: List<CustomBrush>,
+                    ) {}
+
+                    @Bundlable
+                    @Composable
+                    fun ToolBoxContent(
+                        viewModel: DrawingViewModel,
+                        brushesMenuExpanded: MutableState<Boolean>,
+                        customBrushes: List<CustomBrush>,
+                        onColorPickerClick: () -> Unit,
+                        isEraserMode: Boolean,
+                        modifier: Modifier = Modifier,
+                    ) {
+                        Box(modifier = modifier) {
+                            IconButton(onClick = { brushesMenuExpanded.value = true }) {
+                                Icon("brush")
+                            }
+                            BrushesMenu(
+                                expanded = brushesMenuExpanded.value,
+                                onDismissRequest = { brushesMenuExpanded.value = false },
+                                onBrushChange = { newBrush ->
+                                    viewModel.changeBrush(newBrush)
+                                    brushesMenuExpanded.value = false
+                                },
+                                customBrushes = customBrushes,
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                onColorPickerClick()
+                                viewModel.setEraserMode(false)
+                            },
+                        ) {
+                            Icon("palette")
+                        }
+                        Box {
+                            IconButton(onClick = { brushesMenuExpanded.value = true }) {
+                                Icon("size")
+                            }
+                        }
+                    }
+                """.trimIndent(),
+            )
+        )
+
+        // Three siblings, kept as siblings.
+        assertTrue(generated, generated.contains("FragmentNode("))
+
+        // Two of them are boxes the bundle owns and can rearrange.
+        assertTrue(generated, generated.contains("BoxNode("))
+
+        // Everything that touches the view model, the MutableState or the list
+        // stayed native.
+        assertTrue(generated, generated.contains("NativeSlotNode(\"IconButton("))
+        assertTrue(generated, generated.contains("NativeSlotNode(\"BrushesMenu("))
+
+        // The only value that crossed is the one a bundle can carry. The view
+        // model, the MutableState and the list appear nowhere except inside a
+        // slot's name, which records the shape of a call the app makes, not a
+        // value the bundle holds.
+        val read = Regex("""arguments\.[a-zA-Z]+\("([^"]+)"\)""")
+            .findAll(generated)
+            .map { it.groupValues[1] }
+            .toSet()
+
+        assertEquals(setOf("isEraserMode"), read)
     }
 
     // ---- refusals -------------------------------------------------------
