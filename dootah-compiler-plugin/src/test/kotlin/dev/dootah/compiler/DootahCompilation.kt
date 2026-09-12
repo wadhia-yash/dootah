@@ -438,6 +438,7 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
 
             fun dootahSlots(
                 ids: String,
+                shapes: String,
                 vararg slots: @Composable () -> Unit,
             ): DootahSlots = DootahSlots()
 

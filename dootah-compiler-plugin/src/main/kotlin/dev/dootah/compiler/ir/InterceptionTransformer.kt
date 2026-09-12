@@ -82,6 +82,8 @@ internal class InterceptionTransformer(
         val slots = if (composable.isEmpty()) emptyList()
         else originalBody.nativeSlots(LAYOUT_COMPOSABLES)
 
+        val shapeSpec = originalBody.componentShapeSpec()
+
         val builder = DeclarationIrBuilder(pluginContext, function.symbol)
         val unitType = pluginContext.irBuiltIns.unitType
 
@@ -103,7 +105,7 @@ internal class InterceptionTransformer(
                     arguments[0] = irString(screenId)
                     arguments[1] = buildArguments(binding)
                     arguments[2] = buildCallbacks(binding)
-                    arguments[3] = buildSlots(function, slots, composable)
+                    arguments[3] = buildSlots(function, slots, composable, shapeSpec)
                 }
             }
 
@@ -165,13 +167,18 @@ internal class InterceptionTransformer(
         function: IrSimpleFunction,
         slots: List<NativeSlot>,
         composable: List<IrConstructorCall>,
+        shapeSpec: String,
     ): IrExpression {
 
-        val parameter = symbols.slots.owner.parameters[1]
+        val parameter = symbols.slots.owner.parameters[2]
 
         return irCall(symbols.slots).apply {
             arguments[0] = irString(slots.joinToString(",") { it.id })
-            arguments[1] = varargOf(
+            // Every component in this body, not only the ones registered here:
+            // the numbering inside a slot name runs over all of them, and this
+            // is what a bundle's own count is checked against.
+            arguments[1] = irString(shapeSpec)
+            arguments[2] = varargOf(
                 parameter = parameter,
                 elements = slots.map { slot ->
                     composableLambda(

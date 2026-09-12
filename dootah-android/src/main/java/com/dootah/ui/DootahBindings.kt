@@ -106,12 +106,37 @@ class DootahCallbacks internal constructor(
  */
 class DootahSlots internal constructor(
     private val byId: Map<String, @Composable () -> Unit>,
+    private val shapeCounts: Map<String, Int> = emptyMap(),
 ) {
 
     internal fun ids(): Set<String> = byId.keys
 
     internal fun missingFrom(requested: List<String>): List<String> =
         requested.filterNot { slot -> slot in byId }
+
+    /**
+     * Component shapes whose numbering no longer means what it meant here.
+     *
+     * A slot's name ends in its position among the components sharing its shape.
+     * Remove one from the source and every later one slides down a place, so a
+     * bundle asking for the second of three is served this build's second of
+     * three -- a different component, under a name that exists. Nothing is
+     * missing, so nothing is reported, and the screen quietly draws the wrong
+     * thing. Comparing how many of each shape the two sources had is what makes
+     * that visible.
+     *
+     * Only shapes the bundle actually draws are compared. The bundle's table
+     * covers every component in its source, and an ordinary edit -- adding a
+     * Text, say -- moves counts the bundle never numbers against.
+     */
+    internal fun disagreeingShapes(
+        requested: List<String>,
+        bundleShapes: Map<String, Int>,
+    ): List<String> =
+        requested.map { slot -> slot.substringBeforeLast('#') }
+            .distinct()
+            .filter { shape -> shapeCounts[shape] != bundleShapes[shape] }
+            .sorted()
 
     /**
      * Draws a slot, or nothing when the bundle names one this build has not got.
@@ -153,9 +178,30 @@ fun dootahModifiedArguments(
 fun dootahCallbacks(names: String, vararg callbacks: () -> Unit): DootahCallbacks =
     DootahCallbacks(splitNames(names).zip(callbacks.toList()).toMap())
 
+/**
+ * Registers this build's native components, and how many of each shape it has.
+ *
+ * [shapes] is `shape=count` pairs, comma-separated. It covers every component in
+ * the screen's source, not only the ones registered here, because it is what a
+ * bundle's own count is compared against -- and the numbering inside a slot name
+ * runs over all of them.
+ */
 @DootahGeneratedApi
-fun dootahSlots(ids: String, vararg slots: @Composable () -> Unit): DootahSlots =
-    DootahSlots(splitNames(ids).zip(slots.toList()).toMap())
+fun dootahSlots(
+    ids: String,
+    shapes: String,
+    vararg slots: @Composable () -> Unit,
+): DootahSlots = DootahSlots(
+    byId = splitNames(ids).zip(slots.toList()).toMap(),
+    shapeCounts = parseShapeCounts(shapes),
+)
+
+private fun parseShapeCounts(shapes: String): Map<String, Int> =
+    if (shapes.isEmpty()) emptyMap()
+    else shapes.split(",").associate { entry ->
+        val shape = entry.substringBeforeLast('=')
+        shape to (entry.substringAfterLast('=').toIntOrNull() ?: 0)
+    }
 
 private fun splitNames(names: String): List<String> =
     if (names.isEmpty()) emptyList() else names.split(",")

@@ -233,6 +233,53 @@ class NativeSlotAgreementTest {
         }
     }
 
+    /**
+     * Removing one of several identical components, which renames the rest.
+     *
+     * Shape-based naming fixed the case where an edit above a component renamed
+     * it. It does not fix this one: three identical icon buttons are numbered
+     * #0, #1, #2, so deleting the middle one slides the third into its place.
+     * The bundle then asks for #1 and the installed app, which still has all
+     * three, hands back a different component under a name that exists. Nothing
+     * is missing, so the missing-component check sees nothing wrong.
+     *
+     * What gives it away is how many of that shape each source had, which both
+     * sides now carry.
+     */
+    @Test
+    fun `removing one of several identical components is caught by the counts`() {
+
+        val installed = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(toolbar(buttons = 3)),
+            mode = "intercept",
+        )
+
+        assertTrue("interception failed: ${installed.messages}", installed.succeeded)
+
+        val published = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(toolbar(buttons = 2)),
+            mode = "extract",
+        )
+
+        assertTrue("extraction failed: ${published.messages}", published.succeeded)
+
+        val generated = published.generatedSources().values.joinToString("\n")
+        val compiled = installed.compiledClassText("com/example/ScreenKt.class")
+
+        // The name the bundle asks for exists in the installed app, so nothing
+        // looks wrong -- this is exactly why the counts are needed.
+        assertTrue(generated, generated.contains("IconButton(content|onClick)#1"))
+        assertTrue("the app should still have that slot", compiled.contains("IconButton(content|onClick)#1"))
+
+        // The two sources counted that shape differently, which is what the app
+        // compares before it draws.
+        assertTrue(compiled, compiled.contains("IconButton(content|onClick)=3"))
+        // Quoted twice: the table is JSON, held in a Kotlin string literal.
+        assertTrue(generated, generated.contains("""IconButton(content|onClick)\":2"""))
+    }
+
     @Test
     fun `a registered slot is a composable lambda`() {
 
@@ -301,6 +348,34 @@ class NativeSlotAgreementTest {
                 }
             }
         """.trimIndent(),
+    )
+
+    /** A toolbar of [buttons] identical icon buttons, side by side. */
+    private fun toolbar(buttons: Int): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.Icon
+            import androidx.compose.material3.IconButton
+            import androidx.compose.runtime.Composable
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen(onPick: () -> Unit) {
+                Column {
+        """.trimIndent() +
+            (1..buttons).joinToString("\n") {
+                """
+                    IconButton(onClick = onPick) { Icon("tool$it") }
+                """.trimIndent()
+            } +
+            """
+                }
+            }
+            """.trimIndent(),
     )
 
     /**

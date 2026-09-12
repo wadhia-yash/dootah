@@ -110,6 +110,17 @@ internal class ScreenLowering(
      */
     private var slotNames: Map<FirFunctionCall, String> = emptyMap()
 
+    /**
+     * How many components of each shape this screen's source contains.
+     *
+     * A component's name ends in its position among the components sharing its
+     * shape. Removing one slides every later one down, and the installed app --
+     * which still has all of them registered -- would draw the wrong component
+     * under a name it recognises, reporting nothing. The app compares these
+     * counts against its own before it draws.
+     */
+    private var componentShapes: Map<String, Int> = emptyMap()
+
     private val prelude = mutableListOf<BundleStatement>()
     private val actions = mutableListOf<BundleAction>()
     private val functions = LinkedHashMap<String, BundleFunction>()
@@ -131,7 +142,9 @@ internal class ScreenLowering(
             return LoweringResult.Rejected(reasons)
         }
 
-        slotNames = body.nativeSlotNames()
+        val naming = body.nativeSlotNames()
+        slotNames = naming.names
+        componentShapes = naming.shapeCounts
 
         val ui = lowerBody(body)
 
@@ -147,6 +160,7 @@ internal class ScreenLowering(
                 actions = actions.toList(),
                 functions = functions.values.toList(),
                 nativeComponents = nativeSlots.toList(),
+                componentShapes = componentShapes,
             )
         )
     }
@@ -1134,10 +1148,7 @@ internal class ScreenLowering(
         return result
     }
 
-    private fun FirFunctionCall.isComposableCall(): Boolean =
-        calleeReference.toResolvedCallableSymbol()
-            ?.resolvedAnnotationClassIds
-            ?.any { it.asSingleFqName() == COMPOSABLE_ANNOTATION } == true
+    private fun FirFunctionCall.isComposableCall(): Boolean = isComposable()
 
     private fun FirExpression.lambdaBody(): FirBlock? =
         (this as? FirAnonymousFunctionExpression)?.anonymousFunction?.body
@@ -1171,9 +1182,10 @@ internal class ScreenLowering(
  * the edited one a bundle is published from. Counting per callee name, over the
  * whole body, is what makes a name survive an edit somewhere else in the file.
  */
-private fun FirElement.nativeSlotNames(): Map<FirFunctionCall, String> {
+private fun FirElement.nativeSlotNames(): SlotNaming {
 
     val counts = mutableMapOf<String, Int>()
+    val composableShapes = mutableSetOf<String>()
     val names = IdentityHashMap<FirFunctionCall, String>()
 
     accept(object : org.jetbrains.kotlin.fir.visitors.FirVisitorVoid() {
@@ -1200,14 +1212,36 @@ private fun FirElement.nativeSlotNames(): Map<FirFunctionCall, String> {
                 val ordinal = counts.getOrElse(shape) { 0 }
                 counts[shape] = ordinal + 1
                 names[element] = nativeSlotName(shape, ordinal)
+
+                if (element.isComposable()) composableShapes += shape
             }
 
             element.acceptChildren(this)
         }
     })
 
-    return names
+    return SlotNaming(names = names, shapeCounts = counts.filterKeys { it in composableShapes })
 }
+
+/**
+ * What every call in a screen body would be called, and how many of each there
+ * are.
+ *
+ * The counts cover components only. A call's ordinal is its position among the
+ * calls sharing its shape, so the count is what tells the app whether that
+ * numbering still means the same thing -- and the two passes walk slightly
+ * different trees for everything that is not a component, which would otherwise
+ * make the tables disagree for no reason.
+ */
+private class SlotNaming(
+    val names: Map<FirFunctionCall, String>,
+    val shapeCounts: Map<String, Int>,
+)
+
+private fun FirFunctionCall.isComposable(): Boolean =
+    calleeReference.toResolvedCallableSymbol()
+        ?.resolvedAnnotationClassIds
+        ?.any { it.asSingleFqName() == COMPOSABLE_ANNOTATION } == true
 
 private const val UNNAMED_CALLEE = "unknown"
 

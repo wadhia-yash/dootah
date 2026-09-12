@@ -50,7 +50,7 @@ internal data class NativeSlot(
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrBody.nativeSlots(layouts: Set<FqName>): List<NativeSlot> {
 
-    val names = nativeSlotNames(this)
+    val names = nativeSlotNames(this).names
 
     val declaredInBody = mutableSetOf<IrValueDeclaration>()
 
@@ -93,9 +93,10 @@ internal fun IrBody.nativeSlots(layouts: Set<FqName>): List<NativeSlot> {
  * removing a slot does not renumber the others.
  */
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-private fun nativeSlotNames(body: IrBody): Map<IrCall, String> {
+private fun nativeSlotNames(body: IrBody): SlotNaming {
 
     val counts = mutableMapOf<String, Int>()
+    val composableShapes = mutableSetOf<String>()
     val names = IdentityHashMap<IrCall, String>()
 
     body.acceptVoid(object : IrVisitorVoid() {
@@ -109,14 +110,46 @@ private fun nativeSlotNames(body: IrBody): Map<IrCall, String> {
                 val ordinal = counts.getOrElse(shape) { 0 }
                 counts[shape] = ordinal + 1
                 names[element] = nativeSlotName(shape, ordinal)
+
+                if (element.symbol.owner.hasAnnotation(COMPOSABLE_ANNOTATION)) {
+                    composableShapes += shape
+                }
             }
 
             element.acceptChildrenVoid(this)
         }
     })
 
-    return names
+    return SlotNaming(names, counts.filterKeys { it in composableShapes })
 }
+
+/**
+ * What every call in a screen body would be called, and how many of each there
+ * are.
+ *
+ * The counts cover components only. A call's ordinal is its position among the
+ * calls sharing its shape, so the count is what tells the app whether that
+ * numbering still means the same thing -- and the two passes walk slightly
+ * different trees for everything that is not a component, which would otherwise
+ * make the tables disagree for no reason.
+ */
+internal class SlotNaming(
+    val names: Map<IrCall, String>,
+    val shapeCounts: Map<String, Int>,
+)
+
+/**
+ * How many components of each shape this body has, as the app registers it.
+ *
+ * `shape=count`, comma-separated. Neither character occurs in a shape, which is
+ * a callee name and its argument names joined by `(`, `|`, `)`.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrBody.componentShapeSpec(): String =
+    nativeSlotNames(this).shapeCounts
+        .entries
+        .sortedBy { entry -> entry.key }
+        .joinToString(",") { (shape, count) -> "$shape=$count" }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrCall.isSlotCandidate(

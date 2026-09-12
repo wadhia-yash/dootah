@@ -117,9 +117,27 @@ class DootahScreenState internal constructor(
 
             is BundleLoadResult.Loaded -> {
 
-                val missing = slots.missingFrom(result.ui.nativeSlots())
+                val requested = result.ui.nativeSlots()
+                val missing = slots.missingFrom(requested)
+                val renumbered = slots.disagreeingShapes(requested, result.componentShapes)
 
-                if (missing.isEmpty()) {
+                if (missing.isEmpty() && renumbered.isNotEmpty()) {
+                    // Every component the bundle asks for exists here, so
+                    // nothing would look wrong -- it would just be the wrong
+                    // component. Only the counts give it away.
+                    Log.e(
+                        DOOTAH_LOG_TAG,
+                        "the bundle for $screenId was built from a source with a " +
+                            "different number of " + renumbered.joinToString(", ") +
+                            " than this build has, so which one it means cannot be " +
+                            "trusted; using the native implementation",
+                    )
+
+                    DootahContent.Fallback(
+                        reason = FallbackReason.RENUMBERED_NATIVE_COMPONENT,
+                        message = "Components renumbered: " + renumbered.joinToString(", "),
+                    )
+                } else if (missing.isEmpty()) {
                     result.commands.forEach { command -> execute(command) }
                     DootahContent.Bundle(result.ui)
                 } else {

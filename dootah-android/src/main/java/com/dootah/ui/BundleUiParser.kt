@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 
@@ -14,6 +15,15 @@ import kotlinx.serialization.json.longOrNull
 data class BundleResponse(
     val ui: BundleUiNode,
     val commands: List<BundleCommand>,
+
+    /**
+     * How many components of each shape the bundle's source contained.
+     *
+     * Checked against this build's own counts before anything is drawn. A
+     * component's name ends in its position among those sharing its shape, so a
+     * source that dropped one renumbers the rest.
+     */
+    val componentShapes: Map<String, Int> = emptyMap(),
 )
 
 /** A bundle answered, but not with a screen. */
@@ -53,6 +63,9 @@ object BundleUiParser {
         return BundleResponse(
             ui = parseNode(ui),
             commands = root["commands"]?.jsonArray?.map { parseCommand(it.jsonObject) }.orEmpty(),
+            componentShapes = root["shapes"]?.jsonObject
+                ?.mapValues { (_, count) -> count.jsonPrimitive.int }
+                .orEmpty(),
         )
     }
 

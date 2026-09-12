@@ -49,6 +49,12 @@ internal object BundleSourceWriter {
         appendLine()
         appendLine("    const val SCREEN_ID: String = ${kotlinStringLiteral(screen.screenId)}")
         appendLine()
+        appendLine("    /** How many components of each shape this screen's source had. */")
+        appendLine(
+            "    const val COMPONENT_SHAPES: String = " +
+                kotlinStringLiteral(componentShapesJson(screen))
+        )
+        appendLine()
 
         appendRender(screen)
         appendLine()
@@ -61,6 +67,21 @@ internal object BundleSourceWriter {
 
         appendLine("}")
     }
+
+    /**
+     * The screen's shape table, as the JSON spliced into every response.
+     *
+     * Sorted, so the same source always produces the same bundle. No escaping:
+     * a shape is a callee name and its argument names, which are identifiers,
+     * joined by `(`, `|`, `)` and `#`.
+     */
+    private fun componentShapesJson(screen: BundleScreen): String =
+        screen.componentShapes
+            .entries
+            .sortedBy { entry -> entry.key }
+            .joinToString(",", prefix = "{", postfix = "}") { (shape, count) ->
+                "\"$shape\":$count"
+            }
 
     private fun StringBuilder.appendRender(screen: BundleScreen) {
 
@@ -189,7 +210,8 @@ internal object BundleSourceWriter {
         appendLine("    val state = stateFor(screenId)")
         appendLine("    val arguments = parseArguments(argumentsJson)")
         appendLine("    val ui = renderOf(screenId, arguments, state)")
-        appendLine("    if (ui == null) unknownScreen(screenId) else envelope(ui, emptyList())")
+        appendLine("    if (ui == null) unknownScreen(screenId)")
+        appendLine("    else envelope(ui, emptyList(), shapesOf(screenId))")
         appendLine("} catch (failure: Throwable) {")
         appendLine("    failure(failure.message ?: \"the screen could not be rendered\")")
         appendLine("}")
@@ -205,9 +227,18 @@ internal object BundleSourceWriter {
         appendLine("    val commands = performOn(screenId, action, arguments, state)")
         appendLine("    val ui = renderOf(screenId, arguments, state)")
         appendLine("    if (commands == null || ui == null) unknownScreen(screenId)")
-        appendLine("    else envelope(ui, commands)")
+        appendLine("    else envelope(ui, commands, shapesOf(screenId))")
         appendLine("} catch (failure: Throwable) {")
         appendLine("    failure(failure.message ?: \"the action could not be handled\")")
+        appendLine("}")
+        appendLine()
+        appendLine("private fun shapesOf(screenId: String): String = when (screenId) {")
+        screens.forEach { screen ->
+            appendLine(
+                "    ${screen.objectName}.SCREEN_ID -> ${screen.objectName}.COMPONENT_SHAPES"
+            )
+        }
+        appendLine("    else -> \"{}\"")
         appendLine("}")
         appendLine()
         appendLine("private fun renderOf(")

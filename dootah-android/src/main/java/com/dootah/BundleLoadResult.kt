@@ -11,6 +11,9 @@ sealed interface BundleLoadResult {
         val ui: BundleUiNode,
         val source: BundleSource,
         val commands: List<BundleCommand> = emptyList(),
+
+        /** How many components of each shape the bundle's source contained. */
+        val componentShapes: Map<String, Int> = emptyMap(),
     ) : BundleLoadResult
 
     /**
@@ -53,6 +56,19 @@ enum class FallbackReason {
      * missing a button is worse than one that is simply a version behind.
      */
     UNKNOWN_NATIVE_COMPONENT,
+
+    /**
+     * The bundle numbers its native components differently from this build.
+     *
+     * A component's name ends in its position among those sharing its shape, so
+     * removing one from the source slides every later one down a place. The
+     * bundle then asks for the second of three and is served this build's second
+     * of three, which is a different component under a name that does exist --
+     * nothing is missing, nothing is reported, and the screen draws the wrong
+     * thing. Comparing how many of each shape the two sources had is the only
+     * way to see it, and falling back is the only safe answer.
+     */
+    RENUMBERED_NATIVE_COMPONENT,
 
     /** The bundle failed to evaluate, or exceeded its time budget. */
     EXECUTION_FAILED,

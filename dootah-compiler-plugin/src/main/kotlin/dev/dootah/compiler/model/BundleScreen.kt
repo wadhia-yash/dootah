@@ -38,6 +38,17 @@ internal data class BundleScreen(
      * told which ones those are.
      */
     val nativeComponents: List<String>,
+
+    /**
+     * How many components of each shape the screen's source contains.
+     *
+     * Sent with every render so the app can check the numbering still means what
+     * it meant when the APK was built. A component's name ends in its position
+     * among those sharing its shape, so removing one slides every later one down
+     * -- and the app, still registering all of them, would draw the wrong one
+     * under a name it recognises.
+     */
+    val componentShapes: Map<String, Int>,
 )
 
 internal data class BundleParameter(
