@@ -90,9 +90,18 @@ sealed interface BundleUiModifier {
     data class Background(val color: Long) : BundleUiModifier
 }
 
-/** Every native component this tree asks the app to draw. */
+/**
+ * Every native component this tree asks the app to draw.
+ *
+ * Exhaustive on purpose, with no `else`. This is what the app checks a bundle
+ * against before it draws anything, so a node type that held children and was
+ * not listed here would report no components beneath it -- and the one guard
+ * between a bundle built against a different APK and a hole in a shipped screen
+ * would pass without looking. Adding a node type has to stop compiling here.
+ */
 fun BundleUiNode.nativeSlots(): List<String> = when (this) {
     is BundleUiNode.Container -> children.flatMap { child -> child.nativeSlots() }
     is BundleUiNode.NativeSlot -> listOf(slot)
-    else -> emptyList()
+    is BundleUiNode.Text -> emptyList()
+    is BundleUiNode.Button -> emptyList()
 }
