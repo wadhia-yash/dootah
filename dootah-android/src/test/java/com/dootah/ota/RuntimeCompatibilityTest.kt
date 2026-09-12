@@ -36,7 +36,7 @@ class RuntimeCompatibilityTest {
 
         assertFalse(
             isRuntimeCompatible(
-                manifest = testManifest(runtimeVersion = "2"),
+                manifest = testManifest(runtimeVersion = "3"),
                 supportedVersion = "1",
             )
         )
@@ -52,7 +52,7 @@ class RuntimeCompatibilityTest {
         assertFalse(
             isRuntimeCompatible(
                 manifest = testManifest(runtimeVersion = "1"),
-                supportedVersion = "2",
+                supportedVersion = "3",
             )
         )
     }
@@ -80,7 +80,7 @@ class RuntimeCompatibilityTest {
 
     @Test
     fun `declares runtime version 2`() {
-        assertEquals("2", DOOTAH_RUNTIME_VERSION)
+        assertEquals("3", DOOTAH_RUNTIME_VERSION)
     }
 
     @Test

@@ -128,7 +128,7 @@ is caught and converted to `BundleLoadResult.Unavailable` / `UpdateResult.Failed
 |---|---|---|
 | Offline | Airplane mode, tap check | `UpdateFailure.NETWORK`; installed bundle keeps rendering |
 | Wrong SHA | Change one hex char in `sha256`, re-publish | `FAILED_VERIFICATION`; bundle **not** replaced |
-| Wrong `runtimeVersion` | Publish a `runtimeVersion` other than `"2"` with a higher `bundleVersion` | Rejected as incompatible; installed bundle keeps running |
+| Wrong `runtimeVersion` | Publish a `runtimeVersion` other than `"3"` with a higher `bundleVersion` | Rejected as incompatible; installed bundle keeps running |
 | `enabled: false` | Publish with `"enabled": false` | `UpdateResult.Disabled`; native fallback shown, persists even offline (kill switch is persisted to disk) |
 | Malformed bundle | Upload truncated/garbage `bundle.js` with a matching SHA | Digest still matches → stored, but evaluation fails → `EXECUTION_FAILED`, falls back to native |
 | Timeout | Publish a bundle whose JS never returns (e.g. infinite loop) | Isolate is killed after `executionTimeoutMillis` (default 5000ms); falls back to native |
@@ -234,7 +234,7 @@ unknown or missing fields are rejected, not defaulted):
 {
   "schemaVersion": 1,
   "bundleVersion": 4,
-  "runtimeVersion": "2",
+  "runtimeVersion": "3",
   "enabled": true,
   "url": "https://your-host/bundle.js",
   "sha256": "<lowercase hex SHA-256 of bundle.js, computed over raw bytes>"
@@ -245,7 +245,7 @@ unknown or missing fields are rejected, not defaulted):
   rejected, not guessed at.
 - `bundleVersion` — positive integer; a manifest offering a version `<=` the installed one
   is treated as no update (no downgrade, no replay).
-- `runtimeVersion` — exact-match compatibility token against `DOOTAH_RUNTIME_VERSION` (`"2"`
+- `runtimeVersion` — exact-match compatibility token against `DOOTAH_RUNTIME_VERSION` (`"3"`
   in this codebase, `dootah-android/.../ota/RuntimeCompatibility.kt`); mismatched in either
   direction is rejected.
 - `enabled` — the remote kill switch. Required, not defaulted — a manifest that omits it is

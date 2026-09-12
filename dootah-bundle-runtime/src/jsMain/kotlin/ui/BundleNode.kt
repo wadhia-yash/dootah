@@ -36,6 +36,18 @@ data class ButtonNode(
 ) : BundleNode
 
 /**
+ * Several nodes drawn in place, with no layout around them.
+ *
+ * A screen is not required to be one layout. Where it is several components in a
+ * row, whatever the caller wrapped the call in is what lays them out, so a
+ * fragment adds nothing of its own -- wrapping them in a Column instead would
+ * change how the screen looks the moment a bundle first drew it.
+ */
+data class FragmentNode(
+    val children: List<BundleNode> = emptyList(),
+) : BundleNode
+
+/**
  * A hole in the remote tree filled by a composable already inside the APK.
  *
  * The bundle names a slot and nothing more. What it draws, and every value it

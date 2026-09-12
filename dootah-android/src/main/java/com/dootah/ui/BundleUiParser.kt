@@ -78,6 +78,8 @@ object BundleUiParser {
                 modifiers = modifiers,
             )
 
+            "fragment" -> BundleUiNode.Fragment(children = node.children())
+
             "native" -> BundleUiNode.NativeSlot(slot = node.string("slot"))
 
             else -> throw BundleProtocolException("Unknown UI node type '$type'")

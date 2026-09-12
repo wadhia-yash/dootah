@@ -43,6 +43,17 @@ sealed interface BundleUiNode {
     ) : BundleUiNode
 
     /**
+     * Several nodes drawn in place, with no layout around them.
+     *
+     * A screen is not required to be one layout. Where it is several components
+     * in a row, whatever the caller wrapped the screen in is what lays them out,
+     * so this adds nothing of its own.
+     */
+    data class Fragment(
+        val children: List<BundleUiNode>,
+    ) : BundleUiNode
+
+    /**
      * A composable that shipped in the APK, named by slot.
      *
      * The bundle decides where it goes; the app decides what it is. Nothing
@@ -102,6 +113,7 @@ sealed interface BundleUiModifier {
 fun BundleUiNode.nativeSlots(): List<String> = when (this) {
     is BundleUiNode.Container -> children.flatMap { child -> child.nativeSlots() }
     is BundleUiNode.NativeSlot -> listOf(slot)
+    is BundleUiNode.Fragment -> children.flatMap { child -> child.nativeSlots() }
     is BundleUiNode.Text -> emptyList()
     is BundleUiNode.Button -> emptyList()
 }

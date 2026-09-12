@@ -27,6 +27,10 @@ fun BundleNode.toJson(): String = when (this) {
 
     is NativeSlotNode ->
         "{\"type\":\"native\",\"slot\":\"${slot.escapeJson()}\"}"
+
+    is FragmentNode ->
+        "{\"type\":\"fragment\",\"children\":[" +
+            children.joinToString(",") { it.toJson() } + "]}"
 }
 
 private fun container(

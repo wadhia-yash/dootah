@@ -30,9 +30,10 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
 
         // Must match DOOTAH_RUNTIME_VERSION in dootah-android, which is the
         // token an installed app compares a manifest against by exact equality.
-        // It said "1" while the runtime said "2", so a project that did not set
-        // this by hand published a manifest every installed app refused.
-        extension.runtimeVersion.convention("2")
+        // It defaulted to "1" long after the runtime had moved on, so a project
+        // that did not set this by hand published a manifest every installed app
+        // refused as incompatible.
+        extension.runtimeVersion.convention("3")
         extension.bundleVersion.convention(1)
         extension.bundleUrl.convention("https://example.invalid/bundle.js")
 

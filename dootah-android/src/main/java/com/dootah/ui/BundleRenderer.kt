@@ -104,6 +104,13 @@ private fun RenderNode(
             Text(node.text)
         }
 
+        // Drawn straight into whatever encloses the screen, keeping the
+        // enclosing scope's weight applier: these children sit exactly where the
+        // screen's own call site does.
+        is BundleUiNode.Fragment -> node.children.forEach { child ->
+            RenderNode(child, slots, inherited, onAction, weightApplier)
+        }
+
         is BundleUiNode.NativeSlot -> slots.Render(node.slot)
     }
 }
@@ -112,6 +119,7 @@ private fun BundleUiNode.modifiers(): List<BundleUiModifier> = when (this) {
     is BundleUiNode.Container -> modifiers
     is BundleUiNode.Text -> modifiers
     is BundleUiNode.Button -> modifiers
+    is BundleUiNode.Fragment -> emptyList()
     is BundleUiNode.NativeSlot -> emptyList()
 }
 

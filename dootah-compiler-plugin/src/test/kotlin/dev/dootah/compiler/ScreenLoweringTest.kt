@@ -484,9 +484,9 @@ class ScreenLoweringTest {
     }
 
     @Test
-    fun `refuses a root if whose branches do not each produce a layout`() {
+    fun `a root if with no else draws nothing on the other branch`() {
 
-        val rejection = reject(
+        val generated = lower(
             SourceFile(
                 name = "Screen.kt",
                 contents = """
@@ -508,7 +508,56 @@ class ScreenLoweringTest {
             )
         )
 
-        assertTrue(rejection, rejection.contains("does not always produce one layout"))
+        assertTrue(generated, generated.contains("if (vertical)"))
+        assertTrue(generated, generated.contains("ColumnNode("))
+
+        // The branch that draws nothing still has to be a value `render` can
+        // return, so it is an empty fragment rather than a missing else.
+        assertTrue(generated, generated.contains("FragmentNode("))
+    }
+
+    /**
+     * A screen body does not have to be one layout.
+     *
+     * `ToolBoxContent` in Cahier is three siblings, and the Column or Row the
+     * caller wrapped the call in is what lays them out. Wrapping them in a
+     * layout here would move the screen the first time a bundle drew it, so they
+     * are emitted as a fragment that adds nothing.
+     */
+    @Test
+    fun `lowers a body of several components into a fragment`() {
+
+        val generated = lower(
+            SourceFile(
+                name = "Screen.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.foundation.layout.Box
+                    import androidx.compose.material3.Text
+                    import androidx.compose.runtime.Composable
+                    import dev.dootah.Bundlable
+
+                    @Bundlable
+                    @Composable
+                    fun Screen(title: String) {
+                        Box { Text(title) }
+                        Text("second")
+                        Box { Text("third") }
+                    }
+                """.trimIndent(),
+            )
+        )
+
+        assertTrue(generated, generated.contains("FragmentNode("))
+
+        // In source order, and with no layout wrapped around them.
+        val first = generated.indexOf("""TextNode(title)""")
+        val second = generated.indexOf("""TextNode("second")""")
+        val third = generated.indexOf("""TextNode("third")""")
+
+        assertTrue(generated, first in 1..<second && second < third)
+        assertTrue(generated, !generated.contains("ColumnNode("))
     }
 
     // ---- refusals -------------------------------------------------------

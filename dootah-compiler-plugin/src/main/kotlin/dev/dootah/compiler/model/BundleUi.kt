@@ -45,6 +45,17 @@ internal sealed interface BundleUi {
     data class NativeSlotUi(val slot: String) : BundleUi
 
     /**
+     * Several components in a row, with no layout around them.
+     *
+     * A screen body is not required to be one layout. `ToolBoxContent` in Cahier
+     * is three siblings, laid out by whichever Column or Row the caller put
+     * around the call -- so wrapping them in a Column here would change how the
+     * screen looks the first time a bundle rendered it. A fragment draws its
+     * children where the screen itself sits and adds nothing of its own.
+     */
+    data class FragmentUi(val children: List<BundleUi>) : BundleUi
+
+    /**
      * `if` / `else` around UI, and what a `when` over UI lowers to.
      *
      * Branches are lists because a branch may contribute no children or several,

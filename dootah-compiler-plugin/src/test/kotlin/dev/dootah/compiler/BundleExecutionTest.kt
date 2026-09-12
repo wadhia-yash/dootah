@@ -117,7 +117,54 @@ class BundleExecutionTest {
         assertTrue(standard, standard.contains("Standard member"))
     }
 
+    /**
+     * A screen that is several components rather than one layout.
+     *
+     * This is the shape of a real toolbox: siblings laid out by whatever the
+     * caller wrapped the call in. The bundle has to return them as one value
+     * without inventing a layout, so it returns a fragment -- and the point of
+     * running it is that the linked JavaScript really does emit one.
+     */
+    @Test
+    fun `serves a screen whose body is several components`() {
+
+        val bundle = buildBundle(siblingScreen())
+
+        val rendered = bundle.render("com.example.ToolbarScreen", """{"label":"Undo"}""")
+
+        assertTrue(rendered, rendered.contains(""""type":"fragment""""))
+        assertTrue(rendered, rendered.contains("Undo"))
+        assertTrue(rendered, rendered.contains("tail"))
+
+        // No layout was added around them.
+        assertTrue(rendered, !rendered.contains(""""type":"column""""))
+
+        // And a component kept native is still named inside the fragment.
+        assertTrue(rendered, rendered.contains(""""type":"native""""))
+    }
+
     // ---- fixture ---------------------------------------------------------
+
+    private fun siblingScreen(): SourceFile = SourceFile(
+        name = "Toolbar.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Box
+            import androidx.compose.material3.Icon
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun ToolbarScreen(label: String) {
+                Box { Text(label) }
+                Icon(label)
+                Text("tail")
+            }
+        """.trimIndent(),
+    )
 
     private fun twoScreens(): SourceFile = SourceFile(
         name = "Screens.kt",

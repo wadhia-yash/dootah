@@ -40,6 +40,7 @@ internal object BundleSourceWriter {
         appendLine("import ui.BundleNode")
         appendLine("import ui.ButtonNode")
         appendLine("import ui.ColumnNode")
+        appendLine("import ui.FragmentNode")
         appendLine("import ui.NativeSlotNode")
         appendLine("import ui.RowNode")
         appendLine("import ui.TextNode")
@@ -296,9 +297,10 @@ internal object BundleSourceWriter {
     /**
      * Emits the screen's root, which is a value rather than a child to add.
      *
-     * An `if` at the root chooses between whole layouts, so it is emitted as an
-     * `if` expression. Lowering has already established that every branch
-     * produces exactly one of them.
+     * An `if` at the root is emitted as an `if` expression, so each branch has
+     * to be one value. A branch that draws nothing, or several things, becomes a
+     * fragment -- which is how `if (wide) Row { } else { }` and a branch of
+     * three siblings both end up as something `render` can return.
      */
     private fun renderRootUi(ui: BundleUi, indent: Int): String {
 
@@ -309,13 +311,17 @@ internal object BundleSourceWriter {
         return buildString {
             appendLine("if (${renderExpression(ui.condition)}) {")
             append("$pad    ")
-            append(renderRootUi(ui.ifTrue.single(), indent + 4))
+            append(renderRootUi(ui.ifTrue.asRoot(), indent + 4))
             appendLine("$pad} else {")
             append("$pad    ")
-            append(renderRootUi(ui.ifFalse.single(), indent + 4))
+            append(renderRootUi(ui.ifFalse.asRoot(), indent + 4))
             appendLine("$pad}")
         }
     }
+
+    /** One branch of a root `if`, as the single value that branch must yield. */
+    private fun List<BundleUi>.asRoot(): BundleUi =
+        singleOrNull() ?: BundleUi.FragmentUi(this)
 
     private fun renderUi(ui: BundleUi, indent: Int): String {
 
@@ -338,6 +344,14 @@ internal object BundleSourceWriter {
 
             is BundleUi.NativeSlotUi ->
                 "$pad" + "NativeSlotNode(${kotlinStringLiteral(ui.slot)})\n"
+
+            is BundleUi.FragmentUi -> buildString {
+                appendLine("$pad" + "FragmentNode(")
+                appendLine("$pad    children = buildList {")
+                ui.children.forEach { child -> append(addChild(child, indent + 8)) }
+                appendLine("$pad    },")
+                appendLine("$pad)")
+            }
 
             // Only ever a child, so it is emitted as the statements that add its
             // branch's children rather than as a node of its own.

@@ -9,12 +9,15 @@ package com.dootah.ota
  * break bundles built before it, and treat it as an opaque token rather than a
  * number to be compared numerically.
  *
- * "2" is the screen-addressed protocol: `screenIds()`, `renderScreen(id, args)`
+ * "3" adds the fragment node, so a screen can be several components with no
+ * layout around them. A "2" renderer has no such node and would refuse the whole
+ * response, which is exactly what the gate is for.
+ *
+ * "2" was the screen-addressed protocol: `screenIds()`, `renderScreen(id, args)`
  * and `handleAction(id, action, args)`, returning a UI-and-commands envelope.
- * "1" was single-screen and took no arguments, so no "1" bundle can run here --
- * which is what the version gate is for.
+ * "1" was single-screen and took no arguments.
  */
-const val DOOTAH_RUNTIME_VERSION: String = "2"
+const val DOOTAH_RUNTIME_VERSION: String = "3"
 
 /**
  * True when [manifest] targets exactly the runtime named by [supportedVersion].

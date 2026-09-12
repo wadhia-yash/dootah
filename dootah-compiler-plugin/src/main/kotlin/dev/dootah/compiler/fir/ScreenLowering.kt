@@ -152,12 +152,17 @@ internal class ScreenLowering(
     }
 
     /**
-     * A screen body is a run of declarations followed by exactly one root
-     * composable, which may be an `if` choosing between layouts.
+     * A screen body is a run of declarations followed by its content.
+     *
+     * The content is usually one layout, but it does not have to be: a screen
+     * that is several components in a row is laid out by whatever the caller
+     * wrapped the call in, and those are exactly the screens worth updating.
+     * Several roots become a fragment, which draws them in place and adds no
+     * layout of its own.
      */
     private fun lowerBody(body: FirBlock): BundleUi? {
 
-        var root: BundleUi? = null
+        val roots = mutableListOf<BundleUi>()
 
         for (statement in body.statements) {
 
@@ -167,64 +172,22 @@ internal class ScreenLowering(
 
                 is FirProperty -> lowerDeclaration(unwrapped, into = prelude)
 
-                else -> {
-                    val lowered = lowerUiStatement(unwrapped)
-
-                    if (lowered.isEmpty()) continue
-
-                    if (root != null || lowered.size > 1) {
-                        reject(
-                            unwrapped.sourceOffset(),
-                            "more than one top-level composable in the screen body",
-                            "Wrap the screen's content in a single Column { }.",
-                        )
-                        continue
-                    }
-
-                    root = lowered.single()
-                }
+                else -> roots += lowerUiStatement(unwrapped)
             }
         }
 
-        if (root == null && reasons.isEmpty()) {
-            reject(
-                function.source?.startOffset,
-                "a screen body with no composable content",
-                "Add a Column { } containing the screen's content.",
-            )
-        }
-
-        if (root != null) requireSingleRootPerBranch(root)
-
-        return root
-    }
-
-    /**
-     * A screen's root must be one layout on every path.
-     *
-     * `if (wide) Row { } else Column { }` is a perfectly ordinary screen and is
-     * lowered as such. A branch producing nothing, or producing two layouts, has
-     * no root to return, so it is refused here rather than emitted as generated
-     * source that does not compile.
-     */
-    private fun requireSingleRootPerBranch(root: BundleUi) {
-
-        if (root !is BundleUi.ConditionalUi) return
-
-        listOf(root.ifTrue, root.ifFalse).forEach { branch ->
-
-            if (branch.size != 1) {
+        if (roots.isEmpty()) {
+            if (reasons.isEmpty()) {
                 reject(
                     function.source?.startOffset,
-                    "a screen whose top-level `if` does not always produce one layout",
-                    "Give every branch a single Column { }, Row { } or Box { }, " +
-                        "or wrap the whole body in one layout.",
+                    "a screen body with no composable content",
+                    "Add a Column { } containing the screen's content.",
                 )
-                return
             }
-
-            requireSingleRootPerBranch(branch.single())
+            return null
         }
+
+        return roots.singleOrNull() ?: BundleUi.FragmentUi(roots.toList())
     }
 
     // ---- declarations ---------------------------------------------------

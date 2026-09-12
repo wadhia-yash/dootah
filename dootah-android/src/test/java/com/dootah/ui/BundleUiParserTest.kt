@@ -56,6 +56,33 @@ class BundleUiParserTest {
         )
     }
 
+    /**
+     * A fragment holds children like a layout but draws none of its own, and the
+     * check for components this build does not have has to see through it.
+     */
+    @Test
+    fun `reads a fragment and finds the components inside it`() {
+
+        val response = BundleUiParser.parse(
+            """
+            {"ui":{"type":"fragment","children":[
+               {"type":"box","children":[{"type":"native","slot":"Icon(name)#0"}]},
+               {"type":"native","slot":"Icon(name)#1"},
+               {"type":"text","text":"tail"}
+             ]},
+             "commands":[]}
+            """.trimIndent()
+        )
+
+        val fragment = response.ui as BundleUiNode.Fragment
+
+        assertEquals(3, fragment.children.size)
+        assertEquals(
+            listOf("Icon(name)#0", "Icon(name)#1"),
+            response.ui.nativeSlots(),
+        )
+    }
+
     @Test
     fun `reads a native slot`() {
 
