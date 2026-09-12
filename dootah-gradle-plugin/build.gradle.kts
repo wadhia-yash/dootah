@@ -11,6 +11,16 @@ kotlin {
     jvmToolchain(17)
 }
 
+// The plugin reads its own version out of this to resolve the compiler plugin,
+// the annotation and the bundle runtime it has to stay in lockstep with. Without
+// it every lookup fell back to a hardcoded default, which happened to be right
+// and would have gone on looking right the first time the version moved.
+tasks.jar {
+    manifest {
+        attributes("Implementation-Version" to project.version)
+    }
+}
+
 dependencies {
     // The Kotlin Gradle plugin API supplies KotlinCompilerPluginSupportPlugin,
     // which is how a compiler plugin attaches to a host project's compilation.
