@@ -13,6 +13,7 @@ private const val COMPOSE_PLUGIN_ID = "org.jetbrains.kotlin.plugin.compose"
 private const val DOOTAH_GROUP = "dev.dootah"
 private const val COMPILER_PLUGIN_ARTIFACT = "dootah-compiler-plugin"
 private const val ANNOTATIONS_ARTIFACT = "dootah-annotations"
+private const val RUNTIME_ARTIFACT = "dootah-android"
 
 /**
  * The `dev.dootah` plugin applied to a host app.
@@ -39,7 +40,7 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
 
         rejectComposeDeclaredFirst(target)
         gateKotlinVersion(target)
-        addAnnotationDependency(target)
+        addRuntimeDependencies(target)
 
         // Milestone 1 wires the debug variant only. Per-variant registration
         // follows once the bundle build is in place.
@@ -77,20 +78,28 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Puts `@Bundlable` on the app's compile classpath.
+     * Puts `@Bundlable` and the Dootah runtime on the app's classpath.
      *
-     * Wired automatically because requiring a host app to declare a dependency
-     * on an annotation it did not choose is exactly the manual step this plugin
-     * exists to remove.
+     * Wired automatically because requiring a host app to declare dependencies
+     * it did not choose is exactly the manual step this plugin exists to remove
+     * -- and because the runtime is what the compiler's own output calls into,
+     * so the two cannot be allowed to come from different releases. Both are
+     * resolved at this plugin's version for that reason.
+     *
+     * The runtime used to be copied into each app by hand. A `git stash` once
+     * reverted one of those copies underneath a device test, which then passed
+     * against code that was not the code being tested.
      */
-    private fun addAnnotationDependency(target: Project) {
+    private fun addRuntimeDependencies(target: Project) {
         target.configurations
             .matching { it.name == "implementation" }
             .configureEach { configuration ->
-                target.dependencies.add(
-                    configuration.name,
-                    "$DOOTAH_GROUP:$ANNOTATIONS_ARTIFACT:${pluginVersion()}",
-                )
+                listOf(ANNOTATIONS_ARTIFACT, RUNTIME_ARTIFACT).forEach { artifact ->
+                    target.dependencies.add(
+                        configuration.name,
+                        "$DOOTAH_GROUP:$artifact:${pluginVersion()}",
+                    )
+                }
             }
     }
 
