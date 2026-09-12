@@ -337,6 +337,7 @@ private fun composeStubs(): List<SourceFile> = listOf(
         contents = """
             package androidx.compose.material3
 
+            import androidx.compose.foundation.layout.ColumnScope
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.graphics.Color
@@ -360,11 +361,27 @@ private fun composeStubs(): List<SourceFile> = listOf(
             // Stands in for the styled components a real screen leans on, which
             // Dootah keeps native rather than reimplementing.
             @Composable
-            fun Icon(name: String, tint: Color = Color(0L)) {}
+            fun Icon(
+                name: String,
+                modifier: Modifier = Modifier,
+                tint: Color = Color(0L),
+            ) {}
+
+            // Declared on a layout scope, the way Compose declares several of
+            // its own components. The receiver shifts every argument's position,
+            // and the defaults mean a call supplies only some of them -- which
+            // is what makes naming this call the same way twice a real problem.
+            @Composable
+            fun ColumnScope.Badge(
+                label: String,
+                tint: Color = Color(0L),
+                outlined: Boolean = false,
+            ) {}
 
             // Reached through an object, the way icon packs are usually
-            // declared. The dispatch receiver shifts every argument's position,
-            // so naming this call correctly means counting past it.
+            // declared. Has a receiver like Badge, but reads nothing around it,
+            // so it is a component Dootah can keep native -- and naming it
+            // correctly means counting past the receiver.
             object Icons {
                 @Composable
                 fun Star(label: String, tint: Color = Color(0L)) {}

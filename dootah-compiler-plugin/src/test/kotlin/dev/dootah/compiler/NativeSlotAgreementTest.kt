@@ -169,6 +169,70 @@ class NativeSlotAgreementTest {
         )
     }
 
+    /**
+     * A component that reads the scope of the layout around it.
+     *
+     * The app registers a native component as its own lambda, lifted out of the
+     * layout it was written in, so there is no `ColumnScope` left for it to
+     * read. The app's build cannot construct that lambda at all -- it used to
+     * fail in the backend with `No mapping for symbol: $this$Column` -- so both
+     * passes have to refuse the case: the app must not register what it cannot
+     * build, and the bundle must not name what the app did not register.
+     *
+     * Checked for a component declared on the scope, and for the far more
+     * ordinary case of one whose modifier calls `weight`.
+     */
+    @Test
+    fun `neither pass accepts a component that reads the layout's scope`() {
+
+        listOf(
+            "a component declared on ColumnScope" to screenWithScopedComponent(),
+            "a component whose modifier uses weight" to screenWithWeightedComponent(),
+        ).forEach { (description, source) ->
+
+            val intercepted = compileWithDootah(
+                workingDirectory = temporaryFolder.newFolder(),
+                sources = listOf(source),
+                mode = "intercept",
+            )
+
+            assertTrue(
+                "the app's build failed on $description: ${intercepted.messages}",
+                intercepted.succeeded,
+            )
+
+            val extracted = compileWithDootah(
+                workingDirectory = temporaryFolder.newFolder(),
+                sources = listOf(source),
+                mode = "extract",
+            )
+
+            assertTrue(
+                "extraction failed on $description: ${extracted.messages}",
+                extracted.succeeded,
+            )
+
+            val bundleSlots = SLOT_PATTERN
+                .findAll(extracted.generatedSources().values.joinToString("\n"))
+                .map { it.value }
+                .toSet()
+
+            val compiled = intercepted.compiledClassText("com/example/ScreenKt.class")
+
+            assertEquals(
+                "the bundle names a slot the app did not register, for $description.\n" +
+                    "bundle refers to: $bundleSlots",
+                emptyList<String>(),
+                bundleSlots.filterNot { slot -> compiled.contains(slot) },
+            )
+
+            assertTrue(
+                "$description was not reported as unsupported",
+                extracted.rejectionReport().orEmpty().contains("scope"),
+            )
+        }
+    }
+
     @Test
     fun `a registered slot is a composable lambda`() {
 
@@ -263,6 +327,66 @@ class NativeSlotAgreementTest {
             ) {
                 Column(modifier = modifier) {
                     Icons.Star(label = title)
+                    Text(title)
+                }
+            }
+        """.trimIndent(),
+    )
+
+    /**
+     * A screen whose native component is declared on `ColumnScope` and is called
+     * without either of its defaulted arguments.
+     */
+    private fun screenWithScopedComponent(): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.Badge
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen(
+                title: String,
+                modifier: Modifier = Modifier,
+            ) {
+                Column(modifier = modifier) {
+                    Badge(label = title)
+                    Text(title)
+                }
+            }
+        """.trimIndent(),
+    )
+
+    /**
+     * The ordinary version of the same problem: a component Dootah keeps native
+     * that is given a weight by the column it sits in.
+     */
+    private fun screenWithWeightedComponent(): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.Icon
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen(
+                title: String,
+                modifier: Modifier = Modifier,
+            ) {
+                Column(modifier = modifier) {
+                    Icon(title, modifier = Modifier.weight(1f))
                     Text(title)
                 }
             }

@@ -16,6 +16,7 @@ import dev.dootah.compiler.model.LogicalOperator
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirProperty
+import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.expressions.FirAnonymousFunctionExpression
 import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.expressions.FirBooleanOperatorExpression
@@ -28,10 +29,12 @@ import org.jetbrains.kotlin.fir.expressions.FirLiteralExpression
 import org.jetbrains.kotlin.fir.expressions.FirPropertyAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirReturnExpression
 import org.jetbrains.kotlin.fir.expressions.FirStringConcatenationCall
+import org.jetbrains.kotlin.fir.expressions.FirThisReceiverExpression
 import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
 import org.jetbrains.kotlin.fir.expressions.FirWhenExpression
 import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.resolvedArgumentMapping
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
@@ -542,6 +545,18 @@ internal class ScreenLowering(
             return null
         }
 
+        if (call.readsAnOuterReceiver()) {
+            reject(
+                call.sourceOffset(),
+                "`$shortName()`, which reads the scope of the layout around it",
+                "A component Dootah keeps native is lifted out into its own " +
+                    "lambda, so it cannot read a `ColumnScope` or `RowScope` " +
+                    "from around it -- `weight` is the usual reason. Give it a " +
+                    "size instead, or keep this screen native.",
+            )
+            return null
+        }
+
         val captured = call.declarationsReadFromBody()
 
         if (captured.isNotEmpty()) {
@@ -568,6 +583,48 @@ internal class ScreenLowering(
         nativeSlots += name
 
         return BundleUi.NativeSlotUi(name)
+    }
+
+    /**
+     * Whether [this] reads a `this` belonging to something outside it.
+     *
+     * The app registers a native component as its own lambda, lifted out of the
+     * layout it was written in, so a component declared on `ColumnScope` -- or
+     * one whose modifier calls `weight` -- has no receiver left to read. The
+     * app's build refuses to register that case because it cannot build it, so
+     * this pass has to refuse to name it, or the bundle would ask for a
+     * component the app never registered.
+     *
+     * A `this` introduced *inside* the call is fine: it is lifted along with it.
+     */
+    private fun FirFunctionCall.readsAnOuterReceiver(): Boolean {
+
+        val introducedHere = mutableSetOf<FirBasedSymbol<*>>()
+
+        accept(
+            object : org.jetbrains.kotlin.fir.visitors.FirVisitorVoid() {
+                override fun visitElement(element: FirElement) {
+                    if (element is FirAnonymousFunction) introducedHere += element.symbol
+                    element.acceptChildren(this)
+                }
+            }
+        )
+
+        var readsOuter = false
+
+        accept(
+            object : org.jetbrains.kotlin.fir.visitors.FirVisitorVoid() {
+                override fun visitElement(element: FirElement) {
+                    if (element is FirThisReceiverExpression) {
+                        val bound = element.calleeReference.boundSymbol
+                        if (bound == null || bound !in introducedHere) readsOuter = true
+                    }
+                    element.acceptChildren(this)
+                }
+            }
+        )
+
+        return readsOuter
     }
 
     /** Names declared in this body that [this] reads, which a slot may not. */

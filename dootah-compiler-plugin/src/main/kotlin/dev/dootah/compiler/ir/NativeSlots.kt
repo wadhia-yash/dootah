@@ -2,7 +2,9 @@ package dev.dootah.compiler.ir
 
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
@@ -39,17 +41,26 @@ internal data class NativeSlot(
  * slot runs on the Android side, where a value the bundle computed does not
  * exist, so closing over one could not work -- and the extraction pass refuses
  * the same case rather than emitting a slot the app cannot supply.
+ *
+ * "Declared inside the body" includes the receiver a layout hands its content:
+ * a registered slot is lifted out into its own lambda, so a component declared
+ * on `ColumnScope`, or one whose modifier calls `weight`, has no receiver left
+ * to read and cannot be built at all.
  */
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrBody.nativeSlots(layouts: Set<FqName>): List<NativeSlot> {
 
     val names = nativeSlotNames(this)
 
-    val declaredInBody = mutableSetOf<IrVariable>()
+    val declaredInBody = mutableSetOf<IrValueDeclaration>()
 
     acceptVoid(object : IrVisitorVoid() {
         override fun visitElement(element: IrElement) {
             if (element is IrVariable) declaredInBody += element
+            // A lambda's own parameters, including the receiver a layout gives
+            // its content. A component that reads one cannot be hoisted out of
+            // the lambda that introduced it.
+            if (element is IrFunction) declaredInBody += element.parameters
             element.acceptChildrenVoid(this)
         }
     })
@@ -110,7 +121,7 @@ private fun nativeSlotNames(body: IrBody): Map<IrCall, String> {
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrCall.isSlotCandidate(
     layouts: Set<FqName>,
-    declaredInBody: Set<IrVariable>,
+    declaredInBody: Set<IrValueDeclaration>,
 ): Boolean {
 
     val callee = symbol.owner
@@ -118,11 +129,12 @@ private fun IrCall.isSlotCandidate(
     if (!callee.hasAnnotation(COMPOSABLE_ANNOTATION)) return false
     if ((callee.fqNameWhenAvailable ?: FqName.ROOT) in layouts) return false
 
-    val declaredHere = mutableSetOf<IrVariable>()
+    val declaredHere = mutableSetOf<IrValueDeclaration>()
 
     acceptVoid(object : IrVisitorVoid() {
         override fun visitElement(element: IrElement) {
             if (element is IrVariable) declaredHere += element
+            if (element is IrFunction) declaredHere += element.parameters
             element.acceptChildrenVoid(this)
         }
     })
