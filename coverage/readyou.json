@@ -1,6 +1,6 @@
 {
   "app": "readyou",
-  "modules": 1,
+  "modules": 2,
   "files": 381,
   "lines": 49804,
   "failed_modules": 1,
@@ -10,87 +10,379 @@
     "ineligible:TAKES_COMPOSABLE_CONTENT": 27,
     "ineligible:RETURNS_A_VALUE": 87,
     "eligible": 133,
-    "fallback": 131,
+    "fallback": 98,
     "ineligible:PREVIEW": 25,
+    "not_worth": 32,
     "ineligible:HAS_RECEIVER": 7,
-    "mixed": 2,
+    "shape:described": 7,
+    "shape:placed": 8,
+    "shape:frozen": 3,
+    "shape:conditionals": 0,
+    "shape:actions": 0,
+    "shape:states": 0,
+    "mixed": 3,
     "ineligible:INLINE": 1
   },
   "blocked_by": {
-    "collections/data classes": 66,
-    "state pattern": 2,
-    "Compose value type": 49,
-    "unsupported Kotlin syntax": 4,
-    "third-party composable": 5,
-    "native capability": 3,
-    "callback argument type": 2
+    "third-party composable": 33,
+    "Compose value type": 21,
+    "native local read remotely": 5,
+    "native value read remotely": 13,
+    "callback argument type": 4,
+    "native capability": 14,
+    "unsupported Kotlin syntax": 6,
+    "collections/data classes": 2
   },
   "occurrences": {
-    "collections/data classes": 313,
-    "state pattern": 30,
-    "unsupported Kotlin syntax": 129,
-    "third-party composable": 42,
-    "native capability": 38,
-    "Compose value type": 164,
-    "callback argument type": 20,
-    "navigation": 3
+    "third-party composable": 33,
+    "Compose value type": 39,
+    "native local read remotely": 5,
+    "native value read remotely": 13,
+    "callback argument type": 4,
+    "native capability": 15,
+    "unsupported Kotlin syntax": 6,
+    "collections/data classes": 4
   },
   "details": {
-    "collections/data classes": {
-      "android.content.Context": 45,
-      "kotlin.collections.List": 38,
-      "kotlinx.coroutines.CoroutineScope": 34,
-      "kotlin.String": 17,
-      "kotlin.Boolean": 13,
-      "kotlin.Any": 12
-    },
-    "state pattern": {
-      "me.ash.reader.infrastructure.preference.FlowArticleListFeedIconPreference": 3,
-      "me.ash.reader.infrastructure.preference.FlowFilterBarStylePreference": 2,
-      "me.ash.reader.infrastructure.preference.FlowFilterBarTonalElevationPreference": 2,
-      "me.ash.reader.infrastructure.preference.FlowTopBarTonalElevationPreference": 2,
-      "me.ash.reader.infrastructure.preference.FlowArticleListFeedNamePreference": 2,
-      "me.ash.reader.infrastructure.preference.FlowArticleListImagePreference": 2
-    },
     "third-party composable": {
-      "me.ash.reader.ui.component.base.RYScaffold": 21,
+      "me.ash.reader.ui.component.base.RYScaffold": 17,
       "androidx.compose.material3.Surface": 4,
       "androidx.compose.runtime.DisposableEffect": 2,
       "androidx.compose.foundation.lazy.LazyRow": 2,
-      "me.ash.reader.ui.component.base.RYDialog": 2,
-      "androidx.compose.runtime.CompositionLocalProvider": 1
-    },
-    "native capability": {
-      "kotlin.Any.toString": 8,
-      "androidx.compose.ui.graphics.toArgb": 8,
-      "kotlin.collections.forEach": 6,
-      "kotlin.collections.List.isEmpty": 2,
-      "androidx.work.WorkInfo.State.toString": 2,
-      "kotlin.Float.toString": 2
+      "androidx.compose.ui.viewinterop.AndroidView": 1,
+      "androidx.compose.material3.Scaffold": 1
     },
     "Compose value type": {
-      "androidx.compose.ui.Modifier": 25,
-      "androidx.compose.ui.graphics.Color": 10,
-      "androidx.compose.ui.unit.Dp": 9,
-      "androidx.compose.ui.focus.FocusManager": 7,
-      "androidx.compose.ui.graphics.vector.ImageVector": 6,
-      "Box.contentAlignment": 6
+      "Row.verticalAlignment": 5,
+      "androidx.compose.foundation.clickable": 3,
+      "background.shape": 2,
+      "dp": 2,
+      "Box.contentAlignment": 2,
+      "value:androidx.compose.ui.graphics.painter.Painter": 2
+    },
+    "native local read remotely": {
+      "native local:readText": 1,
+      "native local:dateString": 1,
+      "native local:flowUiState": 1,
+      "native local:icon": 1,
+      "native local:renderer": 1
+    },
+    "native value read remotely": {
+      "read through a native value:groupOptionUiState": 6,
+      "read through a native value:uiState": 4,
+      "read through a native value:feedOptionUiState": 2,
+      "read through a native value:kotlin.collections.List": 1
     },
     "callback argument type": {
-      "kotlin.Function0": 13,
-      "kotlin.Function1": 6,
-      "kotlin.coroutines.SuspendFunction1": 1
+      "lambda:kotlin.Function0": 3,
+      "lambda:kotlin.coroutines.SuspendFunction1": 1
+    },
+    "native capability": {
+      "kotlin.collections.List.isEmpty": 2,
+      "kotlin.collections.forEach": 1,
+      "call:androidx.compose.foundation.clickable": 1,
+      "call:androidx.compose.ui.Modifier.then": 1,
+      "call:me.ash.reader.ui.theme.palette.onLight": 1,
+      "call:me.ash.reader.ui.page.settings.tips.githubAvatar": 1
     },
     "unsupported Kotlin syntax": {
-      "FirSafeCallExpressionImpl": 7,
-      "FirPropertyImpl": 5,
-      "FirTypeOperatorCallImpl": 2,
-      "FirNamedFunctionImpl": 2
+      "expression:FirResolvedQualifierImpl": 3,
+      "FirPropertyImpl": 2,
+      "FirTypeOperatorCallImpl": 1
     },
-    "navigation": {
-      "androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator": 1,
-      "androidx.compose.material3.adaptive.navigation.BackNavigationBehavior": 1,
-      "me.ash.reader.ui.page.adaptive.NavigationAction": 1
+    "collections/data classes": {
+      "value:kotlin.Any": 4
     }
-  }
+  },
+  "inside": {
+    "Compose value type": 2
+  },
+  "inside_details": {
+    "Compose value type": {
+      "property:androidx.compose.material.icons.outlined.Info": 1,
+      "property:<local>.modifier": 1
+    }
+  },
+  "shapes": [
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 5,
+      "placed": 5,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    }
+  ]
 }

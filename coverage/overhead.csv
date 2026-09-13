@@ -1,7 +1,10 @@
-app,mode,dexBytes,buildSeconds
-JetNews,none,36265936,20
-JetNews,idle,39629376,16
-JetNews,default,39825900,19
-Jetsnack,none,39373300,26
-Jetsnack,idle,42707004,21
-Jetsnack,default,42867432,27
+app,mode,dexBytes,buildSeconds,phase
+JetNews,none,36265936,20,3
+JetNews,idle,39629376,16,3
+JetNews,default,39825900,19,3
+Jetsnack,none,39373300,26,3
+Jetsnack,idle,42707004,21,3
+Jetsnack,default,42867432,27,3
+JetNews,none,36265936,93,4
+JetNews,idle,39631244,94,4
+JetNews,default,40258840,135,4
