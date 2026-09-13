@@ -25,6 +25,9 @@ import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
+import org.jetbrains.kotlin.ir.expressions.IrReturn
+import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
+import org.jetbrains.kotlin.ir.symbols.IrReturnTargetSymbol
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
@@ -571,6 +574,7 @@ internal class InterceptionTransformer(
                 (original.body as? IrBlockBody)?.statements?.forEach { statement ->
                     +statement.deepCopyWithSymbols(lambda)
                         .readArgumentsFrom(supplied, parameters)
+                        .returningTo(from = original.symbol, to = lambda.symbol)
                 }
             }
         }
@@ -671,6 +675,48 @@ internal class InterceptionTransformer(
         }, null)
 
         return this as IrStatement
+    }
+
+    /**
+     * Points a copied handler's returns at the function it now lives in.
+     *
+     * Every lambda body ends in a return to the lambda it came from, including
+     * the empty one an ignored callback is written as. Copying the statements
+     * into a new function leaves those returns aimed at the original, which is
+     * a return out of a function the copy is not inside -- and the backend emits
+     * it as a placeholder for the inliner, which never runs over it. The
+     * placeholder then reaches dexing, where it fails as a class name nobody
+     * wrote.
+     *
+     * Retargeting is exact rather than approximate: Kotlin does not allow a
+     * non-inline lambda to return anywhere but out of itself, so every return
+     * being moved meant "leave this handler" and still does.
+     */
+    private fun IrStatement.returningTo(
+        from: IrReturnTargetSymbol,
+        to: IrReturnTargetSymbol,
+    ): IrStatement {
+
+        // The result is taken rather than discarded: the statement being copied
+        // is often the return itself -- that is exactly what an empty handler is
+        // -- and a transform that replaces the root cannot report it by mutating
+        // in place.
+        return transform(object : IrElementTransformerVoid() {
+            override fun visitReturn(expression: IrReturn): IrExpression {
+
+                expression.transformChildren(this, null)
+
+                if (expression.returnTargetSymbol != from) return expression
+
+                return IrReturnImpl(
+                    startOffset = expression.startOffset,
+                    endOffset = expression.endOffset,
+                    type = expression.type,
+                    returnTargetSymbol = to,
+                    value = expression.value,
+                )
+            }
+        }, null) as IrStatement
     }
 
     /** `arguments[index] as T`. */

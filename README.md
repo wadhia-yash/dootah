@@ -139,28 +139,66 @@ remains usable.
 
 ## 7. Integrate Dootah into another Android app
 
-**Step 1 — include the module.** Copy `dootah-android/` into the target project and add
-to its `settings.gradle.kts`:
-
-```kotlin
-include(":dootah-android")
-```
-
-The module needs these version catalog entries (see `Android-Dootah/gradle/libs.versions.toml`
-for exact coordinates): `android-library`, `kotlin-compose` plugins; `androidx-javascriptengine`
-(1.1.0), `kotlinx-coroutines-guava` (1.10.2), `kotlinx-serialization-json` (1.9.0), plus the
-Compose BOM/material3/ui/core-ktx.
-
-**Step 2 — depend on it:**
+**Step 1 — apply the plugin.** Declare Dootah *before* Compose: plugin order decides
+compiler plugin order, and Dootah has to run before Compose lowers.
 
 ```kotlin
 // app/build.gradle.kts
-dependencies {
-    implementation(project(":dootah-android"))
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("dev.dootah")
+    id("org.jetbrains.kotlin.plugin.compose")
+}
+
+dootah {
+    bundleVersion = 1
+    bundleUrl = "https://your-host/bundle.js"
 }
 ```
 
-`INTERNET` permission arrives automatically via manifest merging.
+The plugin puts the annotations and the runtime on the app's classpath itself, at its own
+version, so the two cannot come from different releases.
+
+**Step 2 — keep writing Compose.** There is no step here. Dootah reads the app's own
+Compose functions and works out which of them it can describe; nothing needs marking.
+
+A function is considered when it is `@Composable`, returns `Unit`, has a body, is not
+local, `inline` or `suspend`, is not a `@Preview`, takes no `@Composable` content
+parameter, and is not declared on a Compose scope. The last two are not limitations so
+much as definitions: a wrapper's content belongs to its caller, and a `ColumnScope`
+extension is drawn into a scope only its caller has.
+
+Of those, the ones whose bodies Dootah can actually describe end up in the bundle and can
+be changed over the air. The rest keep rendering exactly the code in the APK. Each build
+says which is which:
+
+```
+Dootah: 129 Compose functions, 3 updatable over the air (3 with native parts),
+  11 not yet describable, 115 out of scope.
+  out of scope: takes_composable_content 41, has_receiver 28, returns_a_value 9
+```
+
+To keep something native, say so — in the source, for a function, a class or a whole file:
+
+```kotlin
+@DootahNative
+@Composable
+fun PaymentSheet() { … }
+```
+
+or in the build script, for a package:
+
+```kotlin
+dootah {
+    exclude("com.example.payments.**")
+}
+```
+
+`@Bundlable` still exists for the two jobs discovery cannot do: pinning an id that must not
+follow a function's name, and forcing something back past an `exclude`. A function marked
+with it is also held to a stricter standard — if Dootah cannot describe it, the build
+fails rather than passing it over, because that is someone asking for a screen by name.
 
 **Step 3 — ship an asset fallback bundle.** Copy a built `bundle.js` into the target app's
 `src/main/assets/`. This is what renders before any download ever happens, and what the app
