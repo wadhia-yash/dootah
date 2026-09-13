@@ -1,3 +1,10 @@
+// Dootah's own runtime, which Dootah must never take over. Discovery
+// finds every eligible composable in a compilation; an app that built
+// this module from source rather than resolving it as a library would
+// otherwise have these intercepted, including the one that renders a
+// remote screen.
+@file:dev.dootah.DootahNative
+
 package com.dootah.ui
 
 import androidx.compose.runtime.Composable

@@ -51,6 +51,11 @@ dependencies {
     // and it is the same agreement the compiler that produced the bundle used.
     api(project(":dootah-contract"))
 
+    // The runtime's own composables are marked `@DootahNative`: an app that
+    // compiled this module as source rather than resolving it as a library
+    // would otherwise have Dootah discover and intercept Dootah.
+    implementation(project(":dootah-annotations"))
+
     api(platform(libs.androidx.compose.bom))
     api(libs.androidx.compose.ui)
     api(libs.androidx.compose.runtime)
