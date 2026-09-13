@@ -426,6 +426,54 @@ class ScreenLoweringTest {
      * That is what lets a published bundle add, remove, reorder and repeat
      * components: there is no position to lose and nothing frozen into the name.
      */
+    /**
+     * A native component given a size, which is how almost every one is written.
+     *
+     * `Modifier.size(48.dp)` failed on both halves of itself. The frontend
+     * resolves a bare `Modifier` to the *type*, so the walk up the chain never
+     * found its end and ran off into a qualifier it could not read; and an
+     * integer literal arrives boxed as a `Long` whatever it was written as, so
+     * the list of numeric types `dp` accepted matched none of them.
+     *
+     * Together they refused every icon button in a real toolbox, which is a
+     * whole screen kept native for the sake of its padding.
+     */
+    @Test
+    fun `carries a size given to a native component`() {
+
+        val lowered = lower(
+            SourceFile(
+                name = "Screen.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.foundation.layout.Column
+                    import androidx.compose.foundation.layout.size
+                    import androidx.compose.material3.Icon
+                    import androidx.compose.material3.IconButton
+                    import androidx.compose.runtime.Composable
+                    import androidx.compose.ui.Modifier
+                    import androidx.compose.ui.unit.dp
+                    import dev.dootah.Bundlable
+
+                    @Bundlable
+                    @Composable
+                    fun Screen(onPick: () -> Unit) {
+                        Column {
+                            IconButton(onClick = onPick, modifier = Modifier.size(48.dp)) {
+                                Icon("tool")
+                            }
+                        }
+                    }
+                """.trimIndent(),
+            )
+        )
+
+        assertTrue("the icon button was not carried: $lowered", lowered.contains("IconButton"))
+        assertTrue("the size was not carried: $lowered", lowered.contains("48"))
+        assertTrue("the size was not carried as a modifier: $lowered", lowered.contains("ModifierProp"))
+    }
+
     @Test
     fun `names a component by its declaration, not by its call site`() {
 

@@ -31,7 +31,7 @@ internal object SupportedCatalog {
 
     val MODIFIER_TYPE: FqName = FqName("androidx.compose.ui.Modifier")
 
-    /** `Modifier`'s companion, which is what a bare `Modifier` resolves to. */
+    /** `Modifier`'s companion, as written out in `Modifier.Companion.size(...)`. */
     val MODIFIER_COMPANION: FqName = FqName("androidx.compose.ui.Modifier.Companion")
 
     /** `16.dp`, whichever numeric type it is written on. */

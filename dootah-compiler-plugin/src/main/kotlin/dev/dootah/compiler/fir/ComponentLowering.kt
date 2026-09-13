@@ -304,14 +304,13 @@ internal class ComponentLowering(
         val access = expression as? FirPropertyAccessExpression ?: return null
         if (access.resolvedCallableName() != SupportedCatalog.DP_PROPERTY) return null
 
-        val amount = (access.explicitReceiver as? FirLiteralExpression)?.value ?: return null
+        // Any number, because the frontend chooses the box: an integer literal
+        // arrives as a `Long` whatever it was written as, so listing the types
+        // a developer can type silently refused every `48.dp` ever written.
+        val amount = (access.explicitReceiver as? FirLiteralExpression)?.value as? Number
+            ?: return null
 
-        return when (amount) {
-            is Int -> PropValue.DpValue(amount.toDouble())
-            is Float -> PropValue.DpValue(amount.toDouble())
-            is Double -> PropValue.DpValue(amount)
-            else -> null
-        }
+        return PropValue.DpValue(amount.toDouble())
     }
 
     /** `Color(0xFF2196F3)` and `Color.White`. */
@@ -413,6 +412,14 @@ internal class ComponentLowering(
         var current: FirExpression? = expression
 
         while (true) {
+
+            // Two spellings of the same start. `Modifier.size(...)` resolves
+            // its receiver to the type, while `Modifier.Companion.size(...)`
+            // resolves it to the companion property.
+            val qualifier = current as? FirResolvedQualifier
+            if (qualifier?.classId?.asSingleFqName() == SupportedCatalog.MODIFIER_TYPE) {
+                return BundleProp.Modifier(operations.reversed())
+            }
 
             val access = current as? FirPropertyAccessExpression
             if (access != null && access.resolvedCallableName() == SupportedCatalog.MODIFIER_COMPANION) {
