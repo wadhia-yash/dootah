@@ -1,0 +1,87 @@
+{
+  "app": "jetsnack",
+  "modules": 1,
+  "files": 50,
+  "lines": 7425,
+  "failed_modules": 0,
+  "totals": {
+    "composables": 113,
+    "eligible": 59,
+    "mixed": 1,
+    "ineligible": 54,
+    "ineligible:HAS_RECEIVER": 1,
+    "ineligible:RETURNS_A_VALUE": 11,
+    "ineligible:TAKES_COMPOSABLE_CONTENT": 16,
+    "ineligible:PREVIEW": 22,
+    "fallback": 58,
+    "ineligible:LOCAL_FUNCTION": 4
+  },
+  "blocked_by": {
+    "unsupported Kotlin syntax": 10,
+    "third-party composable": 9,
+    "state pattern": 1,
+    "native capability": 5,
+    "collections/data classes": 10,
+    "Compose value type": 23
+  },
+  "occurrences": {
+    "unsupported Kotlin syntax": 30,
+    "Compose value type": 59,
+    "native capability": 23,
+    "third-party composable": 24,
+    "state pattern": 1,
+    "callback argument type": 4,
+    "collections/data classes": 22,
+    "navigation": 2
+  },
+  "details": {
+    "Compose value type": {
+      "androidx.compose.ui.Modifier": 12,
+      "androidx.compose.animation.SharedTransitionScope": 8,
+      "androidx.compose.animation.AnimatedVisibilityScope": 7,
+      "androidx.compose.ui.text.TextStyle": 6,
+      "androidx.compose.foundation.layout.wrapContentSize": 3,
+      "Column.horizontalAlignment": 3
+    },
+    "native capability": {
+      "kotlin.with": 8,
+      "kotlin.collections.forEach": 3,
+      "java.text.Format.format": 3,
+      "android.content.Context.getString": 3,
+      "com.example.jetsnack.model.SnackRepo.getSortDefault": 2,
+      "androidx.compose.runtime.MutableState.component1": 1
+    },
+    "third-party composable": {
+      "androidx.compose.material3.Text": 7,
+      "androidx.compose.foundation.lazy.LazyColumn": 5,
+      "com.example.jetsnack.ui.components.JetsnackSurface": 4,
+      "androidx.compose.foundation.lazy.LazyRow": 2,
+      "com.example.jetsnack.ui.components.JetsnackGradientTintedIconButton": 2,
+      "com.example.jetsnack.ui.components.JetsnackScaffold": 1
+    },
+    "state pattern": {
+      "androidx.compose.runtime.MutableState": 1
+    },
+    "callback argument type": {
+      "kotlin.Function1": 2,
+      "kotlin.Function0": 2
+    },
+    "collections/data classes": {
+      "kotlin.String": 4,
+      "kotlin.collections.List": 3,
+      "android.content.Context": 3,
+      "com.example.jetsnack.model.Snack": 2,
+      "androidx.glance.GlanceModifier": 2,
+      "android.content.res.Resources": 1
+    },
+    "unsupported Kotlin syntax": {
+      "FirNamedFunctionImpl": 6,
+      "FirPropertyImpl": 1,
+      "FirSafeCallExpressionImpl": 1
+    },
+    "navigation": {
+      "com.example.jetsnack.ui.navigation.JetsnackNavController": 1,
+      "androidx.navigation.NavBackStackEntry": 1
+    }
+  }
+}

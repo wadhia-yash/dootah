@@ -1,0 +1,91 @@
+{
+  "app": "mihon",
+  "modules": 19,
+  "files": 1029,
+  "lines": 105981,
+  "failed_modules": 11,
+  "totals": {
+    "composables": 559,
+    "ineligible": 194,
+    "ineligible:HAS_RECEIVER": 34,
+    "eligible": 365,
+    "fallback": 350,
+    "ineligible:TAKES_COMPOSABLE_CONTENT": 55,
+    "ineligible:RETURNS_A_VALUE": 99,
+    "mixed": 13,
+    "ineligible:PREVIEW": 5,
+    "ineligible:NO_BODY": 1,
+    "remote": 2
+  },
+  "blocked_by": {
+    "collections/data classes": 117,
+    "Compose value type": 123,
+    "unsupported Kotlin syntax": 55,
+    "third-party composable": 35,
+    "state pattern": 1,
+    "callback argument type": 7,
+    "native capability": 12
+  },
+  "occurrences": {
+    "collections/data classes": 413,
+    "Compose value type": 266,
+    "third-party composable": 135,
+    "state pattern": 4,
+    "unsupported Kotlin syntax": 231,
+    "callback argument type": 37,
+    "native capability": 35
+  },
+  "details": {
+    "collections/data classes": {
+      "cafe.adriel.voyager.navigator.Navigator": 54,
+      "kotlin.String": 49,
+      "android.content.Context": 45,
+      "kotlin.Any": 27,
+      "kotlin.collections.List": 22,
+      "kotlinx.coroutines.CoroutineScope": 17
+    },
+    "Compose value type": {
+      "androidx.compose.ui.Modifier": 34,
+      "dp": 21,
+      "Row.verticalAlignment": 18,
+      "androidx.compose.ui.graphics.vector.ImageVector": 16,
+      "Row.horizontalArrangement": 15,
+      "androidx.compose.ui.platform.UriHandler": 11
+    },
+    "third-party composable": {
+      "tachiyomi.presentation.core.components.material.Scaffold": 22,
+      "androidx.compose.runtime.LaunchedEffect": 15,
+      "androidx.compose.material3.AlertDialog": 7,
+      "tachiyomi.presentation.core.components.FastScrollLazyColumn": 6,
+      "androidx.compose.foundation.lazy.LazyColumn": 5,
+      "androidx.compose.runtime.DisposableEffect": 5
+    },
+    "state pattern": {
+      "androidx.compose.runtime.snapshots.SnapshotStateList": 2,
+      "androidx.lifecycle.LifecycleOwner": 1,
+      "cafe.adriel.voyager.core.stack.SnapshotStateStack": 1
+    },
+    "unsupported Kotlin syntax": {
+      "FirPropertyImpl": 21,
+      "FirTypeOperatorCallImpl": 10,
+      "FirAnonymousFunctionExpressionImpl": 7,
+      "FirSafeCallExpressionImpl": 6,
+      "FirNamedFunctionImpl": 2,
+      "FirElvisExpressionImpl": 1
+    },
+    "callback argument type": {
+      "kotlin.Function0": 27,
+      "kotlin.Function1": 8,
+      "kotlin.coroutines.SuspendFunction1": 1,
+      "kotlin.Function2": 1
+    },
+    "native capability": {
+      "kotlin.text.isNotEmpty": 3,
+      "kotlin.collections.isNotEmpty": 3,
+      "eu.kanade.tachiyomi.util.system.isTabletUi": 2,
+      "eu.kanade.presentation.reader.components.ChapterNavigatorType.isHorizontal": 2,
+      "kotlin.Triple.component3": 2,
+      "kotlin.collections.map": 2
+    }
+  }
+}

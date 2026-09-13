@@ -1,0 +1,79 @@
+{
+  "app": "jetnews",
+  "modules": 1,
+  "files": 55,
+  "lines": 7480,
+  "failed_modules": 1,
+  "totals": {
+    "composables": 92,
+    "eligible": 57,
+    "fallback": 53,
+    "ineligible": 35,
+    "ineligible:PREVIEW": 21,
+    "ineligible:TAKES_COMPOSABLE_CONTENT": 7,
+    "ineligible:RETURNS_A_VALUE": 7,
+    "mixed": 4
+  },
+  "blocked_by": {
+    "collections/data classes": 16,
+    "third-party composable": 5,
+    "native capability": 5,
+    "unsupported Kotlin syntax": 11,
+    "Compose value type": 15,
+    "navigation": 1
+  },
+  "occurrences": {
+    "collections/data classes": 30,
+    "callback argument type": 5,
+    "third-party composable": 12,
+    "Compose value type": 44,
+    "native capability": 5,
+    "unsupported Kotlin syntax": 30,
+    "navigation": 3
+  },
+  "details": {
+    "collections/data classes": {
+      "android.content.Context": 6,
+      "kotlin.String": 6,
+      "androidx.glance.text.TextStyle": 2,
+      "androidx.glance.GlanceModifier": 2,
+      "com.example.jetnews.glance.ui.PostLayout": 2,
+      "androidx.glance.ImageProvider": 2
+    },
+    "callback argument type": {
+      "kotlin.Function0": 3,
+      "kotlin.Function1": 2
+    },
+    "third-party composable": {
+      "androidx.compose.foundation.lazy.LazyColumn": 2,
+      "androidx.glance.layout.Column": 2,
+      "androidx.compose.runtime.DisposableEffect": 1,
+      "androidx.compose.material3.IconToggleButton": 1,
+      "androidx.compose.animation.SharedTransitionLayout": 1,
+      "androidx.glance.appwidget.lazy.LazyColumn": 1
+    },
+    "Compose value type": {
+      "androidx.compose.ui.text.TextStyle": 7,
+      "androidx.compose.ui.graphics.Color": 7,
+      "androidx.compose.ui.Modifier": 7,
+      "androidx.compose.ui.graphics.painter.Painter": 4,
+      "dp": 2,
+      "androidx.compose.ui.semantics.semantics": 2
+    },
+    "native capability": {
+      "kotlin.collections.forEach": 2,
+      "kotlin.collections.indexOfFirst": 1,
+      "kotlin.with": 1,
+      "kotlin.collections.forEachIndexed": 1
+    },
+    "unsupported Kotlin syntax": {
+      "FirPropertyImpl": 2,
+      "FirSmartCastExpressionImpl": 1
+    },
+    "navigation": {
+      "com.example.jetnews.ui.navigation.NavigationState": 1,
+      "com.example.jetnews.ui.navigation.Navigator": 1,
+      "com.example.jetnews.ui.navigation.ListDetailSceneStrategy": 1
+    }
+  }
+}
