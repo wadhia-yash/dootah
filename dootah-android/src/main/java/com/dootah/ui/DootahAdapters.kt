@@ -176,7 +176,15 @@ class DootahProps internal constructor(
 
     fun double(name: String): Double = of(name, 0.0)
 
-    fun modifier(name: String): Modifier = of(name, Modifier)
+    /**
+     * The type argument is written out because the fallback is narrower.
+     *
+     * `Modifier` as a value is `Modifier.Companion`, so leaving it to inference
+     * asks whether the supplied modifier is the companion -- which nothing ever
+     * is. Every size, padding and background a bundle sent was quietly dropped
+     * and the component drew at its natural size.
+     */
+    fun modifier(name: String): Modifier = of<Modifier>(name, Modifier)
 
     fun color(name: String): Color = of(name, Color.Unspecified)
 

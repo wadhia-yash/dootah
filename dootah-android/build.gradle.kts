@@ -28,6 +28,13 @@ android {
         compose = true
     }
 
+    // `Log` is a stub in a unit test and throws when called. What it reports --
+    // a prop that arrived as the wrong type -- is exactly what these tests are
+    // for, so the stub has to answer rather than throw.
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     publishing {
         singleVariant("release") {
             withSourcesJar()
