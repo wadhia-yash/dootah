@@ -14,7 +14,13 @@ import org.jetbrains.kotlin.name.FqName
 
 /** Reports something Dootah cannot bundle, at a source position. */
 internal fun interface Rejector {
-    fun reject(offset: Int?, found: String, remedy: String)
+    fun reject(
+        offset: Int?,
+        found: String,
+        remedy: String,
+        code: RejectionCode,
+        detail: String?,
+    )
 }
 
 /**
@@ -47,7 +53,12 @@ internal class ModifierLowering(
                 // `Modifier`, where a chain written from scratch bottoms out.
                 is FirResolvedQualifier -> {
                     if (node.classId?.asSingleFqName() != SupportedCatalog.MODIFIER_TYPE) {
-                        reject(node, "a modifier chain starting at ${node.classId}")
+                        reject(
+                            node,
+                            "a modifier chain starting at ${node.classId}",
+                            code = RejectionCode.UNREADABLE_MODIFIER,
+                            detail = node.classId?.asSingleFqName()?.asString(),
+                        )
                         return null
                     }
                     return reversed.asReversed().toList()
@@ -67,7 +78,12 @@ internal class ModifierLowering(
                         return reversed.asReversed().toList()
                     }
 
-                    reject(node, "`${name ?: "?"}` in a modifier chain")
+                    reject(
+                        node,
+                        "`${name ?: "?"}` in a modifier chain",
+                        code = RejectionCode.UNSUPPORTED_MODIFIER,
+                        detail = name,
+                    )
                     return null
                 }
 
@@ -78,13 +94,21 @@ internal class ModifierLowering(
                 }
 
                 else -> {
-                    reject(node, "a modifier Dootah could not read")
+                    reject(
+                        node,
+                        "a modifier Dootah could not read",
+                        code = RejectionCode.UNREADABLE_MODIFIER,
+                    )
                     return null
                 }
             }
 
             if (current == null) {
-                reject(expression, "a modifier chain with no Modifier at its root")
+                reject(
+                    expression,
+                    "a modifier chain with no Modifier at its root",
+                    code = RejectionCode.UNREADABLE_MODIFIER,
+                )
                 return null
             }
         }
@@ -124,6 +148,8 @@ internal class ModifierLowering(
                 reject(
                     call,
                     "the modifier `${callable?.shortName()?.asString() ?: "unknown"}`",
+                    code = RejectionCode.UNSUPPORTED_MODIFIER,
+                    detail = callable?.asString(),
                 )
                 null
             }
@@ -133,7 +159,7 @@ internal class ModifierLowering(
     private fun lowerPadding(call: FirFunctionCall): BundleModifier? {
 
         val mapping = call.resolvedArgumentMapping ?: run {
-            reject(call, "a padding Dootah could not read")
+            reject(call, "a padding Dootah could not read", code = RejectionCode.UNREADABLE_MODIFIER, detail = "padding")
             return null
         }
 
@@ -158,8 +184,10 @@ internal class ModifierLowering(
                     reject(
                         expression,
                         "the padding argument `${parameter.name.asString()}`",
-                        "Dootah reads padding written as all, horizontal/vertical, " +
-                            "or start/top/end/bottom.",
+                        code = RejectionCode.UNSUPPORTED_MODIFIER_ARGUMENT,
+                        detail = "padding.${parameter.name.asString()}",
+                        remedy = "Dootah reads padding written as all, " +
+                            "horizontal/vertical, or start/top/end/bottom.",
                     )
                     return null
                 }
@@ -172,7 +200,7 @@ internal class ModifierLowering(
     private fun lowerSize(call: FirFunctionCall): BundleModifier? {
 
         val mapping = call.resolvedArgumentMapping ?: run {
-            reject(call, "a size Dootah could not read")
+            reject(call, "a size Dootah could not read", code = RejectionCode.UNREADABLE_MODIFIER, detail = "size")
             return null
         }
 
@@ -195,7 +223,7 @@ internal class ModifierLowering(
     private fun lowerBackground(call: FirFunctionCall): BundleModifier? {
 
         val mapping = call.resolvedArgumentMapping ?: run {
-            reject(call, "a background Dootah could not read")
+            reject(call, "a background Dootah could not read", code = RejectionCode.UNREADABLE_MODIFIER, detail = "background")
             return null
         }
 
@@ -207,7 +235,10 @@ internal class ModifierLowering(
             reject(
                 call,
                 "the background argument `${unsupported.value.name.asString()}`",
-                "Dootah reads background(Color(0xAARRGGBB)) only -- no shape, no brush.",
+                code = RejectionCode.UNSUPPORTED_MODIFIER_ARGUMENT,
+                detail = "background.${unsupported.value.name.asString()}",
+                remedy = "Dootah reads background(Color(0xAARRGGBB)) only -- " +
+                    "no shape, no brush.",
             )
             return null
         }
@@ -243,8 +274,9 @@ internal class ModifierLowering(
             reject(
                 expression,
                 "a colour Dootah could not read",
-                "Write background(Color(0xFF2196F3)). Named colours and brushes " +
-                    "are not bundled.",
+                code = RejectionCode.UNSUPPORTED_COLOR,
+                remedy = "Write background(Color(0xFF2196F3)). Named colours and " +
+                    "brushes are not bundled.",
             )
             return null
         }
@@ -268,7 +300,7 @@ internal class ModifierLowering(
             ?.key
 
         if (weight == null) {
-            reject(this, "a weight Dootah could not read")
+            reject(this, "a weight Dootah could not read", code = RejectionCode.UNREADABLE_MODIFIER, detail = "weight")
             return null
         }
 
@@ -285,7 +317,12 @@ internal class ModifierLowering(
             ?: arguments.singleOrNull()
 
         if (argument == null) {
-            reject(this, "a $parameterName Dootah could not read")
+            reject(
+                this,
+                "a $parameterName Dootah could not read",
+                code = RejectionCode.UNREADABLE_MODIFIER,
+                detail = parameterName,
+            )
             return null
         }
 
@@ -302,7 +339,10 @@ internal class ModifierLowering(
             reject(
                 expression,
                 "a size Dootah could not read",
-                "Write sizes as literals, like 16.dp. A computed size is not bundled.",
+                code = RejectionCode.UNSUPPORTED_MODIFIER_ARGUMENT,
+                detail = "dp",
+                remedy = "Write sizes as literals, like 16.dp. A computed size is " +
+                    "not bundled.",
             )
             return null
         }
@@ -326,7 +366,10 @@ internal class ModifierLowering(
             reject(
                 expression,
                 "a non-literal number in a modifier",
-                "Write sizes as literals, like 16.dp. A computed size is not bundled.",
+                code = RejectionCode.UNSUPPORTED_MODIFIER_ARGUMENT,
+                detail = "computed",
+                remedy = "Write sizes as literals, like 16.dp. A computed size is " +
+                    "not bundled.",
             )
             return null
         }
@@ -337,11 +380,13 @@ internal class ModifierLowering(
     private fun reject(
         node: FirExpression?,
         found: String,
+        code: RejectionCode,
+        detail: String? = null,
         remedy: String = "Dootah bundles these modifiers: " +
             SupportedCatalog.SUPPORTED_MODIFIERS.joinToString(", ") + ". " +
             "Keep the rest of the styling on a native component.",
     ) {
-        rejector.reject(node?.source?.startOffset, found, remedy)
+        rejector.reject(node?.source?.startOffset, found, remedy, code, detail)
     }
 }
 

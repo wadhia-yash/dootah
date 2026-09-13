@@ -71,7 +71,7 @@ internal class ComponentRequirements {
 @OptIn(SymbolInternals::class)
 internal class ComponentLowering(
     private val signature: List<ScreenParameter>,
-    private val reject: (Int?, String, String) -> Unit,
+    private val reject: (Int?, String, String, RejectionCode, String?) -> Unit,
     private val lowerExpression: (FirExpression) -> BundleExpression?,
 ) {
 
@@ -100,6 +100,8 @@ internal class ComponentLowering(
                 call.sourceOffset(),
                 "a call Dootah could not resolve",
                 "Keep this screen native.",
+                RejectionCode.UNRESOLVED_CALL,
+                null,
             )
             return null
         }
@@ -120,6 +122,8 @@ internal class ComponentLowering(
                 call.sourceOffset(),
                 "`$shortName()`, whose arguments Dootah could not read",
                 "Simplify the call, or keep this screen native.",
+                RejectionCode.UNREADABLE_COMPONENT_ARGUMENTS,
+                qualifiedName,
             )
             return null
         }
@@ -140,6 +144,8 @@ internal class ComponentLowering(
                         call.sourceOffset(),
                         "`$shortName()`, whose `$name` is not written as a lambda",
                         "Pass the content as a lambda, or keep this screen native.",
+                        RejectionCode.CONTENT_NOT_A_LAMBDA,
+                        qualifiedName,
                     )
                     return null
                 }
@@ -203,6 +209,11 @@ internal class ComponentLowering(
                 "computes, one of the screen's own parameters, a resource or " +
                 "theme token, a modifier, or one of the screen's handlers. " +
                 "Anything else has to stay in a native screen.",
+            RejectionCode.UNSUPPORTED_COMPONENT_ARGUMENT,
+            // The argument's own type, not the component's name: a hundred
+            // components refused for taking a `State` are one problem.
+            parameter.returnTypeRef.coneTypeSafe<ConeKotlinType>()
+                ?.classId?.asSingleFqName()?.asString(),
         )
 
         return null

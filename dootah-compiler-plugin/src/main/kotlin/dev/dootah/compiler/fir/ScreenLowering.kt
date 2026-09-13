@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.fir.expressions.resolvedArgumentMapping
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.contracts.description.LogicOperationKind
@@ -108,7 +109,9 @@ internal class ScreenLowering(
      */
     private val components = ComponentLowering(
         signature = signature,
-        reject = { offset, found, remedy -> reject(offset, found, remedy) },
+        reject = { offset, found, remedy, code, detail ->
+            reject(offset, found, code, detail, remedy)
+        },
         lowerExpression = { expression -> lowerExpression(expression) },
     )
 
@@ -117,7 +120,9 @@ internal class ScreenLowering(
     private val functions = LinkedHashMap<String, BundleFunction>()
 
     private val modifiers = ModifierLowering(
-        rejector = { offset, found, remedy -> reject(offset, found, remedy) },
+        rejector = { offset, found, remedy, code, detail ->
+            reject(offset, found, code, detail, remedy)
+        },
         modifierParameterName = modifierParameter,
     )
 
@@ -129,7 +134,12 @@ internal class ScreenLowering(
 
         val body = function.body
         if (body == null) {
-            reject(null, "a function with no body", "Give the function a body.")
+            reject(
+                null,
+                "a function with no body",
+                code = RejectionCode.NO_BODY,
+                remedy = "Give the function a body.",
+            )
             return LoweringResult.Rejected(reasons)
         }
 
@@ -184,7 +194,8 @@ internal class ScreenLowering(
                 reject(
                     function.source?.startOffset,
                     "a screen body with no composable content",
-                    "Add a Column { } containing the screen's content.",
+                    code = RejectionCode.NO_COMPOSABLE_CONTENT,
+                    remedy = "Add a Column { } containing the screen's content.",
                 )
             }
             return null
@@ -204,8 +215,11 @@ internal class ScreenLowering(
             reject(
                 property.source?.startOffset,
                 "the local `$name`, which is not a number, String or Boolean",
-                "Dootah bundles Int, String and Boolean locals. Keep other values " +
-                    "native, and use them inside a component that stays native.",
+                code = RejectionCode.UNSUPPORTED_LOCAL_TYPE,
+                detail = property.returnTypeRef.coneTypeSafe<ConeKotlinType>()
+                    ?.classId?.asSingleFqName()?.asString(),
+                remedy = "Dootah bundles Int, String and Boolean locals. Keep other " +
+                    "values native, and use them inside a component that stays native.",
             )
             return
         }
@@ -216,7 +230,9 @@ internal class ScreenLowering(
             reject(
                 property.source?.startOffset,
                 "the local `$name` with no value Dootah could read",
-                "Give the local a literal or an expression over other bundled values.",
+                code = RejectionCode.UNREADABLE_LOCAL_INITIALIZER,
+                remedy = "Give the local a literal or an expression over other " +
+                    "bundled values.",
             )
             return
         }
@@ -273,8 +289,10 @@ internal class ScreenLowering(
                 reject(
                     unwrapped.sourceOffset(),
                     "the statement ${unwrapped::class.simpleName} in a layout",
-                    "A layout may contain components, and `if` / `when` choosing " +
-                        "between them.",
+                    code = RejectionCode.UNSUPPORTED_STATEMENT_IN_LAYOUT,
+                    detail = unwrapped::class.simpleName,
+                    remedy = "A layout may contain components, and `if` / `when` " +
+                        "choosing between them.",
                 )
                 emptyList()
             }
@@ -321,7 +339,13 @@ internal class ScreenLowering(
         val mapping = call.resolvedArgumentMapping
 
         if (mapping == null) {
-            reject(call.sourceOffset(), "a $name call Dootah could not read", "Simplify the call.")
+            reject(
+                call.sourceOffset(),
+                "a $name call Dootah could not read",
+                code = RejectionCode.UNREADABLE_LAYOUT_CALL,
+                detail = name,
+                remedy = "Simplify the call.",
+            )
             return null
         }
 
@@ -341,7 +365,9 @@ internal class ScreenLowering(
                     reject(
                         expression.source?.startOffset,
                         "the $name argument `${parameter.name.asString()}`",
-                        "Dootah bundles $name(modifier) { }. Alignment and " +
+                        code = RejectionCode.UNSUPPORTED_LAYOUT_ARGUMENT,
+                        detail = "$name.${parameter.name.asString()}",
+                        remedy = "Dootah bundles $name(modifier) { }. Alignment and " +
                             "arrangement are not bundled yet.",
                     )
                     rejected = true
@@ -355,7 +381,9 @@ internal class ScreenLowering(
             reject(
                 call.sourceOffset(),
                 "a $name without a content lambda",
-                "Write $name { } with its content inside the braces.",
+                code = RejectionCode.LAYOUT_WITHOUT_CONTENT,
+                detail = name,
+                remedy = "Write $name { } with its content inside the braces.",
             )
             return null
         }
@@ -505,8 +533,10 @@ internal class ScreenLowering(
             reject(
                 call.sourceOffset(),
                 "the call `$shortName()` inside a layout",
-                "A layout may contain components. Move other work out of the " +
-                    "screen body, or keep this screen native.",
+                code = RejectionCode.UNSUPPORTED_CALL_IN_LAYOUT,
+                detail = call.resolvedCallableName()?.asString(),
+                remedy = "A layout may contain components. Move other work out of " +
+                    "the screen body, or keep this screen native.",
             )
             return null
         }
@@ -515,8 +545,10 @@ internal class ScreenLowering(
             reject(
                 call.sourceOffset(),
                 "`$shortName()`, which reads the scope of the layout around it",
-                "A native component is placed from a standalone adapter, so it " +
-                    "cannot read a `ColumnScope` or `RowScope` from around it -- " +
+                code = RejectionCode.COMPONENT_READS_SCOPE,
+                detail = call.resolvedCallableName()?.asString(),
+                remedy = "A native component is placed from a standalone adapter, " +
+                    "so it cannot read a `ColumnScope` or `RowScope` from around it -- " +
                     "`weight` is the usual reason. Give it a size instead, or " +
                     "keep this screen native.",
             )
@@ -634,7 +666,9 @@ internal class ScreenLowering(
                     reject(
                         unwrapped.sourceOffset(),
                         "the statement ${unwrapped::class.simpleName} in a click handler",
-                        "A bundled click handler may assign to the screen's own " +
+                        code = RejectionCode.UNSUPPORTED_STATEMENT_IN_HANDLER,
+                        detail = unwrapped::class.simpleName,
+                        remedy = "A bundled click handler may assign to the screen's own " +
                             "`var`s, call the screen's callbacks, and branch with " +
                             "`if` / `when`.",
                     )
@@ -655,7 +689,8 @@ internal class ScreenLowering(
             reject(
                 assignment.sourceOffset(),
                 "an assignment to `${target ?: "something Dootah could not read"}`",
-                "A bundled click handler may assign to a `var` declared in the " +
+                code = RejectionCode.UNSUPPORTED_ASSIGNMENT_TARGET,
+                remedy = "A bundled click handler may assign to a `var` declared in the " +
                     "same screen.",
             )
             return null
@@ -678,7 +713,9 @@ internal class ScreenLowering(
             call.sourceOffset(),
             "the call `${call.resolvedCallableName()?.shortName()?.asString() ?: "unknown"}()` " +
                 "in a click handler",
-            "Remote code reaches the app only through the screen's own callback " +
+            code = RejectionCode.UNSUPPORTED_CALL_IN_HANDLER,
+            detail = call.resolvedCallableName()?.asString(),
+            remedy = "Remote code reaches the app only through the screen's own callback " +
                 "parameters. Add a `() -> Unit` parameter and call that.",
         )
 
@@ -806,7 +843,9 @@ internal class ScreenLowering(
                 reject(
                     expression.sourceOffset(),
                     "the expression ${expression::class.simpleName}",
-                    "Dootah bundles literals, the screen's own values, arithmetic, " +
+                    code = RejectionCode.UNSUPPORTED_EXPRESSION,
+                    detail = expression::class.simpleName,
+                    remedy = "Dootah bundles literals, the screen's own values, arithmetic, " +
                         "comparisons, Boolean logic, string templates and `if` / `when`.",
                 )
                 null
@@ -843,7 +882,8 @@ internal class ScreenLowering(
                 reject(
                     literal.sourceOffset(),
                     "the literal `$value`",
-                    "Dootah bundles numbers, String and Boolean literals.",
+                    code = RejectionCode.UNSUPPORTED_LITERAL,
+                    remedy = "Dootah bundles numbers, String and Boolean literals.",
                 )
                 null
             }
@@ -867,7 +907,9 @@ internal class ScreenLowering(
             reject(
                 access.sourceOffset(),
                 "`${parameter.name}`, which is ${parameter.typeName}",
-                "Dootah carries numbers, String and Boolean values to a bundle. " +
+                code = RejectionCode.UNSUPPORTED_PARAMETER_TYPE,
+                detail = parameter.typeName,
+                remedy = "Dootah carries numbers, String and Boolean values to a bundle. " +
                     "`${parameter.name}` can still be used inside a component " +
                     "that stays native.",
             )
@@ -877,7 +919,8 @@ internal class ScreenLowering(
         reject(
             access.sourceOffset(),
             "the reference `${name ?: "unknown"}`",
-            "A bundled screen may read its own parameters and the values it " +
+            code = RejectionCode.UNKNOWN_REFERENCE,
+            remedy = "A bundled screen may read its own parameters and the values it " +
                 "declares. Everything else stays native.",
         )
 
@@ -897,7 +940,12 @@ internal class ScreenLowering(
             "==", "===" -> ComparisonOperator.EQUAL
             "!=", "!==" -> ComparisonOperator.NOT_EQUAL
             else -> {
-                reject(call.sourceOffset(), "the operator `${call.operation.operator}`")
+                reject(
+                    call.sourceOffset(),
+                    "the operator `${call.operation.operator}`",
+                    code = RejectionCode.UNSUPPORTED_OPERATOR,
+                    detail = call.operation.operator,
+                )
                 return null
             }
         }
@@ -916,7 +964,12 @@ internal class ScreenLowering(
             ">" -> ComparisonOperator.GREATER
             ">=" -> ComparisonOperator.GREATER_OR_EQUAL
             else -> {
-                reject(comparison.sourceOffset(), "the operator `${comparison.operation.operator}`")
+                reject(
+                    comparison.sourceOffset(),
+                    "the operator `${comparison.operation.operator}`",
+                    code = RejectionCode.UNSUPPORTED_OPERATOR,
+                    detail = comparison.operation.operator,
+                )
                 return null
             }
         }
@@ -960,7 +1013,8 @@ internal class ScreenLowering(
                 reject(
                     expression.sourceOffset(),
                     "an `if` or `when` branch that does not produce a value",
-                    "Every branch of a value must produce one, and a `when` used " +
+                    code = RejectionCode.BRANCH_WITHOUT_VALUE,
+                    remedy = "Every branch of a value must produce one, and a `when` used " +
                         "as a value needs an `else`.",
                 )
                 return null
@@ -1022,7 +1076,9 @@ internal class ScreenLowering(
             reject(
                 call.sourceOffset(),
                 "the call `${call.resolvedCallableName()?.asString() ?: "unknown"}` in a value",
-                "Dootah bundles arithmetic, comparisons and calls to simple " +
+                code = RejectionCode.UNSUPPORTED_CALL_IN_VALUE,
+                detail = call.resolvedCallableName()?.asString(),
+                remedy = "Dootah bundles arithmetic, comparisons and calls to simple " +
                     "single-expression functions in the same file.",
             )
             return null
@@ -1046,7 +1102,8 @@ internal class ScreenLowering(
             reject(
                 declaration.source?.startOffset,
                 "the function `$name`, which Dootah cannot bundle",
-                "A bundled function returns an Int, String or Boolean.",
+                code = RejectionCode.UNSUPPORTED_FUNCTION_RETURN,
+                remedy = "A bundled function returns an Int, String or Boolean.",
             )
             return false
         }
@@ -1058,7 +1115,8 @@ internal class ScreenLowering(
             reject(
                 declaration.source?.startOffset,
                 "the parameter `${unsupported.name}` of `$name`",
-                "A bundled function takes Int, String and Boolean parameters.",
+                code = RejectionCode.UNSUPPORTED_FUNCTION_PARAMETER,
+                remedy = "A bundled function takes Int, String and Boolean parameters.",
             )
             return false
         }
@@ -1096,7 +1154,8 @@ internal class ScreenLowering(
             reject(
                 declaration.source?.startOffset,
                 "the body of `$name`",
-                "A bundled function's body is a single expression.",
+                code = RejectionCode.UNSUPPORTED_FUNCTION_BODY,
+                remedy = "A bundled function's body is a single expression.",
             )
             return false
         }
@@ -1160,6 +1219,8 @@ internal class ScreenLowering(
     private fun reject(
         offset: Int?,
         found: String,
+        code: RejectionCode,
+        detail: String? = null,
         remedy: String = "Keep this screen native until Dootah supports it.",
     ) {
         reasons += UnsupportedConstruct(
@@ -1168,6 +1229,8 @@ internal class ScreenLowering(
             sourceOffset = offset,
             found = found,
             remedy = remedy,
+            code = code,
+            detail = detail,
         )
     }
 

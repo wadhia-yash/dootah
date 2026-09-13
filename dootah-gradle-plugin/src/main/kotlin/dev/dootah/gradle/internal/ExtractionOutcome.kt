@@ -28,6 +28,12 @@ data class RejectedConstruct(
     val sourceOffset: Int,
     val found: String,
     val remedy: String,
+
+    /** The stable name for this refusal, for counting across apps. */
+    val code: String,
+
+    /** The concrete type, callee or modifier refused. */
+    val detail: String?,
 )
 
 /**
@@ -97,6 +103,8 @@ private fun parseRejections(contents: String): List<RejectedConstruct> {
                         sourceOffset = current["offset"]?.toIntOrNull() ?: -1,
                         found = found,
                         remedy = current["remedy"].orEmpty(),
+                        code = current["code"].orEmpty().ifEmpty { "UNKNOWN" },
+                        detail = current["detail"]?.takeIf { it.isNotBlank() },
                     )
                 }
                 current = mutableMapOf()

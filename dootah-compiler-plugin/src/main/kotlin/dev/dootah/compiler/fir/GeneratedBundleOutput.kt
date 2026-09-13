@@ -133,6 +133,11 @@ internal fun writeUnsupportedReport(
             // failure -- but one hit on a function someone explicitly asked to
             // bundle is exactly the failure they wanted to hear about.
             "forced=$forced",
+            // The stable name for the refusal, and the concrete thing refused.
+            // Counting across apps needs these; the prose beside them is for
+            // whoever is reading one build.
+            "code=${reason.code}",
+            "detail=${reason.detail.orEmpty()}",
             "function=${reason.functionName}",
             "file=${reason.filePath}",
             "offset=${reason.sourceOffset ?: -1}",

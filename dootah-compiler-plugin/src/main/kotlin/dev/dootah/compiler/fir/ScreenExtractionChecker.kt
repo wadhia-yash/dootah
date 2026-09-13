@@ -98,6 +98,7 @@ internal class ScreenExtractionChecker(
                     fqName = shape.fqName,
                     outcome = DiscoveryOutcome.LOWERED,
                     forced = shape.isForced,
+                    adapters = result.screen.adapters.size,
                 )
             }
 
