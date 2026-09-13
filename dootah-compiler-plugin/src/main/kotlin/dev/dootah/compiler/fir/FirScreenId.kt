@@ -14,6 +14,10 @@ import org.jetbrains.kotlin.fir.types.resolvedType
  * because the two are compared across the network. The rule is stated once here
  * and once for IR against the same inputs -- an explicit id, otherwise the fully
  * qualified name -- and the tests pin that they agree.
+ *
+ * `@Bundlable` is no longer how a screen is found; it survives as the way to
+ * pin an identity that must not follow the function's name, and as a way to
+ * force-include something a build script excluded.
  */
 internal fun FirNamedFunction.dootahScreenId(): String {
 
@@ -37,9 +41,3 @@ private fun FirNamedFunction.explicitBundlableId(): String? {
 }
 
 private const val ID_ARGUMENT = "id"
-
-/** True when this function is marked `@Bundlable`. */
-internal fun FirNamedFunction.isBundlable(): Boolean =
-    annotations.any { annotation ->
-        annotation.resolvedType.classId?.asSingleFqName() == BUNDLABLE_ANNOTATION
-    }

@@ -1,5 +1,7 @@
 package dev.dootah.compiler.ir
 
+import dev.dootah.compiler.DootahDiscovery
+import dev.dootah.contract.ScreenFilter
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -18,14 +20,16 @@ import java.io.File
 internal class DootahIrExtension(
     private val messageCollector: MessageCollector,
     private val reportDirectory: File?,
+    private val discovery: DootahDiscovery,
+    private val filter: ScreenFilter,
 ) : IrGenerationExtension {
 
     override fun generate(
         moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext,
     ) {
-        val bundlable = moduleFragment.bundlableFunctions()
-        val ordering = composeOrderingOf(bundlable)
+        val screens = moduleFragment.discoverScreens(discovery, filter)
+        val ordering = composeOrderingOf(screens)
 
         val interceptedScreenIds = when (ordering) {
 
@@ -40,25 +44,25 @@ internal class DootahIrExtension(
 
             ComposeOrdering.INCONCLUSIVE -> emptyList()
 
-            ComposeOrdering.BEFORE_COMPOSE -> intercept(bundlable, pluginContext)
+            ComposeOrdering.BEFORE_COMPOSE -> intercept(screens, pluginContext)
         }
 
         reportDirectory?.let { directory ->
             writeInterceptionReport(
                 reportDirectory = directory,
                 ordering = ordering,
-                bundlableFunctionNames = bundlable.map { it.reportName() },
+                discoveredFunctionNames = screens.map { it.reportName() },
                 interceptedScreenIds = interceptedScreenIds,
             )
         }
     }
 
     private fun intercept(
-        bundlable: List<BundlableFunction>,
+        screens: List<DiscoveredScreen>,
         pluginContext: IrPluginContext,
-    ): List<String> = bundlable
+    ): List<String> = screens
         .groupBy { it.file }
-        .flatMap { (file, screens) ->
+        .flatMap { (file, inFile) ->
 
             val symbols = DootahRuntimeSymbols.resolve(pluginContext, file)
 
@@ -69,9 +73,9 @@ internal class DootahIrExtension(
 
             val transformer = InterceptionTransformer(pluginContext, symbols)
 
-            screens.mapNotNull { screen -> transformer.transform(screen.function) }
+            inFile.mapNotNull { screen -> transformer.transform(screen.function) }
         }
 }
 
-private fun BundlableFunction.reportName(): String =
+private fun DiscoveredScreen.reportName(): String =
     function.fqNameWhenAvailable?.asString() ?: function.name.asString()

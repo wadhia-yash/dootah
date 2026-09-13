@@ -93,8 +93,14 @@ class InterceptionTransformerTest {
         assertFalse(report, report.contains("intercepted=com.example.SomeLaterName"))
     }
 
+    /**
+     * Discovery is automatic, so the question is no longer "was it annotated"
+     * but "is it a shape Dootah can take over". A wrapper's content is supplied
+     * by its caller, and a screen Dootah rendered remotely would have nothing to
+     * put there -- so the wrapper is left exactly as written.
+     */
     @Test
-    fun `leaves functions without the annotation alone`() {
+    fun `leaves a composable it cannot take over alone`() {
 
         val result = compile(
             SourceFile(
@@ -105,7 +111,9 @@ class InterceptionTransformerTest {
                     import androidx.compose.runtime.Composable
 
                     @Composable
-                    fun PlainScreen() {}
+                    fun PlainWrapper(content: @Composable () -> Unit) {
+                        content()
+                    }
                 """.trimIndent(),
             )
         )
@@ -115,8 +123,37 @@ class InterceptionTransformerTest {
         val compiled = result.compiledClassText("com/example/PlainKt.class")
 
         assertFalse(
-            "an unannotated function must not be intercepted",
+            "a composable taking content must not be intercepted",
             compiled.contains("rememberDootahScreen"),
+        )
+    }
+
+    /** The opt-out an app reaches for when a screen must stay native. */
+    @Test
+    fun `leaves a composable marked DootahNative alone`() {
+
+        val result = compile(
+            SourceFile(
+                name = "Audited.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.runtime.Composable
+                    import dev.dootah.DootahNative
+
+                    @DootahNative
+                    @Composable
+                    fun AuditedScreen() {}
+                """.trimIndent(),
+            )
+        )
+
+        assertTrue("compilation failed: ${result.messages}", result.succeeded)
+
+        assertFalse(
+            "a function marked @DootahNative must not be intercepted",
+            result.compiledClassText("com/example/AuditedKt.class")
+                .contains("rememberDootahScreen"),
         )
     }
 
@@ -154,9 +191,7 @@ class InterceptionTransformerTest {
             package com.example
 
             import androidx.compose.runtime.Composable
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun OfferScreen() {
                 val price = 999

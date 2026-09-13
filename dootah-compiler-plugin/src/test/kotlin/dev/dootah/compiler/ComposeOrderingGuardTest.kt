@@ -17,11 +17,11 @@ class ComposeOrderingGuardTest {
     val temporaryFolder = TemporaryFolder()
 
     @Test
-    fun `reports running before compose for an ordinary bundlable function`() {
+    fun `reports running before compose for an ordinary composable`() {
 
         val result = compileWithDootah(
             workingDirectory = temporaryFolder.root,
-            sources = listOf(bundlableScreen()),
+            sources = listOf(plainScreen()),
         )
 
         assertTrue("compilation failed: ${result.messages}", result.succeeded)
@@ -33,21 +33,21 @@ class ComposeOrderingGuardTest {
     }
 
     @Test
-    fun `discovers the bundlable function by its fully qualified name`() {
+    fun `discovers a plain composable by its fully qualified name`() {
 
         val result = compileWithDootah(
             workingDirectory = temporaryFolder.root,
-            sources = listOf(bundlableScreen()),
+            sources = listOf(plainScreen()),
         )
 
         val report = result.orderingReport()!!
 
-        assertTrue(report, report.contains("bundlableCount=1"))
-        assertTrue(report, report.contains("bundlable=com.example.OfferScreen"))
+        assertTrue(report, report.contains("discoveredCount=1"))
+        assertTrue(report, report.contains("discovered=com.example.OfferScreen"))
     }
 
     @Test
-    fun `reports nothing to do when no function is bundlable`() {
+    fun `reports nothing to do when nothing in the module is eligible`() {
 
         val result = compileWithDootah(
             workingDirectory = temporaryFolder.root,
@@ -59,8 +59,12 @@ class ComposeOrderingGuardTest {
 
                         import androidx.compose.runtime.Composable
 
+                        // Content belongs to whoever calls this, so there is
+                        // nothing here a bundle could own.
                         @Composable
-                        fun PlainScreen() {}
+                        fun PlainWrapper(content: @Composable () -> Unit) {
+                            content()
+                        }
                     """.trimIndent(),
                 )
             ),
@@ -110,15 +114,13 @@ class ComposeOrderingGuardTest {
         )
     }
 
-    private fun bundlableScreen() = SourceFile(
+    private fun plainScreen() = SourceFile(
         name = "OfferScreen.kt",
         contents = """
             package com.example
 
             import androidx.compose.runtime.Composable
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun OfferScreen() {}
         """.trimIndent(),
@@ -137,9 +139,7 @@ class ComposeOrderingGuardTest {
 
             import androidx.compose.runtime.Composable
             import androidx.compose.runtime.Composer
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun OfferScreen(composer: Composer?, changed: Int) {}
         """.trimIndent(),

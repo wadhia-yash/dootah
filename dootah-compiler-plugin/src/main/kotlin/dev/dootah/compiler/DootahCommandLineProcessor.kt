@@ -37,6 +37,18 @@ class DootahCommandLineProcessor : CommandLineProcessor {
             description = "Directory for generated Dootah bundle sources",
             required = false,
         ),
+        CliOption(
+            optionName = OPTION_DISCOVERY,
+            valueDescription = "auto|annotated",
+            description = "How Dootah finds the Compose functions it may take over",
+            required = false,
+        ),
+        CliOption(
+            optionName = OPTION_FILTER,
+            valueDescription = "+include,-exclude",
+            description = "Which fully qualified names Dootah may consider",
+            required = false,
+        ),
     )
 
     override fun processOption(
@@ -61,6 +73,18 @@ class DootahCommandLineProcessor : CommandLineProcessor {
             OPTION_GENERATED_DIR ->
                 configuration.put(DootahConfigurationKeys.GENERATED_DIR, value)
 
+            OPTION_DISCOVERY -> {
+                val discovery = DootahDiscovery.fromCliValue(value)
+                    ?: throw CliOptionProcessingException(
+                        "Unknown Dootah discovery mode '$value'; expected one of " +
+                            DootahDiscovery.entries.joinToString(", ") { it.name.lowercase() }
+                    )
+                configuration.put(DootahConfigurationKeys.DISCOVERY, discovery)
+            }
+
+            OPTION_FILTER ->
+                configuration.put(DootahConfigurationKeys.FILTER, value)
+
             else -> throw CliOptionProcessingException(
                 "Unknown Dootah compiler option '${option.optionName}'"
             )
@@ -71,5 +95,7 @@ class DootahCommandLineProcessor : CommandLineProcessor {
         const val OPTION_MODE = "mode"
         const val OPTION_REPORT_DIR = "reportDir"
         const val OPTION_GENERATED_DIR = "generatedDir"
+        const val OPTION_DISCOVERY = "discovery"
+        const val OPTION_FILTER = "filter"
     }
 }

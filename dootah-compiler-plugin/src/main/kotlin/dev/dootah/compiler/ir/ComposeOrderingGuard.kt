@@ -33,8 +33,8 @@ internal enum class ComposeOrdering {
     /**
      * Nothing in this module reveals the order.
      *
-     * Reported rather than guessed. With no `@Bundlable` function present there
-     * is also nothing to transform, so this is not an error.
+     * Reported rather than guessed. With no eligible function present there is
+     * also nothing to transform, so this is not an error.
      */
     INCONCLUSIVE,
 }
@@ -43,17 +43,17 @@ internal enum class ComposeOrdering {
  * Decides the ordering from the shape of the functions Dootah is about to
  * transform.
  *
- * Deliberately based on the `@Bundlable` functions themselves rather than on any
+ * Deliberately based on the discovered functions themselves rather than on any
  * composable in the module: those are the declarations that will be rewritten,
  * so their state is the one that matters.
  */
 internal fun composeOrderingOf(
-    bundlableFunctions: List<BundlableFunction>,
+    screens: List<DiscoveredScreen>,
 ): ComposeOrdering {
 
-    if (bundlableFunctions.isEmpty()) return ComposeOrdering.INCONCLUSIVE
+    if (screens.isEmpty()) return ComposeOrdering.INCONCLUSIVE
 
-    val anyAlreadyLowered = bundlableFunctions.any { it.function.carriesComposerParameter() }
+    val anyAlreadyLowered = screens.any { it.function.carriesComposerParameter() }
 
     return if (anyAlreadyLowered) ComposeOrdering.AFTER_COMPOSE
     else ComposeOrdering.BEFORE_COMPOSE

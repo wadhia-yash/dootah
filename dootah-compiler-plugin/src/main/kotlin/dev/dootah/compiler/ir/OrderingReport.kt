@@ -23,15 +23,15 @@ internal const val INTERCEPTION_REPORT_NAME = "dootah-ordering.txt"
 internal fun writeInterceptionReport(
     reportDirectory: File,
     ordering: ComposeOrdering,
-    bundlableFunctionNames: List<String>,
+    discoveredFunctionNames: List<String>,
     interceptedScreenIds: List<String>,
 ) {
     reportDirectory.mkdirs()
 
     val lines = buildList {
         add("ordering=$ordering")
-        add("bundlableCount=${bundlableFunctionNames.size}")
-        bundlableFunctionNames.sorted().forEach { add("bundlable=$it") }
+        add("discoveredCount=${discoveredFunctionNames.size}")
+        discoveredFunctionNames.sorted().forEach { add("discovered=$it") }
         add("interceptedCount=${interceptedScreenIds.size}")
         interceptedScreenIds.sorted().forEach { add("intercepted=$it") }
     }

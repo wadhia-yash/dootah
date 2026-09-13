@@ -109,7 +109,7 @@ private fun writeExports(generatedDirectory: File, reportDirectory: File) {
 }
 
 /**
- * Records why a screen could not be bundled, for the build to report.
+ * Records why an eligible screen could not be bundled, for the build to report.
  *
  * Written as data for the Gradle task to format rather than logged here: the
  * extraction pass runs in its own compiler process, and a message buried in that
@@ -119,6 +119,7 @@ internal fun writeUnsupportedReport(
     reportDirectory: File,
     screenId: String,
     reasons: List<UnsupportedConstruct>,
+    forced: Boolean,
 ) {
     if (reasons.isEmpty()) return
 
@@ -126,6 +127,12 @@ internal fun writeUnsupportedReport(
 
     val lines = reasons.flatMap { reason ->
         listOf(
+            // Whether the developer asked for this screen by name. Discovery
+            // finds far more functions than anyone marked by hand, and a
+            // limitation Dootah ran into on its own is news rather than a
+            // failure -- but one hit on a function someone explicitly asked to
+            // bundle is exactly the failure they wanted to hear about.
+            "forced=$forced",
             "function=${reason.functionName}",
             "file=${reason.filePath}",
             "offset=${reason.sourceOffset ?: -1}",

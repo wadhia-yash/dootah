@@ -2,6 +2,7 @@ package dev.dootah.compiler
 
 import dev.dootah.compiler.fir.DootahFirExtensionRegistrar
 import dev.dootah.compiler.ir.DootahIrExtension
+import dev.dootah.contract.ScreenFilter
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
@@ -36,6 +37,16 @@ class DootahCompilerPluginRegistrar : CompilerPluginRegistrar() {
             .get(DootahConfigurationKeys.REPORT_DIR)
             ?.let(::File)
 
+        // Read once and handed to whichever extension runs. Both passes have to
+        // discover the same set of functions from the same rule; reading the
+        // options in two places is how they would quietly stop doing that.
+        val discovery = configuration.get(DootahConfigurationKeys.DISCOVERY)
+            ?: DootahDiscovery.AUTO
+
+        val filter = configuration.get(DootahConfigurationKeys.FILTER)
+            ?.let(ScreenFilter::parse)
+            ?: ScreenFilter.EVERYTHING
+
         when (configuration.get(DootahConfigurationKeys.MODE) ?: DootahMode.INTERCEPT) {
 
             DootahMode.INTERCEPT ->
@@ -43,6 +54,8 @@ class DootahCompilerPluginRegistrar : CompilerPluginRegistrar() {
                     DootahIrExtension(
                         messageCollector = messageCollector,
                         reportDirectory = reportDirectory,
+                        discovery = discovery,
+                        filter = filter,
                     )
                 )
 
@@ -60,6 +73,8 @@ class DootahCompilerPluginRegistrar : CompilerPluginRegistrar() {
                         generatedDirectory = configuration
                             .get(DootahConfigurationKeys.GENERATED_DIR)
                             ?.let(::File),
+                        discovery = discovery,
+                        filter = filter,
                     )
                 )
             }

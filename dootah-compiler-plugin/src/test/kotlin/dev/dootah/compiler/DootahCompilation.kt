@@ -41,6 +41,36 @@ class CompilationResult(
             ?.readText()
     }
 
+    /**
+     * The fully qualified names the extraction pass decided it may take over.
+     *
+     * Read from the per-function discovery records rather than from what was
+     * generated, because a function that was eligible and then failed to lower
+     * is still a function both passes have to have agreed about.
+     */
+    fun discoveredScreens(): Set<String> =
+        File(reportDirectory, "discovery")
+            .takeIf { it.isDirectory }
+            ?.listFiles()
+            .orEmpty()
+            .map { file ->
+                file.readLines().mapNotNull { line ->
+                    line.split("=", limit = 2).takeIf { it.size == 2 }?.let { it[0] to it[1] }
+                }.toMap()
+            }
+            .filter { it["outcome"] != "INELIGIBLE" }
+            .mapNotNull { it["fqName"] }
+            .toSet()
+
+    /** The fully qualified names the app's own compilation intercepted. */
+    fun interceptedScreens(): Set<String> =
+        orderingReport()
+            .orEmpty()
+            .lineSequence()
+            .filter { it.startsWith("discovered=") }
+            .map { it.removePrefix("discovered=") }
+            .toSet()
+
     /** Every generated bundle source file, keyed by name. */
     fun generatedSources(): Map<String, String> =
         generatedDirectory.walkTopDown()
@@ -89,6 +119,22 @@ class CompilationResult(
 }
 
 /**
+ * Marks the stubs as code Dootah must not take over.
+ *
+ * In a real build Compose and the Dootah runtime arrive as compiled artifacts on
+ * the classpath, so discovery never sees them. Here they are sources in the same
+ * compilation, and without this Dootah would find `Text`, `Icon` and its own
+ * `DootahRemoteContent` and intercept them -- which is not a thing that can
+ * happen to a real app, and would make every fixture assert against noise.
+ *
+ * The real runtime carries the same annotation for the same reason, so this is
+ * the arrangement being tested rather than a convenience for the tests.
+ */
+private fun List<SourceFile>.asLibraryCode(): List<SourceFile> = map { source ->
+    source.copy(contents = "@file:dev.dootah.DootahNative\n\n" + source.contents)
+}
+
+/**
  * Runs the real Kotlin compiler over [sources] with the Dootah plugin attached.
  *
  * A real compilation rather than a mocked one: the whole point of these tests is
@@ -102,6 +148,8 @@ fun compileWithDootah(
     extraPluginClasspath: List<File> = emptyList(),
     dootahFirst: Boolean = true,
     withDootahRuntime: Boolean = true,
+    screenFilter: String = "",
+    discovery: String = "auto",
 ): CompilationResult {
 
     val sourceDirectory = File(workingDirectory, "src").apply { mkdirs() }
@@ -109,7 +157,8 @@ fun compileWithDootah(
     val reportDirectory = File(workingDirectory, "reports").apply { mkdirs() }
     val generatedDirectory = File(workingDirectory, "generated").apply { mkdirs() }
 
-    val stubs = composeStubs() + if (withDootahRuntime) dootahRuntimeStubs() else emptyList()
+    val stubs = (composeStubs() + if (withDootahRuntime) dootahRuntimeStubs() else emptyList())
+        .asLibraryCode()
 
     val sourceFiles = (stubs + sources).map { source ->
         File(sourceDirectory, source.name).apply {
@@ -139,6 +188,8 @@ fun compileWithDootah(
             "plugin:dev.dootah:mode=$mode",
             "plugin:dev.dootah:reportDir=${reportDirectory.absolutePath}",
             "plugin:dev.dootah:generatedDir=${generatedDirectory.absolutePath}",
+            "plugin:dev.dootah:discovery=$discovery",
+            "plugin:dev.dootah:filter=$screenFilter",
         )
     }
 

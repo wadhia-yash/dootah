@@ -8,6 +8,19 @@ const val DOOTAH_PLUGIN_ID: String = "dev.dootah"
 
 val BUNDLABLE_ANNOTATION: FqName = FqName("dev.dootah.Bundlable")
 
+/** Opts a function, class or file out of Dootah entirely. */
+val DOOTAH_NATIVE_ANNOTATION: FqName = FqName("dev.dootah.DootahNative")
+
+/**
+ * Tooling previews, matched by simple name.
+ *
+ * There is more than one `Preview` -- Android's, Desktop's, and whatever a
+ * multiplatform target adds next -- and they are all equally not shipped UI.
+ * Matching the name rather than a list of packages means a new one is handled
+ * the day it appears instead of the day someone notices.
+ */
+const val PREVIEW_ANNOTATION_NAME: String = "Preview"
+
 val COMPOSABLE_ANNOTATION: FqName = FqName("androidx.compose.runtime.Composable")
 
 /**
@@ -48,6 +61,24 @@ enum class DootahMode {
     }
 }
 
+/**
+ * How Dootah decides which Compose functions it may take over.
+ *
+ * [AUTO] is the product: a developer configures the project once and keeps
+ * writing ordinary Compose. [ANNOTATED] is the older model, kept because it is
+ * the only way to ask "what changes when discovery is switched on", and because
+ * an app part-way through migrating needs to be able to stand still.
+ */
+enum class DootahDiscovery {
+    AUTO,
+    ANNOTATED;
+
+    companion object {
+        fun fromCliValue(value: String): DootahDiscovery? =
+            entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
+    }
+}
+
 object DootahConfigurationKeys {
 
     val MODE: CompilerConfigurationKey<DootahMode> =
@@ -60,4 +91,18 @@ object DootahConfigurationKeys {
     /** Where generated bundle Kotlin is written. Extraction only. */
     val GENERATED_DIR: CompilerConfigurationKey<String> =
         CompilerConfigurationKey.create("dootah generated source directory")
+
+    /** Whether functions are discovered automatically or by annotation. */
+    val DISCOVERY: CompilerConfigurationKey<DootahDiscovery> =
+        CompilerConfigurationKey.create("dootah discovery")
+
+    /**
+     * The encoded include/exclude patterns.
+     *
+     * Passed as one opaque string because both compiler invocations have to
+     * parse it with the same code for the APK and the bundle to agree on which
+     * screens exist at all.
+     */
+    val FILTER: CompilerConfigurationKey<String> =
+        CompilerConfigurationKey.create("dootah screen filter")
 }
