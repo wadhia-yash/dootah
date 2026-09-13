@@ -44,6 +44,39 @@ tasks.register("dootahRealComposeCheck") {
     description = "Compiles the regression screen against the real Compose compiler"
 
     dependsOn(":app:compileDebugKotlin")
+
+    val classes = layout.projectDirectory
+        .dir("Android-Dootah/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")
+    val screen = "com/dootah/demo/ToolboxRegressionScreenKt.class"
+
+    doLast {
+        val compiled = classes.file(screen).asFile
+
+        require(compiled.exists()) { "The regression screen was not compiled: $compiled" }
+
+        // The constant pool, as text. What the screen registers is a list of
+        // names in it, and reading them back is the only way to tell a screen
+        // that compiled from one that compiled and registered nothing.
+        val text = String(compiled.readBytes(), Charsets.ISO_8859_1)
+
+        // A resource is read as a Java static field, which is a shape the
+        // plugin's own fixtures cannot produce -- their `R` is Kotlin. Nothing
+        // registered a resource for as long as that went unchecked, so every
+        // bundle naming one was refused and its screen stayed native.
+        listOf(
+            "drawable:regression_brush",
+            "string:regression_brush",
+            "androidx.compose.material3.IconButton",
+            "androidx.compose.material3.Icon(",
+            "dootahAdapter",
+            "dootahCapability",
+        ).forEach { expected ->
+            require(text.contains(expected)) {
+                "The regression screen compiled but did not register `$expected`. " +
+                    "A bundle naming it would be refused and the screen would stay native."
+            }
+        }
+    }
 }
 
 tasks.register<Copy>("buildBundle") {

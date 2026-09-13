@@ -17,6 +17,8 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
+import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrGetObjectValue
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrReturn
@@ -258,22 +260,43 @@ private fun IrCall.recordResource(resources: MutableMap<String, NativeResource>)
     resources[key] = NativeResource(key, id)
 }
 
-/** `R.drawable.brush_24px` as `drawable:brush_24px`. */
+/**
+ * `R.drawable.brush_24px` as `drawable:brush_24px`.
+ *
+ * Two shapes, because `R` is generated as Java: every Android app reads a
+ * resource as a static field, and only a Kotlin stand-in for one reads as a
+ * property. Handling the property alone meant no app ever registered a
+ * resource, so a bundle naming one was refused and the screen it belonged to
+ * stayed native -- which is every screen with an icon in it.
+ */
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrExpression.resourceKey(): String? {
+
+    (this as? IrGetField)?.let { read ->
+        val field = read.symbol.owner
+        val parent = (field.parent as? IrClass)?.fqNameWhenAvailable ?: return null
+        return resourceKeyIn(parent, field.name.asString())
+    }
 
     val call = this as? IrCall ?: return null
     val owner = call.symbol.owner
 
-    // A resource is read through its generated getter, so the property's own
-    // name is what the getter is named after.
+    // A resource read through a generated getter, so the property's own name is
+    // what the getter is named after.
     val property = owner.correspondingPropertySymbol?.owner?.name?.asString()
         ?: owner.name.asString().removePrefix("<get-").removeSuffix(">")
 
     val parent = owner.parentClassName() ?: return null
-    if (parent.parent().shortName().asString() != "R") return null
 
-    return ResourceKey.of(parent.shortName().asString(), property)
+    return resourceKeyIn(parent, property)
+}
+
+/** Guarded so an unrelated `Something.drawable.x` cannot look like a resource. */
+private fun resourceKeyIn(owner: FqName, name: String): String? {
+
+    if (owner.parent().shortName().asString() != "R") return null
+
+    return ResourceKey.of(owner.shortName().asString(), name)
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)
