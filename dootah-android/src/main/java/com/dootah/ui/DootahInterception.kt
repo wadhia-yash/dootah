@@ -3,6 +3,7 @@ package com.dootah.ui
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,11 +46,42 @@ annotation class DootahGeneratedApi
  */
 class DootahScreenState internal constructor(
     internal val screenId: String,
-    internal val arguments: DootahArguments,
-    private val callbacks: DootahCallbacks,
-    internal val bindings: DootahNativeBindings,
+    arguments: DootahArguments,
+    callbacks: DootahCallbacks,
+    bindings: DootahNativeBindings,
     private val scope: CoroutineScope,
 ) {
+
+    /**
+     * The inputs as of the latest composition, not the first.
+     *
+     * The state itself is remembered across recompositions, so holding the
+     * arguments it was built with meant every re-render sent the values the
+     * screen had when it first appeared. A remote screen then never reacted to
+     * its own inputs: a toolbox went on showing a tool as selected after the
+     * app had switched to the eraser, because the condition deciding that is
+     * evaluated remotely from a value that never changed.
+     *
+     * Snapshot-backed because the render reads them during composition, and
+     * because a change to them has to reach the screen already on display.
+     */
+    internal var arguments: DootahArguments by mutableStateOf(arguments)
+        private set
+
+    internal var bindings: DootahNativeBindings by mutableStateOf(bindings)
+        private set
+
+    private var callbacks: DootahCallbacks by mutableStateOf(callbacks)
+
+    internal fun update(
+        arguments: DootahArguments,
+        callbacks: DootahCallbacks,
+        bindings: DootahNativeBindings,
+    ) {
+        this.arguments = arguments
+        this.callbacks = callbacks
+        this.bindings = bindings
+    }
 
     var content: DootahContent by mutableStateOf(DootahContent.Loading)
         private set
@@ -214,6 +246,12 @@ fun rememberDootahScreen(
             scope = scope,
         )
     }
+
+    // The state outlives a recomposition; its inputs do not. Publishing them on
+    // every composition is what makes the re-render below send the values the
+    // screen has now rather than the ones it opened with -- and what keeps a
+    // handle pointing at the object the caller is holding today.
+    SideEffect { state.update(arguments, callbacks, bindings) }
 
     // Re-rendered whenever the caller's arguments change, so a remote screen
     // reacts to its inputs the way the native one it replaced would.

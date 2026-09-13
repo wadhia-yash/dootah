@@ -5,7 +5,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -19,6 +22,7 @@ import org.junit.Test
  *
  * Which is what happened to every modifier a bundle ever sent.
  */
+@OptIn(DootahGeneratedApi::class)
 class DootahPropsTest {
 
     private fun props(values: Map<String, Any?>) =
@@ -73,5 +77,48 @@ class DootahPropsTest {
         assertEquals(3, values.int("count"))
         assertEquals(Color.Red, values.color("tint"))
         assertEquals(48.dp, values.dp("width"))
+    }
+}
+
+/**
+ * What a screen's state does when its inputs change under it.
+ *
+ * The state is remembered across recompositions and the inputs are not, so
+ * holding the ones it was built with made every re-render send the values the
+ * screen had when it first appeared. A remote toolbox went on showing a tool as
+ * selected after the app had switched to the eraser, because the condition
+ * deciding that is evaluated remotely from a value that never changed -- and a
+ * handle went on pointing at the object the caller held on first composition.
+ */
+@OptIn(DootahGeneratedApi::class)
+class DootahScreenStateTest {
+
+    @Test
+    fun `renders with the arguments of the latest composition`() {
+
+        val state = DootahScreenState(
+            screenId = "screen",
+            arguments = dootahArguments("erasing", false),
+            callbacks = dootahCallbacks(""),
+            bindings = dootahBindings(
+                dootahAdapters(), dootahCapabilities(), dootahHandles(), dootahResources(),
+            ),
+            scope = CoroutineScope(Dispatchers.Unconfined),
+        )
+
+        assertTrue(state.arguments.toJson().contains("false"))
+
+        state.update(
+            arguments = dootahArguments("erasing", true),
+            callbacks = dootahCallbacks(""),
+            bindings = dootahBindings(
+                dootahAdapters(), dootahCapabilities(), dootahHandles(), dootahResources(),
+            ),
+        )
+
+        assertTrue(
+            "the screen would re-render with the value it opened with",
+            state.arguments.toJson().contains("true"),
+        )
     }
 }
