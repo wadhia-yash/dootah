@@ -74,6 +74,10 @@ internal fun summarise(
         if (withNativeParts > 0) append(" ($withNativeParts with native parts)")
         append(", $rejected not yet describable, $ineligible out of scope.")
 
+        if (rejected > 0) {
+            append("\n  run with --info to see what stopped the $rejected.")
+        }
+
         val blockers = discovered
             .filter { it.outcome == "INELIGIBLE" && it.reason != null }
             .groupingBy { it.reason!! }
