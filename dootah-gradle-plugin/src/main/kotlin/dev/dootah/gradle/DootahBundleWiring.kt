@@ -39,7 +39,7 @@ internal fun registerBundleTask(
     project.tasks.register("dootahBundle", DootahBundleTask::class.java) { task ->
 
         task.group = "dootah"
-        task.description = "Builds the Dootah bundle from this app's @Bundlable functions"
+        task.description = "Builds the Dootah bundle from this app's Compose functions"
 
         // Same build, so this ordering is guaranteed rather than hoped for.
         task.dependsOn(extractTaskName)

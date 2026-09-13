@@ -1,8 +1,10 @@
 package dev.dootah.gradle.tasks
 
 import dev.dootah.gradle.internal.describeRejections
+import dev.dootah.gradle.internal.readDiscovery
 import dev.dootah.gradle.internal.readLoweredScreens
 import dev.dootah.gradle.internal.readRejectedConstructs
+import dev.dootah.gradle.internal.summarise
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
@@ -53,6 +55,18 @@ abstract class DootahExtractTask @Inject constructor(
 
     @get:Input
     abstract val jvmTarget: Property<String>
+
+    /** `auto` or `annotated`, matching what the app's own compilation was given. */
+    @get:Input
+    abstract val discovery: Property<String>
+
+    /** The encoded include/exclude patterns, identical to the app's own. */
+    @get:Input
+    abstract val screenFilter: Property<String>
+
+    /** Whether a screen Dootah could not describe fails the build. */
+    @get:Input
+    abstract val failOnUnsupportedScreen: Property<Boolean>
 
     /** Diagnostics and per-screen metadata. */
     @get:OutputDirectory
@@ -121,41 +135,61 @@ abstract class DootahExtractTask @Inject constructor(
     /**
      * Turns what the compiler recorded into a build result.
      *
-     * A screen Dootah cannot bundle fails the build rather than being skipped.
-     * Skipping would publish a bundle missing that screen, and the app would
-     * quietly render its native version -- correct behaviour arrived at for a
-     * reason nobody was told about.
+     * Dootah now looks at every Compose function in the module rather than at
+     * the handful someone annotated, so most of what it reports is not a
+     * problem: a screen it cannot describe is left out of the bundle and the app
+     * renders the native body it always had. Failing the build over each one
+     * would make an ordinary app impossible to build.
+     *
+     * Two things are still failures. A function marked `@Bundlable` that cannot
+     * be described is a developer asking for a screen by name and not getting
+     * it. And a module where nothing at all could be described has nothing to
+     * publish, which is worth saying before a bundle is built from it.
      */
     private fun reportOutcome(reportDirectory: java.io.File) {
 
+        val discovered = readDiscovery(reportDirectory)
         val rejections = readRejectedConstructs(reportDirectory)
-        if (rejections.isNotEmpty()) {
-            throw GradleException(describeRejections(rejections))
+        val screens = readLoweredScreens(reportDirectory)
+
+        logger.lifecycle(summarise(discovered, screens))
+
+        val insisted = rejections.filter { it.forced }
+
+        if (insisted.isNotEmpty() || (rejections.isNotEmpty() && failOn())) {
+            throw GradleException(describeRejections(if (failOn()) rejections else insisted))
         }
 
-        val screens = readLoweredScreens(reportDirectory)
+        if (rejections.isNotEmpty()) {
+            // A warning rather than a failure, but still said out loud: these
+            // are the screens an update cannot reach, and finding that out by
+            // publishing one and watching nothing happen is a bad afternoon.
+            logger.warn(describeRejections(rejections))
+        }
 
         if (screens.isEmpty()) {
             throw GradleException(
-                "Dootah found no @Bundlable functions in this module.\n" +
-                    "Mark a @Composable function with @Bundlable to make it " +
-                    "updatable over the air."
+                "Dootah could not describe any of this module's Compose functions, " +
+                    "so there is nothing to publish.\n" +
+                    "Run with --info to see what it found, or narrow Dootah to the " +
+                    "part of the app you are updating with dootah { include(...) }."
             )
         }
 
         screens.forEach { screen ->
-            logger.lifecycle("Dootah lowered ${screen.screenId}")
-
             // Said out loud because it is the difference between "my change did
             // not publish" and "that part of the screen is not part of what
             // publishes".
             if (screen.nativeComponents.isNotEmpty()) {
-                logger.lifecycle(
-                    "  kept native: ${screen.nativeComponents.joinToString(", ")}"
+                logger.info(
+                    "Dootah ${screen.screenId} kept native: " +
+                        screen.nativeComponents.joinToString(", ")
                 )
             }
         }
     }
+
+    private fun failOn(): Boolean = failOnUnsupportedScreen.getOrElse(false)
 
     private fun buildCompilerArguments(
         sources: List<String>,
@@ -189,6 +223,10 @@ abstract class DootahExtractTask @Inject constructor(
         add("plugin:dev.dootah:reportDir=$reportDirectory")
         add("-P")
         add("plugin:dev.dootah:generatedDir=$generatedDirectory")
+        add("-P")
+        add("plugin:dev.dootah:discovery=${discovery.get()}")
+        add("-P")
+        add("plugin:dev.dootah:filter=${screenFilter.get()}")
 
         addAll(sources)
     }

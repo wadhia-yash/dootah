@@ -1,5 +1,6 @@
 package dev.dootah.gradle
 
+import dev.dootah.contract.ScreenFilter
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin
@@ -37,6 +38,11 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         extension.runtimeVersion.convention("3")
         extension.bundleVersion.convention(1)
         extension.bundleUrl.convention("https://example.invalid/bundle.js")
+
+        // Automatic by default, which is the whole product: a developer adds the
+        // plugin and keeps writing ordinary Compose.
+        extension.discovery.convention("auto")
+        extension.failOnUnsupportedScreen.convention(false)
 
         rejectComposeDeclaredFirst(target)
         gateKotlinVersion(target)
@@ -129,6 +135,8 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
             listOf(
                 SubpluginOption("mode", "intercept"),
                 SubpluginOption("reportDir", reportDirectory.get()),
+                SubpluginOption("discovery", extension.discovery.get()),
+                SubpluginOption("filter", screenFilterOf(extension).encode()),
             )
         }
     }
@@ -152,3 +160,18 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         const val GENERATED_SOURCES_PATH = "dootah/generated/jsMain/kotlin"
     }
 }
+
+/**
+ * The include/exclude patterns as the compiler receives them.
+ *
+ * Built here once and handed to both compiler invocations. The app's own build
+ * decides which screens the APK can render; the extraction pass decides which
+ * screens a bundle describes. Those two answers are compared across a network
+ * and across time, so they are produced from one value encoded by one piece of
+ * code rather than assembled twice.
+ */
+internal fun screenFilterOf(extension: DootahExtension): ScreenFilter =
+    ScreenFilter.of(
+        include = extension.includes.getOrElse(emptyList()),
+        exclude = extension.excludes.getOrElse(emptyList()),
+    )

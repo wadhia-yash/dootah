@@ -40,12 +40,13 @@ internal fun registerExtractTask(
         "org.jetbrains.kotlin:kotlin-compiler-embeddable:$SUPPORTED_KOTLIN_VERSION",
     )
 
+    val extension = project.extensions.getByType(DootahExtension::class.java)
     val compileTask = project.tasks.named(compileTaskName, KotlinJvmCompile::class.java)
 
     project.tasks.register("dootahExtract", DootahExtractTask::class.java) { task ->
 
         task.group = "dootah"
-        task.description = "Analyses @Bundlable functions and extracts the Dootah bundle model"
+        task.description = "Analyses this app's Compose functions and extracts the Dootah bundle model"
 
         // Generated sources -- KSP output, resources, view bindings -- only
         // exist once the app's own compilation has run.
@@ -66,6 +67,16 @@ internal fun registerExtractTask(
                 compile.compilerOptions.jvmTarget.map { it.target }
             }
         )
+
+        // The same two values the app's own compilation was given. Extraction
+        // decides which screens a bundle describes and the app's compilation
+        // decides which screens the APK can render; they have to be the same
+        // question, so they are asked with the same answer.
+        task.discovery.set(extension.discovery)
+        task.screenFilter.set(
+            project.provider { screenFilterOf(extension).encode() }
+        )
+        task.failOnUnsupportedScreen.set(extension.failOnUnsupportedScreen)
         task.outputDirectory.set(project.layout.buildDirectory.dir("dootah/extract"))
         task.generatedSourceDirectory.set(generatedSourceDirectory)
     }

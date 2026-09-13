@@ -20,6 +20,9 @@ data class LoweredScreen(
 
 /** One reason a screen could not be bundled, as recorded by the compiler. */
 data class RejectedConstruct(
+    /** Whether the developer asked for this screen by name, with `@Bundlable`. */
+    val forced: Boolean,
+
     val functionName: String,
     val filePath: String,
     val sourceOffset: Int,
@@ -88,6 +91,7 @@ private fun parseRejections(contents: String): List<RejectedConstruct> {
             line == "--" -> {
                 current["found"]?.let { found ->
                     rejections += RejectedConstruct(
+                        forced = current["forced"].toBoolean(),
                         functionName = current["function"].orEmpty(),
                         filePath = current["file"].orEmpty(),
                         sourceOffset = current["offset"]?.toIntOrNull() ?: -1,
@@ -132,9 +136,16 @@ internal fun describeRejections(rejections: List<RejectedConstruct>): String {
                 appendLine()
             }
         }
+        val names = byFunction.keys.map { it.substringAfterLast('.') }
+
         append(
-            "The app is unaffected: `${byFunction.keys.first().substringAfterLast('.')}` " +
-                "keeps rendering its native implementation."
+            if (names.size == 1) {
+                "The app is unaffected: `${names.single()}` keeps rendering its " +
+                    "native implementation."
+            } else {
+                "The app is unaffected: ${names.joinToString(", ") { "`$it`" }} keep " +
+                    "rendering their native implementations."
+            }
         )
     }
 }

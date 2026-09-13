@@ -71,7 +71,7 @@ abstract class DootahBundleTask @Inject constructor(
         if (sources.isEmpty()) {
             throw GradleException(
                 "Dootah generated no bundle sources, so there is nothing to publish.\n" +
-                    "Run dootahExtract first, or mark a @Composable function @Bundlable."
+                    "Run dootahExtract first."
             )
         }
 

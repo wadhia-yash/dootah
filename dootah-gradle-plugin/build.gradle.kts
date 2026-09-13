@@ -27,6 +27,11 @@ dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin-api:${libs.versions.kotlin.get()}")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:${libs.versions.kotlin.get()}")
 
+    // The include/exclude rules are parsed by the compiler plugin from a string
+    // this plugin encodes. Both ends use the same class so they cannot disagree
+    // about what a pattern means.
+    implementation(project(":dootah-contract"))
+
     testImplementation(libs.junit)
     testImplementation(gradleTestKit())
 }
@@ -37,7 +42,7 @@ gradlePlugin {
             id = "dev.dootah"
             implementationClass = "dev.dootah.gradle.DootahProjectPlugin"
             displayName = "Dootah"
-            description = "Over-the-air updates for @Bundlable Compose functions"
+            description = "Over-the-air updates for ordinary Compose code"
         }
     }
 }
@@ -46,6 +51,7 @@ tasks.test {
     // GradleRunner builds need to find the plugin and its siblings.
     dependsOn(
         ":dootah-annotations:publishToMavenLocal",
+        ":dootah-contract:publishToMavenLocal",
         ":dootah-compiler-plugin:publishToMavenLocal",
     )
 }
