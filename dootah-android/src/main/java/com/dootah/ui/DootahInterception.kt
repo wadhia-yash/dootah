@@ -9,7 +9,11 @@ package com.dootah.ui
 
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Composer
+import androidx.compose.runtime.InternalComposeApi
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -260,6 +264,25 @@ fun rememberDootahScreen(
     // handle pointing at the object the caller is holding today.
     SideEffect { state.update(arguments, callbacks, bindings) }
 
+    // Not every `@Composable` draws Compose UI. Glance writes app widgets with
+    // the same annotation and a different applier, and so can anything else
+    // built on the Compose runtime. Discovery cannot tell them apart -- the
+    // applier a composable belongs to is inferred by the Compose plugin, which
+    // runs after Dootah -- so the question is settled here, where the answer is
+    // simply available.
+    //
+    // Leaving without loading is what makes this safe: nothing is fetched, the
+    // screen's own body renders, and Dootah stays out of a composition it has
+    // nothing to offer. Jetsnack's app widget crashed the app on launch before
+    // this, on the window-focus read immediately below.
+    if (!isComposeUi()) {
+        Log.i(
+            DOOTAH_LOG_TAG,
+            "$screenId does not draw Compose UI; keeping its native implementation",
+        )
+        return state
+    }
+
     // Re-rendered whenever the caller's arguments change, so a remote screen
     // reacts to its inputs the way the native one it replaced would.
     val argumentsJson = arguments.toJson()
@@ -272,6 +295,26 @@ fun rememberDootahScreen(
     }
 
     return state
+}
+
+/**
+ * Whether this composition is one Compose UI can be drawn into.
+ *
+ * Asked by looking for a composition local that Compose UI always provides and
+ * that nothing outside it does. A missing local is an exception rather than a
+ * null, and a composable may not catch one, so the read is handed to a plain
+ * function along with the composer that would have served it.
+ */
+@Composable
+@ReadOnlyComposable
+private fun isComposeUi(): Boolean = providesWindowInfo(currentComposer)
+
+@OptIn(InternalComposeApi::class)
+private fun providesWindowInfo(composer: Composer): Boolean = try {
+    composer.consume(LocalWindowInfo)
+    true
+} catch (_: IllegalStateException) {
+    false
 }
 
 /**
