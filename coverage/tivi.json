@@ -1,0 +1,82 @@
+{
+  "app": "tivi",
+  "modules": 80,
+  "files": 590,
+  "lines": 44005,
+  "failed_modules": 58,
+  "totals": {
+    "composables": 148,
+    "ineligible": 48,
+    "ineligible:RETURNS_A_VALUE": 27,
+    "eligible": 100,
+    "fallback": 98,
+    "ineligible:TAKES_COMPOSABLE_CONTENT": 17,
+    "mixed": 2,
+    "ineligible:INLINE": 1,
+    "ineligible:NO_BODY": 2,
+    "ineligible:HAS_RECEIVER": 1
+  },
+  "blocked_by": {
+    "Compose value type": 50,
+    "callback argument type": 10,
+    "collections/data classes": 7,
+    "third-party composable": 11,
+    "unsupported Kotlin syntax": 18,
+    "native capability": 2
+  },
+  "occurrences": {
+    "Compose value type": 88,
+    "collections/data classes": 53,
+    "third-party composable": 47,
+    "callback argument type": 13,
+    "unsupported Kotlin syntax": 62,
+    "native capability": 11,
+    "navigation": 1
+  },
+  "details": {
+    "Compose value type": {
+      "androidx.compose.ui.Modifier": 11,
+      "androidx.compose.material3.SnackbarHostState": 8,
+      "androidx.compose.material.DismissState": 8,
+      "dp": 8,
+      "Row.verticalAlignment": 6,
+      "androidx.compose.ui.graphics.vector.ImageVector": 4
+    },
+    "collections/data classes": {
+      "kotlin.String": 20,
+      "kotlinx.coroutines.CoroutineScope": 11,
+      "kotlin.Any": 8,
+      "androidx.paging.compose.LazyPagingItems": 4,
+      "android.content.Context": 1,
+      "app.tivi.data.models.TraktUser": 1
+    },
+    "third-party composable": {
+      "app.tivi.common.compose.HazeScaffold": 9,
+      "androidx.compose.material3.Text": 4,
+      "androidx.compose.material3.Surface": 4,
+      "androidx.compose.foundation.layout.Spacer": 2,
+      "androidx.compose.material3.TopAppBar": 2,
+      "androidx.compose.material3.DatePickerDialog": 2
+    },
+    "callback argument type": {
+      "kotlin.Function1": 9,
+      "kotlin.coroutines.SuspendFunction1": 2,
+      "kotlin.Function0": 2
+    },
+    "unsupported Kotlin syntax": {
+      "FirPropertyImpl": 14,
+      "FirSafeCallExpressionImpl": 9,
+      "FirElvisExpressionImpl": 3
+    },
+    "native capability": {
+      "kotlin.text.orEmpty": 4,
+      "kotlin.collections.isNotEmpty": 2,
+      "kotlin.toString": 2,
+      "kotlin.String.toString": 2,
+      "kotlin.collections.List.isEmpty": 1
+    },
+    "navigation": {
+      "app.tivi.home.NavigationType": 1
+    }
+  }
+}
