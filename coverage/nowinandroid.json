@@ -1,0 +1,83 @@
+{
+  "app": "nowinandroid",
+  "modules": 12,
+  "files": 70,
+  "lines": 10362,
+  "failed_modules": 0,
+  "totals": {
+    "composables": 140,
+    "eligible": 79,
+    "fallback": 65,
+    "ineligible": 61,
+    "ineligible:RETURNS_A_VALUE": 13,
+    "mixed": 14,
+    "ineligible:HAS_RECEIVER": 6,
+    "ineligible:TAKES_COMPOSABLE_CONTENT": 19,
+    "ineligible:PREVIEW": 23
+  },
+  "blocked_by": {
+    "third-party composable": 7,
+    "collections/data classes": 20,
+    "Compose value type": 28,
+    "unsupported Kotlin syntax": 8,
+    "native capability": 2
+  },
+  "occurrences": {
+    "third-party composable": 30,
+    "collections/data classes": 40,
+    "Compose value type": 48,
+    "navigation": 1,
+    "unsupported Kotlin syntax": 25,
+    "native capability": 10,
+    "state pattern": 1,
+    "callback argument type": 3
+  },
+  "details": {
+    "third-party composable": {
+      "com.google.samples.apps.nowinandroid.core.designsystem.component.scrollbar.DraggableScrollbar": 5,
+      "androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid": 3,
+      "androidx.compose.foundation.lazy.LazyColumn": 3,
+      "com.google.samples.apps.nowinandroid.core.designsystem.theme.NiaTheme": 2,
+      "androidx.compose.runtime.LaunchedEffect": 2,
+      "androidx.compose.foundation.Canvas": 2
+    },
+    "collections/data classes": {
+      "kotlin.collections.List": 8,
+      "com.google.samples.apps.nowinandroid.feature.foryou.impl.OnboardingUiState": 5,
+      "kotlin.String": 4,
+      "kotlin.Any": 3,
+      "com.google.samples.apps.nowinandroid.feature.interests.impl.InterestsUiState": 3,
+      "coil.compose.AsyncImagePainter": 2
+    },
+    "Compose value type": {
+      "androidx.compose.ui.Modifier": 5,
+      "androidx.compose.ui.text.TextStyle": 4,
+      "androidx.compose.foundation.gestures.ScrollableState": 4,
+      "Column.horizontalAlignment": 4,
+      "Row.verticalAlignment": 4,
+      "androidx.compose.ui.graphics.vector.ImageVector": 3
+    },
+    "navigation": {
+      "com.google.samples.apps.nowinandroid.core.navigation.Navigator": 1
+    },
+    "native capability": {
+      "kotlin.text.isNotBlank": 3,
+      "kotlin.collections.forEachIndexed": 2,
+      "kotlin.text.uppercase": 2,
+      "kotlin.text.isEmpty": 1,
+      "androidx.compose.ui.graphics.toArgb": 1,
+      "kotlin.text.isNotEmpty": 1
+    },
+    "unsupported Kotlin syntax": {
+      "FirPropertyImpl": 9,
+      "FirTypeOperatorCallImpl": 2
+    },
+    "state pattern": {
+      "androidx.lifecycle.Lifecycle.Event": 1
+    },
+    "callback argument type": {
+      "kotlin.Function0": 2,
+      "kotlin.coroutines.SuspendFunction1": 1
+    }
+  }
+}

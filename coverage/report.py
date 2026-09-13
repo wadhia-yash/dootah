@@ -122,9 +122,8 @@ def scan(app, dirs):
 
 if __name__ == "__main__":
     app = sys.argv[1]
-    dirs = sorted(set(os.path.dirname(p) for p in
-                      glob.glob(os.path.join(sys.argv[2], "**", "dootah", "coverage", "discovery"),
-                                recursive=True)))
-    if not dirs:
-        dirs = sorted(glob.glob(os.path.join(sys.argv[2], "**", "dootah", "coverage"), recursive=True))
+    # Every measured module, including the ones that turned out to hold no
+    # Compose at all -- their file counts belong in the denominator too.
+    dirs = sorted(glob.glob(os.path.join(sys.argv[2], "**", "dootah", "coverage"),
+                            recursive=True))
     print(json.dumps(scan(app, dirs), indent=2))

@@ -5,67 +5,92 @@
   "lines": 49804,
   "failed_modules": 1,
   "totals": {
-    "composables": 63,
-    "ineligible": 35,
-    "ineligible:TAKES_COMPOSABLE_CONTENT": 13,
-    "ineligible:RETURNS_A_VALUE": 15,
-    "eligible": 28,
-    "fallback": 27,
-    "ineligible:PREVIEW": 7,
-    "mixed": 1
+    "composables": 280,
+    "ineligible": 147,
+    "ineligible:TAKES_COMPOSABLE_CONTENT": 27,
+    "ineligible:RETURNS_A_VALUE": 87,
+    "eligible": 133,
+    "fallback": 131,
+    "ineligible:PREVIEW": 25,
+    "ineligible:HAS_RECEIVER": 7,
+    "mixed": 2,
+    "ineligible:INLINE": 1
   },
   "blocked_by": {
-    "collections/data classes": 6,
-    "Compose value type": 15,
-    "native capability": 2,
-    "unsupported Kotlin syntax": 2,
-    "callback argument type": 1,
-    "third-party composable": 1
+    "collections/data classes": 66,
+    "state pattern": 2,
+    "Compose value type": 49,
+    "unsupported Kotlin syntax": 4,
+    "third-party composable": 5,
+    "native capability": 3,
+    "callback argument type": 2
   },
   "occurrences": {
-    "collections/data classes": 14,
-    "third-party composable": 4,
-    "Compose value type": 38,
-    "unsupported Kotlin syntax": 6,
-    "native capability": 2,
-    "callback argument type": 2,
-    "state pattern": 1
+    "collections/data classes": 313,
+    "state pattern": 30,
+    "unsupported Kotlin syntax": 129,
+    "third-party composable": 42,
+    "native capability": 38,
+    "Compose value type": 164,
+    "callback argument type": 20,
+    "navigation": 3
   },
   "details": {
     "collections/data classes": {
-      "kotlin.Any": 5,
-      "kotlinx.coroutines.CoroutineScope": 2,
-      "android.view.View": 2,
-      "android.content.Context": 1,
-      "me.ash.reader.ui.theme.palette.TonalPalettes": 1,
-      "android.graphics.drawable.PictureDrawable": 1
-    },
-    "third-party composable": {
-      "androidx.compose.runtime.DisposableEffect": 1,
-      "androidx.compose.material3.OutlinedSecureTextField": 1,
-      "androidx.compose.material3.Surface": 1,
-      "me.ash.reader.ui.component.base.RYDialog": 1
-    },
-    "Compose value type": {
-      "androidx.compose.ui.Modifier": 10,
-      "androidx.compose.foundation.text.input.TextFieldState": 4,
-      "androidx.compose.foundation.clickable": 2,
-      "Column.horizontalAlignment": 2,
-      "androidx.compose.ui.focus.FocusRequester": 2,
-      "androidx.compose.foundation.text.KeyboardOptions": 2
-    },
-    "native capability": {
-      "me.ash.reader.infrastructure.preference.DarkThemePreference.isDarkTheme": 1,
-      "kotlin.text.isNullOrEmpty": 1
-    },
-    "unsupported Kotlin syntax": {
-      "FirPropertyImpl": 4
-    },
-    "callback argument type": {
-      "kotlin.Function0": 2
+      "android.content.Context": 45,
+      "kotlin.collections.List": 38,
+      "kotlinx.coroutines.CoroutineScope": 34,
+      "kotlin.String": 17,
+      "kotlin.Boolean": 13,
+      "kotlin.Any": 12
     },
     "state pattern": {
-      "kotlinx.coroutines.flow.Flow": 1
+      "me.ash.reader.infrastructure.preference.FlowArticleListFeedIconPreference": 3,
+      "me.ash.reader.infrastructure.preference.FlowFilterBarStylePreference": 2,
+      "me.ash.reader.infrastructure.preference.FlowFilterBarTonalElevationPreference": 2,
+      "me.ash.reader.infrastructure.preference.FlowTopBarTonalElevationPreference": 2,
+      "me.ash.reader.infrastructure.preference.FlowArticleListFeedNamePreference": 2,
+      "me.ash.reader.infrastructure.preference.FlowArticleListImagePreference": 2
+    },
+    "third-party composable": {
+      "me.ash.reader.ui.component.base.RYScaffold": 21,
+      "androidx.compose.material3.Surface": 4,
+      "androidx.compose.runtime.DisposableEffect": 2,
+      "androidx.compose.foundation.lazy.LazyRow": 2,
+      "me.ash.reader.ui.component.base.RYDialog": 2,
+      "androidx.compose.runtime.CompositionLocalProvider": 1
+    },
+    "native capability": {
+      "kotlin.Any.toString": 8,
+      "androidx.compose.ui.graphics.toArgb": 8,
+      "kotlin.collections.forEach": 6,
+      "kotlin.collections.List.isEmpty": 2,
+      "androidx.work.WorkInfo.State.toString": 2,
+      "kotlin.Float.toString": 2
+    },
+    "Compose value type": {
+      "androidx.compose.ui.Modifier": 25,
+      "androidx.compose.ui.graphics.Color": 10,
+      "androidx.compose.ui.unit.Dp": 9,
+      "androidx.compose.ui.focus.FocusManager": 7,
+      "androidx.compose.ui.graphics.vector.ImageVector": 6,
+      "Box.contentAlignment": 6
+    },
+    "callback argument type": {
+      "kotlin.Function0": 13,
+      "kotlin.Function1": 6,
+      "kotlin.coroutines.SuspendFunction1": 1
+    },
+    "unsupported Kotlin syntax": {
+      "FirSafeCallExpressionImpl": 7,
+      "FirPropertyImpl": 5,
+      "FirTypeOperatorCallImpl": 2,
+      "FirNamedFunctionImpl": 2
+    },
+    "navigation": {
+      "androidx.compose.material3.adaptive.navigation.ThreePaneScaffoldNavigator": 1,
+      "androidx.compose.material3.adaptive.navigation.BackNavigationBehavior": 1,
+      "me.ash.reader.ui.page.adaptive.NavigationAction": 1
     }
   }
 }

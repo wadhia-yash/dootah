@@ -24,8 +24,12 @@ initscript {
     }
 }
 
-allprojects {
-    // Applied to every project; the plugin stands down in modules with no Kotlin
-    // compilation, which is most of them in a large build.
+// `beforeProject` rather than `allprojects`: a large build may have isolated
+// projects switched on, and cross-project configuration from an init script is
+// exactly what that forbids. Each project applies the plugin to itself instead.
+//
+// The plugin stands down in modules with no Kotlin compilation, which is most of
+// them in a large build.
+gradle.beforeProject {
     apply<dev.dootah.gradle.coverage.DootahCoveragePlugin>()
 }
