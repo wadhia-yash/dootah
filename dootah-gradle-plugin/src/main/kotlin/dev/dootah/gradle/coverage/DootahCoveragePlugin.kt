@@ -113,13 +113,20 @@ class DootahCoveragePlugin : Plugin<Project> {
      * fixed list of names would quietly measure nothing and report the app as
      * having no Compose in it, which is the most misleading answer available.
      *
+     * "contains Kotlin" rather than "ends with Kotlin", because a multiplatform
+     * module names its Android compilation `compileDebugKotlinAndroid` -- and a
+     * matcher that missed it reported one such app as having no Compose at all,
+     * across eighty modules, without a word of complaint.
+     *
      * Tests are excluded because they are not what ships, and release variants
      * because they drag in signing and minification that have nothing to do with
      * this. Among equals the shortest name wins, which is the plainest variant.
+     * Native and web compilations are excluded for the same reason a release
+     * variant is: they are not the Android app being measured.
      */
     private fun Project.mainKotlinCompileTask(): Task? =
         tasks.names
-            .filter { it.startsWith("compile") && it.endsWith("Kotlin") }
+            .filter { it.startsWith("compile") && it.contains("Kotlin") }
             .filterNot { name ->
                 EXCLUDED_VARIANT_MARKERS.any { name.contains(it, ignoreCase = true) }
             }
@@ -148,6 +155,9 @@ class DootahCoveragePlugin : Plugin<Project> {
         /** Never the app's own production code. */
         val EXCLUDED_VARIANT_MARKERS = listOf(
             "AndroidTest", "UnitTest", "TestFixtures", "Release", "Benchmark",
+            // Multiplatform targets that are not this Android app.
+            "Ios", "Js", "Wasm", "Native", "Macos", "Linux", "Mingw", "Metadata",
+            "CommonMain", "Desktop",
         )
 
         val SOURCE_ACCESSORS = listOf("getSources", "getSource")
