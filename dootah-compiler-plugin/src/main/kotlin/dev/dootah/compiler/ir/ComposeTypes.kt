@@ -1,6 +1,7 @@
 package dev.dootah.compiler.ir
 
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
+import dev.dootah.contract.ComposeFunctionTypes
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
@@ -27,9 +28,9 @@ internal fun IrType.isComposableFunctionType(): Boolean {
 
     val name = classFqName?.asString() ?: return false
 
-    if (name.startsWith(COMPOSABLE_FUNCTION)) return true
+    if (ComposeFunctionTypes.isComposableFunction(name)) return true
 
-    return name.startsWith(FUNCTION) && annotations.any { annotation ->
+    return ComposeFunctionTypes.isFunction(name) && annotations.any { annotation ->
         annotation.type.classFqName == COMPOSABLE_ANNOTATION
     }
 }
@@ -80,20 +81,11 @@ internal fun IrType.functionArity(): Int? {
 
     val name = classFqName?.asString() ?: return null
 
-    val arity = when {
-        name.startsWith(COMPOSABLE_FUNCTION) -> name.removePrefix(COMPOSABLE_FUNCTION)
-        name.startsWith(FUNCTION) -> name.removePrefix(FUNCTION)
-        else -> return null
-    }
-
-    return arity.toIntOrNull()
+    return ComposeFunctionTypes.arityOf(name)
 }
 
 private fun IrType.returnsUnit(): Boolean =
     (this as? IrSimpleType)?.arguments?.lastOrNull()?.typeOrNull?.classFqName == UNIT
-
-private const val FUNCTION = "kotlin.Function"
-private const val COMPOSABLE_FUNCTION = "androidx.compose.runtime.internal.ComposableFunction"
 
 private val UNIT = FqName("kotlin.Unit")
 private val EXTENSION_FUNCTION_TYPE = FqName("kotlin.ExtensionFunctionType")

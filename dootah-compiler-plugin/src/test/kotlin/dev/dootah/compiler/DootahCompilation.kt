@@ -405,6 +405,7 @@ private fun composeStubs(): List<SourceFile> = listOf(
             import androidx.compose.foundation.layout.ColumnScope
             import androidx.compose.foundation.layout.RowScope
             import androidx.compose.runtime.Composable
+            import androidx.compose.ui.graphics.painter.Painter
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.graphics.Color
 
@@ -429,6 +430,19 @@ private fun composeStubs(): List<SourceFile> = listOf(
             @Composable
             fun Icon(
                 name: String,
+                modifier: Modifier = Modifier,
+                tint: Color = Color(0L),
+            ) {}
+
+            // The overload a real screen calls: a drawable and the words that
+            // describe it, both named rather than carried. Declared beside the
+            // one above because Compose declares several, and because an
+            // adapter is named by the declaration it was built from -- two
+            // overloads are two components, and have to be.
+            @Composable
+            fun Icon(
+                painter: Painter,
+                contentDescription: String?,
                 modifier: Modifier = Modifier,
                 tint: Color = Color(0L),
             ) {}

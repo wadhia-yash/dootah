@@ -453,8 +453,19 @@ class ScreenLoweringTest {
                     import androidx.compose.runtime.Composable
                     import androidx.compose.ui.Modifier
                     import androidx.compose.ui.graphics.Color
+                    import androidx.compose.ui.res.painterResource
+                    import androidx.compose.ui.res.stringResource
                     import androidx.compose.ui.unit.dp
                     import dev.dootah.Bundlable
+
+                    // The generated resource table, in the shape every Android
+                    // build generates one. A resource identifier is a number
+                    // this build chose, so the bundle carries the name instead
+                    // and the app looks it up in its own table.
+                    object R {
+                        object drawable { val brush_24px: Int = 1 }
+                        object string { val brush: Int = 2 }
+                    }
 
                     @Bundlable
                     @Composable
@@ -462,7 +473,8 @@ class ScreenLoweringTest {
                         Column {
                             IconButton(onClick = onPick, modifier = Modifier.size(48.dp)) {
                                 Icon(
-                                    "brush",
+                                    painter = painterResource(R.drawable.brush_24px),
+                                    contentDescription = stringResource(R.string.brush),
                                     modifier = Modifier.background(
                                         color = if (erasing) Color.Transparent
                                             else MaterialTheme.colorScheme.inversePrimary,
@@ -481,6 +493,8 @@ class ScreenLoweringTest {
         assertTrue("the background was not carried: $lowered", lowered.contains("background"))
         assertTrue("the shape token was not carried: $lowered", lowered.contains("ShapeProp"))
         assertTrue("the theme colour was not carried: $lowered", lowered.contains("inversePrimary"))
+        assertTrue("the drawable was not named: $lowered", lowered.contains("drawable:brush_24px"))
+        assertTrue("the string was not named: $lowered", lowered.contains("string:brush"))
     }
 
     /**

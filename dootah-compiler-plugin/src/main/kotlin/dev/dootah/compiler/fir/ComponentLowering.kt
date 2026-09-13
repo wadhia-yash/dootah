@@ -8,6 +8,7 @@ import dev.dootah.compiler.model.BundleProp
 import dev.dootah.compiler.model.BundleUi
 import dev.dootah.contract.AdapterId
 import dev.dootah.contract.CapabilityId
+import dev.dootah.contract.ComposeFunctionTypes
 import dev.dootah.contract.ModifierOps
 import dev.dootah.contract.PropValue
 import dev.dootah.contract.ResourceKey
@@ -635,30 +636,58 @@ internal class ComponentLowering(
 private fun org.jetbrains.kotlin.fir.expressions.FirBlock.onlyExpression(): FirExpression? =
     statements.singleOrNull() as? FirExpression
 
-/** Whether this parameter takes composable content rather than a value. */
+/**
+ * Whether this parameter takes composable content rather than a value.
+ *
+ * Any arity, because the extra parameters are scopes a layout hands its
+ * children -- `Button` takes `@Composable RowScope.() -> Unit`.
+ */
 private fun FirValueParameter.isComposableContent(): Boolean {
 
     val type = returnTypeRef.coneTypeSafe<ConeKotlinType>() ?: return false
 
-    if (type.unitFunctionArity() == null) return false
+    return type.isComposableFunctionType() && type.returnsUnit()
+}
 
-    return type.customAnnotations.any { annotation ->
+/**
+ * Whether this type is a composable function, however Compose spelled it.
+ *
+ * A lambda written in the screen being analysed is a `kotlin.FunctionN`
+ * carrying `@Composable`; the parameter of an `IconButton` compiled into a
+ * library is a `ComposableFunctionN` already. Reading only the first meant
+ * every real component's content was taken for a handler, and every screen
+ * built out of Material components was refused.
+ */
+private fun ConeKotlinType.isComposableFunctionType(): Boolean {
+
+    val name = classId?.asSingleFqName()?.asString() ?: return false
+
+    if (ComposeFunctionTypes.isComposableFunction(name)) return true
+
+    return ComposeFunctionTypes.isFunction(name) && customAnnotations.any { annotation ->
         annotation.annotationTypeRef.coneTypeSafe<ConeKotlinType>()
             ?.classId?.asSingleFqName() == COMPOSABLE_ANNOTATION
     }
 }
 
-/** How many arguments this takes, if it is a `(…) -> Unit`. */
+private fun ConeKotlinType.returnsUnit(): Boolean =
+    (typeArguments.lastOrNull() as? ConeKotlinType)?.classId?.asSingleFqName() ==
+        FqName("kotlin.Unit")
+
+/**
+ * How many arguments this takes, if it is a plain `(…) -> Unit` handler.
+ *
+ * Composable function types are excluded: content is drawn by the bundle, and
+ * attaching it as an action is the mistake this file keeps making.
+ */
 private fun ConeKotlinType.unitFunctionArity(): Int? {
 
+    if (isComposableFunctionType()) return null
+
     val name = classId?.asSingleFqName()?.asString() ?: return null
-    if (!name.startsWith("kotlin.Function")) return null
+    val arity = ComposeFunctionTypes.arityOf(name) ?: return null
 
-    val arity = name.removePrefix("kotlin.Function").toIntOrNull() ?: return null
-
-    val returned = (typeArguments.lastOrNull() as? ConeKotlinType)?.classId?.asSingleFqName()
-
-    return arity.takeIf { returned == FqName("kotlin.Unit") }
+    return arity.takeIf { returnsUnit() }
 }
 
 /** The contract kind a scalar of this type is sent as. */
