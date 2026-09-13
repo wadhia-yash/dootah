@@ -508,6 +508,7 @@ private fun composeStubs(): List<SourceFile> = listOf(
                 modifier: Modifier = Modifier,
                 color: Color = Color(0L),
                 fontWeight: Int = 0,
+                style: TextStyle = TextStyle(),
             ) {}
 
             @Composable
@@ -590,9 +591,20 @@ private fun composeStubs(): List<SourceFile> = listOf(
             // the way the real `MaterialTheme.colorScheme` does. It is read, not
             // drawn: registering it as a component gave the app an adapter whose
             // whole body was an expression it then threw away.
+            class TextStyle
+
+            class Typography {
+                val titleLarge: TextStyle = TextStyle()
+            }
+
             object MaterialTheme {
                 val colorScheme: ColorScheme
                     @Composable get() = ColorScheme()
+
+                // Read the same way, and the reason a styled `Text` is a region
+                // kept as written rather than one Dootah describes.
+                val typography: Typography
+                    @Composable get() = Typography()
             }
         """.trimIndent(),
     ),

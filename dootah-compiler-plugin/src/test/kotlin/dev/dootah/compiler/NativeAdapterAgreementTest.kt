@@ -274,6 +274,64 @@ class NativeAdapterAgreementTest {
      * The two compilations are deliberately separate, because that is what they
      * are in life: the APK is on a device and the bundle is published later.
      */
+    /**
+     * A region kept exactly as written, named by its own text.
+     *
+     * The two passes see this one very differently. The extraction pass reads a
+     * styled `Text` the developer wrote; the app's pass sees the block Kotlin
+     * lowered it into, where every defaulted argument has been hoisted into a
+     * temporary first. Both have to arrive at the same name, and when they did
+     * not, the bundle named regions the app had never registered -- caught by
+     * contract validation rather than by a device, but only just.
+     */
+    @Test
+    fun `a region kept as written is named the same by both passes`() {
+
+        val source = screenWithStyledText()
+
+        assertAgreement(installed = source, published = source, expect = "!")
+    }
+
+    /** And keeps that name when something unrelated moves above it. */
+    @Test
+    fun `a region kept as written survives an edit elsewhere`() {
+
+        assertAgreement(
+            installed = screenWithStyledText(),
+            published = screenWithStyledText(extra = """Text("added above")"""),
+            expect = "!",
+        )
+    }
+
+    private fun screenWithStyledText(extra: String = ""): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.MaterialTheme
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import androidx.compose.foundation.layout.padding
+            import androidx.compose.ui.unit.dp
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen() {
+                Column {
+                    $extra
+                    Text(
+                        modifier = Modifier.padding(16.dp),
+                        text = "styled",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
+            }
+        """.trimIndent(),
+    )
+
     private fun assertAgreement(
         installed: SourceFile,
         published: SourceFile,

@@ -9,83 +9,1242 @@
     "ineligible": 194,
     "ineligible:HAS_RECEIVER": 34,
     "eligible": 365,
-    "fallback": 350,
+    "fallback": 229,
     "ineligible:TAKES_COMPOSABLE_CONTENT": 55,
+    "not_worth": 82,
     "ineligible:RETURNS_A_VALUE": 99,
-    "mixed": 13,
+    "shape:described": 13,
+    "shape:placed": 108,
+    "shape:frozen": 77,
+    "shape:conditionals": 5,
+    "shape:actions": 0,
+    "shape:states": 0,
+    "mixed": 52,
     "ineligible:PREVIEW": 5,
     "ineligible:NO_BODY": 1,
     "remote": 2
   },
   "blocked_by": {
-    "collections/data classes": 117,
-    "Compose value type": 123,
-    "unsupported Kotlin syntax": 55,
-    "third-party composable": 35,
-    "state pattern": 1,
-    "callback argument type": 7,
-    "native capability": 12
+    "Compose value type": 57,
+    "third-party composable": 93,
+    "unsupported Kotlin syntax": 14,
+    "collections/data classes": 12,
+    "native local read remotely": 16,
+    "native value read remotely": 10,
+    "callback argument type": 6,
+    "native capability": 18,
+    "name from outside the screen": 3
   },
   "occurrences": {
-    "collections/data classes": 413,
-    "Compose value type": 266,
-    "third-party composable": 135,
-    "state pattern": 4,
-    "unsupported Kotlin syntax": 231,
-    "callback argument type": 37,
-    "native capability": 35
+    "Compose value type": 84,
+    "third-party composable": 95,
+    "unsupported Kotlin syntax": 20,
+    "collections/data classes": 15,
+    "native local read remotely": 16,
+    "native value read remotely": 10,
+    "callback argument type": 7,
+    "native capability": 24,
+    "name from outside the screen": 3
   },
   "details": {
-    "collections/data classes": {
-      "cafe.adriel.voyager.navigator.Navigator": 54,
-      "kotlin.String": 49,
-      "android.content.Context": 45,
-      "kotlin.Any": 27,
-      "kotlin.collections.List": 22,
-      "kotlinx.coroutines.CoroutineScope": 17
-    },
     "Compose value type": {
-      "androidx.compose.ui.Modifier": 34,
-      "dp": 21,
-      "Row.verticalAlignment": 18,
-      "androidx.compose.ui.graphics.vector.ImageVector": 16,
-      "Row.horizontalArrangement": 15,
-      "androidx.compose.ui.platform.UriHandler": 11
+      "Row.verticalAlignment": 11,
+      "Column.verticalArrangement": 9,
+      "dp": 9,
+      "Row.horizontalArrangement": 7,
+      "Column.horizontalAlignment": 5,
+      "androidx.compose.foundation.clickable": 4
     },
     "third-party composable": {
-      "tachiyomi.presentation.core.components.material.Scaffold": 22,
-      "androidx.compose.runtime.LaunchedEffect": 15,
-      "androidx.compose.material3.AlertDialog": 7,
+      "tachiyomi.presentation.core.components.material.Scaffold": 13,
       "tachiyomi.presentation.core.components.FastScrollLazyColumn": 6,
-      "androidx.compose.foundation.lazy.LazyColumn": 5,
-      "androidx.compose.runtime.DisposableEffect": 5
-    },
-    "state pattern": {
-      "androidx.compose.runtime.snapshots.SnapshotStateList": 2,
-      "androidx.lifecycle.LifecycleOwner": 1,
-      "cafe.adriel.voyager.core.stack.SnapshotStateStack": 1
+      "eu.kanade.presentation.components.AdaptiveSheet": 5,
+      "androidx.compose.runtime.LaunchedEffect": 5,
+      "androidx.compose.material3.AlertDialog": 4,
+      "androidx.compose.foundation.lazy.LazyColumn": 4
     },
     "unsupported Kotlin syntax": {
-      "FirPropertyImpl": 21,
-      "FirTypeOperatorCallImpl": 10,
-      "FirAnonymousFunctionExpressionImpl": 7,
-      "FirSafeCallExpressionImpl": 6,
-      "FirNamedFunctionImpl": 2,
-      "FirElvisExpressionImpl": 1
+      "FirPropertyImpl": 7,
+      "FirTypeOperatorCallImpl": 4,
+      "FirSafeCallExpressionImpl": 2,
+      "expression:FirBooleanOperatorExpressionImpl": 2,
+      "FirNamedFunctionImpl": 1,
+      "expression:FirEqualityOperatorCallImpl": 1
+    },
+    "collections/data classes": {
+      "value:kotlin.Any": 3,
+      "value:kotlin.Boolean": 2,
+      "value:eu.kanade.tachiyomi.ui.manga.notes.MangaNotesScreen.State": 1,
+      "value:kotlin.Int": 1,
+      "eu.kanade.tachiyomi.extension.model.Extension": 1,
+      "value:eu.kanade.domain.ui.model.ThemeMode": 1
+    },
+    "native local read remotely": {
+      "native local:source": 3,
+      "native local:isAnySelected": 2,
+      "native local:state": 2,
+      "native local:showSetAsDefaultDialog": 1,
+      "native local:headers": 1,
+      "native local:highlightKey": 1
+    },
+    "native value read remotely": {
+      "read through a native value:state": 5,
+      "read through a native value:eu.kanade.tachiyomi.ui.browse.migration.sources.MigrateSourceViewModel.State": 1,
+      "read through a native value:eu.kanade.tachiyomi.ui.browse.extension.ExtensionsViewModel.State": 1,
+      "read through a native value:eu.kanade.tachiyomi.ui.browse.source.SourcesViewModel.State": 1,
+      "read through a native value:tachiyomi.domain.source.model.Source": 1,
+      "read through a native value:eu.kanade.tachiyomi.ui.reader.ReaderViewModel.State": 1
     },
     "callback argument type": {
-      "kotlin.Function0": 27,
-      "kotlin.Function1": 8,
-      "kotlin.coroutines.SuspendFunction1": 1,
-      "kotlin.Function2": 1
+      "lambda:kotlin.Function0": 3,
+      "value:kotlin.Function1": 2,
+      "lambda:kotlin.coroutines.SuspendFunction1": 1,
+      "lambda:kotlin.Function1": 1
     },
     "native capability": {
-      "kotlin.text.isNotEmpty": 3,
-      "kotlin.collections.isNotEmpty": 3,
-      "eu.kanade.tachiyomi.util.system.isTabletUi": 2,
-      "eu.kanade.presentation.reader.components.ChapterNavigatorType.isHorizontal": 2,
-      "kotlin.Triple.component3": 2,
-      "kotlin.collections.map": 2
+      "call:tachiyomi.presentation.core.i18n.stringResource": 3,
+      "kotlin.text.isNotEmpty": 2,
+      "kotlin.collections.map": 2,
+      "call:androidx.compose.ui.res.painterResource": 1,
+      "eu.kanade.tachiyomi.util.system.LocaleHelper.getSourceDisplayName": 1,
+      "kotlin.collections.forEach": 1
+    },
+    "name from outside the screen": {
+      "outside the screen:licenses": 1,
+      "outside the screen:label_stats": 1,
+      "outside the screen:label_upcoming": 1
     }
-  }
+  },
+  "inside": {
+    "name from outside the screen": 54,
+    "Compose value type": 11,
+    "unsupported Kotlin syntax": 10,
+    "native value read remotely": 2,
+    "native capability": 17
+  },
+  "inside_details": {
+    "name from outside the screen": {
+      "outside the screen:action_cancel": 8,
+      "outside the screen:action_ok": 7,
+      "outside the screen:action_edit_notes": 2,
+      "outside the screen:are_you_sure": 2,
+      "outside the screen:BrowseFavoriteCoverAlpha": 2,
+      "outside the screen:confirm_delete_chapters": 2
+    },
+    "Compose value type": {
+      "property:tachiyomi.i18n.MR.strings.empty_screen": 2,
+      "property:mihon.icons.materialsymbols.rounded.Preview": 2,
+      "property:eu.kanade.tachiyomi.ui.reader.setting.ReadingMode.DEFAULT": 1,
+      "property:eu.kanade.tachiyomi.ui.reader.setting.ReadingMode.LEFT_TO_RIGHT": 1,
+      "property:<local>.topBarScrollBehavior": 1,
+      "property:eu.kanade.presentation.library.components.CommonMangaItemDefaults.BrowseFavoriteCoverAlpha": 1
+    },
+    "native value read remotely": {
+      "read through a native value:tachiyomi.domain.source.model.Source": 1,
+      "read through a native value:tachiyomi.domain.source.model.StubSource": 1
+    },
+    "unsupported Kotlin syntax": {
+      "expression:FirLiteralExpressionImpl": 4,
+      "FirPropertyImpl": 1,
+      "conditional": 1
+    },
+    "native capability": {
+      "call:eu.kanade.tachiyomi.ui.reader.model.ChapterTransition.Next.Next": 4,
+      "call:tachiyomi.presentation.core.i18n.stringResource": 4,
+      "call:kotlin.collections.mapOf": 1,
+      "call:eu.kanade.tachiyomi.ui.reader.model.ChapterTransition.Prev.Prev": 1,
+      "call:androidx.compose.material3.SnackbarHostState.SnackbarHostState": 1,
+      "call:androidx.compose.foundation.layout.imePadding": 1
+    }
+  },
+  "shapes": [
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 1,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 2,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 4,
+      "conditionals": 1,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 3,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 5,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 4,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 0,
+      "conditionals": 1,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 0,
+      "conditionals": 1,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 4,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 0,
+      "conditionals": 1,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 4,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 3,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 3,
+      "placed": 4,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 4,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 3,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 0,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 3,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 4,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 5,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 0,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 4,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 4,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    }
+  ]
 }
