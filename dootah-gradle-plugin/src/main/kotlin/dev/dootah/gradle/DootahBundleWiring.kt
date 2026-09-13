@@ -43,7 +43,10 @@ internal fun registerBundleTask(
     val fragments = project.layout.buildDirectory.dir("dootah/reports/contract")
     val recorded = project.layout.projectDirectory.file("dootah/contract.json")
 
-    project.tasks.register("dootahRecordContract", DootahRecordContractTask::class.java) { task ->
+    val record = project.tasks.register(
+        "dootahRecordContract",
+        DootahRecordContractTask::class.java,
+    ) { task ->
         task.group = "dootah"
         task.description = "Records what the app you are about to ship can be asked for"
         task.fragmentsDirectory.set(fragments)
@@ -57,6 +60,12 @@ internal fun registerBundleTask(
         task.group = "dootah"
         task.description = "Checks this bundle against the app it will be delivered to"
         task.dependsOn(extractTaskName)
+
+        // Only when someone asked for both in one build. Validating against a
+        // contract that is about to be rewritten in the same build reads
+        // whichever version happened to be on disk first.
+        task.mustRunAfter(record)
+
         task.requirementsDirectory.set(
             project.layout.buildDirectory.dir("dootah/extract/requirements")
         )
