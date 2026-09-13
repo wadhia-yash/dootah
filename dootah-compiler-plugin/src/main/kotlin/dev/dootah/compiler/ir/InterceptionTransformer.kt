@@ -247,11 +247,16 @@ internal class InterceptionTransformer(
         val entry = symbols.adapter.owner.parameters[1]
         val type = entry.type
 
+        // Offsets from the call this adapter is built out of. Compose keys and
+        // names its hoisted lambdas off them, and an undefined offset is a
+        // different thing from a real one.
         val lambda = pluginContext.irFactory.buildFun {
             name = Name.special("<anonymous>")
             visibility = DescriptorVisibilities.LOCAL
             returnType = pluginContext.irBuiltIns.unitType
             origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
+            startOffset = adapter.template.startOffset
+            endOffset = adapter.template.endOffset
         }.apply {
             this.parent = parent
             annotations = composable.map { annotation -> annotation.deepCopyWithSymbols(parent) }
@@ -734,28 +739,6 @@ internal class InterceptionTransformer(
  * contained branch, so a declaration in the original body cannot leak into the
  * scope of the code Dootah inserts around it.
  */
-/** Whether this parameter takes composable content rather than a value. */
-@OptIn(UnsafeDuringIrConstructionAPI::class)
-private fun IrType.isComposableContent(): Boolean =
-    unitFunctionArity() == 0 && annotations.any { annotation ->
-        annotation.type.classFqName == COMPOSABLE_ANNOTATION
-    }
-
-/** How many arguments this takes, if it is a `(…) -> Unit`. */
-private fun IrType.unitFunctionArity(): Int? {
-
-    val name = classFqName?.asString() ?: return null
-    if (!name.startsWith("kotlin.Function")) return null
-
-    val arity = name.removePrefix("kotlin.Function").toIntOrNull() ?: return null
-
-    val returned = (this as? IrSimpleType)?.arguments?.lastOrNull()?.typeOrNull?.classFqName
-
-    return arity.takeIf { returned == UNIT_NAME }
-}
-
-private val UNIT_NAME = org.jetbrains.kotlin.name.FqName("kotlin.Unit")
-
 private fun IrBlockBody.asExpression(unitType: IrType): IrExpression =
     IrBlockImpl(startOffset, endOffset, unitType).also { block ->
         block.statements += statements

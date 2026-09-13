@@ -1,0 +1,76 @@
+package dev.dootah.compiler.ir
+
+import dev.dootah.compiler.COMPOSABLE_ANNOTATION
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.classFqName
+import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.name.FqName
+
+/**
+ * What the Compose frontend leaves behind about a function-typed value.
+ *
+ * Composability is a property of the *type*, never of the lambda written for it.
+ * A trailing `{ Text("open") }` arrives in IR as an ordinary local function
+ * carrying no annotation of its own; the only surviving record that it is
+ * composable is the type of the parameter it was passed to, and in Kotlin 2.3
+ * that type is `ComposableFunction0<Unit>` rather than an annotated
+ * `kotlin.Function0<Unit>`.
+ *
+ * Asking the lambda instead is how an icon button's content came to be
+ * registered as an *action*, which put a composable `Text` call inside a plain
+ * handler and failed the Compose backend with `Expected a $composer parameter`.
+ * Every classification below therefore reads the type, and both passes over a
+ * screen read it from here.
+ */
+internal fun IrType.isComposableFunctionType(): Boolean {
+
+    val name = classFqName?.asString() ?: return false
+
+    if (name.startsWith(COMPOSABLE_FUNCTION)) return true
+
+    return name.startsWith(FUNCTION) && annotations.any { annotation ->
+        annotation.type.classFqName == COMPOSABLE_ANNOTATION
+    }
+}
+
+/** Whether this parameter takes composable content rather than a value. */
+internal fun IrType.isComposableContent(): Boolean =
+    isComposableFunctionType() && functionArity() == 0 && returnsUnit()
+
+/**
+ * How many arguments this takes, if it is a plain `(…) -> Unit` handler.
+ *
+ * Composable function types are excluded on purpose: content is drawn by the
+ * bundle, and calling it as though it were an action is exactly the mistake
+ * this file exists to prevent.
+ */
+internal fun IrType.unitFunctionArity(): Int? {
+
+    if (isComposableFunctionType()) return null
+
+    val arity = functionArity() ?: return null
+
+    return arity.takeIf { returnsUnit() }
+}
+
+private fun IrType.functionArity(): Int? {
+
+    val name = classFqName?.asString() ?: return null
+
+    val arity = when {
+        name.startsWith(COMPOSABLE_FUNCTION) -> name.removePrefix(COMPOSABLE_FUNCTION)
+        name.startsWith(FUNCTION) -> name.removePrefix(FUNCTION)
+        else -> return null
+    }
+
+    return arity.toIntOrNull()
+}
+
+private fun IrType.returnsUnit(): Boolean =
+    (this as? IrSimpleType)?.arguments?.lastOrNull()?.typeOrNull?.classFqName == UNIT
+
+private const val FUNCTION = "kotlin.Function"
+private const val COMPOSABLE_FUNCTION = "androidx.compose.runtime.internal.ComposableFunction"
+
+private val UNIT = FqName("kotlin.Unit")

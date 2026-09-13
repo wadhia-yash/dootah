@@ -434,6 +434,20 @@ private fun composeStubs(): List<SourceFile> = listOf(
                 @Composable
                 fun Star(label: String, tint: Color = Color(0L)) {}
             }
+
+            class ColorScheme {
+                val primary: Color = Color(0L)
+                val inversePrimary: Color = Color(0L)
+            }
+
+            // A composable that produces a *value* instead of placing anything,
+            // the way the real `MaterialTheme.colorScheme` does. It is read, not
+            // drawn: registering it as a component gave the app an adapter whose
+            // whole body was an expression it then threw away.
+            object MaterialTheme {
+                val colorScheme: ColorScheme
+                    @Composable get() = ColorScheme()
+            }
         """.trimIndent(),
     ),
 )

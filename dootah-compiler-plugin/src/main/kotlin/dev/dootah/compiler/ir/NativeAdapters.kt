@@ -21,10 +21,9 @@ import org.jetbrains.kotlin.ir.expressions.IrGetObjectValue
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
-import org.jetbrains.kotlin.ir.types.typeOrNull
+import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.hasAnnotation
@@ -209,10 +208,10 @@ private fun IrCall.record(
             )
         }
 
-        val lambda = (argument as? IrFunctionExpression)?.function ?: continue
-
         // Composable content is drawn by the bundle, not run as an action.
-        if (lambda.hasAnnotation(COMPOSABLE_ANNOTATION)) continue
+        if (parameter.type.isComposableContent()) continue
+
+        val lambda = (argument as? IrFunctionExpression)?.function ?: continue
 
         // An empty handler reaches IR as a synthetic Unit, which does nothing
         // rather than being something this cannot name. The extraction pass
@@ -363,6 +362,12 @@ private fun IrCall.isComponent(
     val callee = symbol.owner
 
     if (!callee.hasAnnotation(COMPOSABLE_ANNOTATION)) return false
+
+    // A composable that produces a value is read, not placed. `MaterialTheme
+    // .colorScheme` is a composable property, and registering it as a component
+    // gave the app an adapter whose whole body was an expression it threw away.
+    if (!callee.returnType.isUnit()) return false
+
     if ((callee.fqNameWhenAvailable ?: FqName.ROOT) in layouts) return false
 
     val outer = declaredInBody - declarations()
@@ -420,19 +425,6 @@ internal fun IrFunction.declaredParameters(): List<IrValueParameter> =
 
 private val IrValueParameter.indexInParameters: Int
     get() = (parent as IrFunction).parameters.indexOf(this)
-
-/** How many arguments this takes, if it is a `(…) -> Unit`. */
-private fun IrType.unitFunctionArity(): Int? {
-
-    val name = classFqName?.asString() ?: return null
-    if (!name.startsWith("kotlin.Function")) return null
-
-    val arity = name.removePrefix("kotlin.Function").toIntOrNull() ?: return null
-
-    val returned = (this as? IrSimpleType)?.arguments?.lastOrNull()?.typeOrNull?.classFqName
-
-    return arity.takeIf { returned == FqName("kotlin.Unit") }
-}
 
 private const val PAINTER_RESOURCE = "androidx.compose.ui.res.painterResource"
 private const val STRING_RESOURCE = "androidx.compose.ui.res.stringResource"

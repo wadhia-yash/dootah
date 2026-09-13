@@ -1,6 +1,7 @@
 package dev.dootah.compiler
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -161,6 +162,56 @@ class NativeAdapterAgreementTest {
         // Kotlin function type has no parameter names, so two sources that
         // named it differently describe the same action.
         assertTrue(compiled, compiled.contains("viewModel.changeBrush("))
+    }
+
+    /**
+     * What a component is, and what it is not.
+     *
+     * Both passes walk a screen's body looking for composable calls, and both
+     * have to reach the same answer about each one or the bundle names something
+     * the app does not have. Two kinds of composable call are not components at
+     * all, and treating them as one produced code the Compose backend refused:
+     *
+     *  - a composable that returns a value is *read*, not placed, so an adapter
+     *    built from it is a lambda whose whole body is an expression it throws
+     *    away;
+     *  - the content a component wraps is drawn by the bundle, not run as an
+     *    action, so copying it into a handler puts a composable call somewhere
+     *    that has no composer to make it with.
+     *
+     * The second of those only appeared in an app build, because the composable
+     * lambda the real Compose compiler hands the backend is a
+     * `ComposableFunction0` while the one these stubs produce is an annotated
+     * `Function0`. The classification now reads the parameter's type, which says
+     * the same thing in both worlds -- and `ToolboxRegressionScreen` in the demo
+     * app compiles against the real one.
+     */
+    @Test
+    fun `a composable that produces a value is not a component`() {
+
+        val compiled = intercept(screenReadingTheTheme())
+            .compiledClassText("com/example/ScreenKt.class")
+
+        assertTrue("nothing was registered at all", compiled.contains("dootahAdapter"))
+
+        assertFalse(
+            "the theme was registered as a component to place",
+            compiled.contains("<get-colorScheme>"),
+        )
+    }
+
+    @Test
+    fun `the content a component wraps is not registered as an action`() {
+
+        val compiled = intercept(toolbar(buttons = 3))
+            .compiledClassText("com/example/ScreenKt.class")
+
+        assertTrue("nothing was registered at all", compiled.contains("dootahCapability"))
+
+        assertFalse(
+            "an icon button's content was registered as an action",
+            compiled.contains("Icon(\"tool1\")"),
+        )
     }
 
     @Test
@@ -410,6 +461,29 @@ class NativeAdapterAgreementTest {
             """.trimIndent(),
         )
     }
+
+
+    /** A screen that reads a themed colour, which is a value rather than a component. */
+    private fun screenReadingTheTheme(): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.Icon
+            import androidx.compose.material3.MaterialTheme
+            import androidx.compose.runtime.Composable
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen(label: String) {
+                Column {
+                    Icon(label, tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+        """.trimIndent(),
+    )
 
     /**
      * A screen whose native component is reached through an object and is called
