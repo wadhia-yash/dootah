@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.builders.irBlockBody
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irIfThenElse
+import org.jetbrains.kotlin.ir.builders.irInt
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
@@ -23,6 +24,7 @@ import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
@@ -37,7 +39,11 @@ import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.classFqName
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.types.typeWith
+import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.patchDeclarationParents
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
@@ -471,11 +477,6 @@ internal class InterceptionTransformer(
         capability: NativeCapability,
     ): IrExpression? {
 
-        // Only handlers taking nothing are lifted for now. One taking a value
-        // gets that value from the component, which means the copied body has to
-        // read it out of the argument list -- worth doing, and not yet done.
-        if (capability.arity != 0) return null
-
         val entry = symbols.capability.owner.parameters[1]
 
         val lambda = pluginContext.irFactory.buildFun {
@@ -487,7 +488,7 @@ internal class InterceptionTransformer(
             this.parent = parent
         }
 
-        lambda.addValueParameter(
+        val supplied = lambda.addValueParameter(
             ARGUMENTS_PARAMETER,
             pluginContext.irBuiltIns.listClass.typeWith(pluginContext.irBuiltIns.anyNType),
         )
@@ -499,15 +500,38 @@ internal class InterceptionTransformer(
             if (forwarded != null) {
                 // `onClick = onPick` names the same action as `onClick = { onPick() }`,
                 // and the extraction pass renders both the same way.
-                +irCall(pluginContext.irBuiltIns.functionN(0).getSimpleFunction("invoke")!!).apply {
+                +irCall(
+                    pluginContext.irBuiltIns.functionN(capability.arity)
+                        .getSimpleFunction("invoke")!!
+                ).apply {
                     arguments[0] = irGet(forwarded)
+                    capability.arity.let { count ->
+                        for (index in 0 until count) {
+                            arguments[index + 1] = suppliedArgument(
+                                supplied = supplied,
+                                index = index,
+                                type = pluginContext.irBuiltIns.anyNType,
+                            )
+                        }
+                    }
                 }
             }
 
-            (capability.lambda?.body as? IrBlockBody)?.statements?.forEach { statement ->
-                +statement.deepCopyWithSymbols(lambda)
+            val original = capability.lambda
+
+            if (original != null) {
+
+                val parameters = original.parameters
+                    .filter { parameter -> parameter.kind == IrParameterKind.Regular }
+
+                (original.body as? IrBlockBody)?.statements?.forEach { statement ->
+                    +statement.deepCopyWithSymbols(lambda)
+                        .readArgumentsFrom(supplied, parameters)
+                }
             }
         }
+
+        lambda.patchDeclarationParents(parent)
 
         return IrFunctionExpressionImpl(
             startOffset = UNDEFINED_OFFSET,
@@ -573,6 +597,61 @@ internal class InterceptionTransformer(
         varargElementType = parameter.varargElementType ?: parameter.type,
         elements = elements,
     )
+
+    /**
+     * Rewrites a copied handler so its own parameters come from the argument list.
+     *
+     * A handler taking a value -- `onBrushChange = { brush -> … }` -- is called by
+     * the component with a value the app produced, never one the bundle chose.
+     * The bundle only says which action to attach, so the value crosses no
+     * boundary and the cast here is against a type the component itself declares.
+     */
+    private fun IrElement.readArgumentsFrom(
+        supplied: IrValueParameter,
+        parameters: List<IrValueParameter>,
+    ): IrStatement {
+
+        val bySymbol = parameters.withIndex().associate { (index, parameter) ->
+            parameter.symbol to (index to parameter.type)
+        }
+
+        val builder = DeclarationIrBuilder(pluginContext, supplied.parent.let {
+            (it as IrSimpleFunction).symbol
+        })
+
+        transform(object : IrElementTransformerVoid() {
+            override fun visitGetValue(expression: IrGetValue): IrExpression {
+                val (index, type) = bySymbol[expression.symbol] ?: return expression
+                return builder.suppliedArgument(supplied, index, type)
+            }
+        }, null)
+
+        return this as IrStatement
+    }
+
+    /** `arguments[index] as T`. */
+    private fun IrBuilderWithScope.suppliedArgument(
+        supplied: IrValueParameter,
+        index: Int,
+        type: IrType,
+    ): IrExpression {
+
+        val read = irCall(
+            pluginContext.irBuiltIns.listClass.getSimpleFunction("get")!!
+        ).apply {
+            arguments[0] = irGet(supplied)
+            arguments[1] = irInt(index)
+        }
+
+        return IrTypeOperatorCallImpl(
+            startOffset = UNDEFINED_OFFSET,
+            endOffset = UNDEFINED_OFFSET,
+            type = type,
+            operator = IrTypeOperator.CAST,
+            typeOperand = type,
+            argument = read,
+        )
+    }
 
     private fun accessorFor(type: IrType): String? =
         ACCESSORS[type.classFqName?.asString()]

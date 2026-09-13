@@ -203,7 +203,7 @@ private fun IrCall.record(
             .map { it.name.asString() }
 
         val rendered = statements.map { statement ->
-            statement.capabilityStatement(parameterNames) ?: return@record
+            statement.capabilityStatement(parameterNames) ?: continue
         }
 
         val capabilityId = CapabilityId.of(rendered)
@@ -328,7 +328,9 @@ private fun IrElement.producesNothing(): Boolean {
 
     val produced = (this as? IrReturn)?.value ?: this
 
-    return produced is IrGetObjectValue || (produced as? IrConst)?.value == null
+    if (produced is IrGetObjectValue) return true
+
+    return produced is IrConst && produced.value == null
 }
 
 @OptIn(UnsafeDuringIrConstructionAPI::class)

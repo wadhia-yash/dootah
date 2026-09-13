@@ -132,6 +132,37 @@ class NativeAdapterAgreementTest {
         }
     }
 
+    /**
+     * The shape a real toolbox takes, and every kind of name at once.
+     *
+     * A view model and a list of domain objects routed in as handles, a
+     * `MutableState` read inside the composition, a handler that takes a value
+     * from the component it is attached to, and a handler that calls one of the
+     * screen's own callbacks. Published from a source with the middle icon
+     * button deleted, which is the edit that used to draw the wrong icon.
+     */
+    @Test
+    fun `a real toolbox agrees across deleting one of its buttons`() {
+
+        assertAgreement(
+            installed = toolbox(buttons = 3),
+            published = toolbox(buttons = 2),
+            expect = "com.example.BrushesMenu",
+        )
+    }
+
+    @Test
+    fun `a handler taking a value from its component is registered`() {
+
+        val compiled = intercept(toolbox(buttons = 3))
+            .compiledClassText("com/example/ScreenKt.class")
+
+        // Named by what it does, with the argument written positionally: a
+        // Kotlin function type has no parameter names, so two sources that
+        // named it differently describe the same action.
+        assertTrue(compiled, compiled.contains("viewModel.changeBrush("))
+    }
+
     @Test
     fun `a registered adapter is a composable lambda`() {
 
@@ -229,6 +260,9 @@ class NativeAdapterAgreementTest {
 
         return NAME_PATTERNS
             .flatMap { pattern -> pattern.findAll(generated).map { it.groupValues[1] } }
+            // The generated file holds these as Kotlin string literals, so a
+            // `$` in a name -- an action's positional argument -- is escaped.
+            .map { name -> name.replace("\\${'$'}", "${'$'}") }
             .distinct()
             .sorted()
     }
@@ -307,6 +341,75 @@ class NativeAdapterAgreementTest {
             }
             """.trimIndent(),
     )
+
+    /**
+     * A toolbox of [buttons] icon buttons beside a menu that needs the screen's
+     * un-serialisable parameters.
+     */
+    private fun toolbox(buttons: Int): SourceFile {
+
+        val tools = (1..buttons).joinToString("\n") { index ->
+            """
+                    IconButton(
+                        onClick = {
+                            onColorPickerClick()
+                            viewModel.setEraserMode(false)
+                        },
+                    ) { Icon("tool$index") }
+            """.trimIndent()
+        }
+
+        return SourceFile(
+            name = "Screen.kt",
+            contents = """
+                package com.example
+
+                import androidx.compose.foundation.layout.Box
+                import androidx.compose.material3.Icon
+                import androidx.compose.material3.IconButton
+                import androidx.compose.runtime.Composable
+                import androidx.compose.runtime.MutableState
+                import dev.dootah.Bundlable
+
+                class DrawingViewModel {
+                    fun changeBrush(brush: String) {}
+                    fun setEraserMode(on: Boolean) {}
+                }
+
+                data class CustomBrush(val name: String)
+
+                @Composable
+                fun BrushesMenu(
+                    expanded: Boolean,
+                    onDismissRequest: () -> Unit,
+                    onBrushChange: (String) -> Unit,
+                    customBrushes: List<CustomBrush>,
+                ) {}
+
+                @Bundlable
+                @Composable
+                fun Screen(
+                    viewModel: DrawingViewModel,
+                    menuExpanded: MutableState<Boolean>,
+                    customBrushes: List<CustomBrush>,
+                    onColorPickerClick: () -> Unit,
+                ) {
+                    Box {
+                        BrushesMenu(
+                            expanded = menuExpanded.value,
+                            onDismissRequest = { menuExpanded.value = false },
+                            onBrushChange = { newBrush ->
+                                viewModel.changeBrush(newBrush)
+                                menuExpanded.value = false
+                            },
+                            customBrushes = customBrushes,
+                        )
+                    }
+                $tools
+                }
+            """.trimIndent(),
+        )
+    }
 
     /**
      * A screen whose native component is reached through an object and is called
