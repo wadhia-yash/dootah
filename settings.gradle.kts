@@ -33,5 +33,6 @@ include(":dootah-bundle-runtime")
 
 // Compiler Milestone 1: annotation, compiler plugin, Gradle plugin.
 include(":dootah-annotations")
+include(":dootah-contract")
 include(":dootah-compiler-plugin")
 include(":dootah-gradle-plugin")

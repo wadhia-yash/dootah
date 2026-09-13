@@ -120,10 +120,12 @@ fun compileWithDootah(
 
     // Plugin order on the command line is the order the compiler registers
     // extensions in, which is exactly what these tests need to control.
-    val dootahJar = requiredJar("dootah.plugin.jar")
+    // The contract travels with the plugin: a real build resolves it from the
+    // plugin's POM, and these tests pass it explicitly for the same reason.
+    val dootahJars = listOf(requiredJar("dootah.plugin.jar"), requiredJar("dootah.contract.jar"))
     val pluginClasspath =
-        if (dootahFirst) listOf(dootahJar) + extraPluginClasspath
-        else extraPluginClasspath + listOf(dootahJar)
+        if (dootahFirst) dootahJars + extraPluginClasspath
+        else extraPluginClasspath + dootahJars
 
     val arguments = K2JVMCompilerArguments().apply {
         freeArgs = sourceFiles.map { it.absolutePath }

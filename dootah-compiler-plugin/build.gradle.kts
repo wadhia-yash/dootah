@@ -27,6 +27,20 @@ kotlin {
     }
 }
 
+/**
+ * The contract module on its own, for the tests.
+ *
+ * A real build resolves it transitively from this plugin's own POM onto the
+ * compiler's plugin classpath. The tests build that classpath by hand, so they
+ * need the jar as a file -- and without it the plugin loads and then fails
+ * inside the compiler, which is a much worse place to find out.
+ */
+val contractJar: Configuration by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+}
+
 // The Kotlin/JS standard library, as the klib a bundle compiles against.
 val jsStdlib: Configuration by configurations.creating {
     isCanBeConsumed = false
@@ -34,8 +48,10 @@ val jsStdlib: Configuration by configurations.creating {
 }
 
 dependencies {
+    contractJar(project(":dootah-contract"))
     jsStdlib("org.jetbrains.kotlin:kotlin-stdlib-js:${libs.versions.kotlin.get()}@klib")
     // Fixtures compile against the real annotation, not a stub of it.
+    implementation(project(":dootah-contract"))
     testImplementation(project(":dootah-annotations"))
     // compileOnly on purpose: the host compiler supplies these classes at run
     // time. Bundling them would put a second copy of the compiler onto the
@@ -56,6 +72,7 @@ tasks.test {
     // would skip the service-loader registration that wiring depends on.
     val pluginJar = tasks.jar.flatMap { it.archiveFile }
     inputs.file(pluginJar)
+    inputs.files(contractJar)
 
     // Generated bundle Kotlin is compiled against the real bundle runtime
     // sources, so the test proves the generator's output works with the code it
@@ -68,6 +85,7 @@ tasks.test {
         CommandLineArgumentProvider {
             listOf(
                 "-Ddootah.plugin.jar=${pluginJar.get().asFile.absolutePath}",
+                "-Ddootah.contract.jar=${contractJar.asPath}",
                 "-Ddootah.js.stdlib=${jsStdlib.asPath}",
                 "-Ddootah.runtime.sources=${runtimeSources.absolutePath}",
             )
