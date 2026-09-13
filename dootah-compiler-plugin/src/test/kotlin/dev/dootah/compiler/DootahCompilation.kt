@@ -581,7 +581,7 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
             class DootahArguments
             class DootahCallbacks
 
-            class DootahAdapter(val id: String)
+            class DootahAdapter(val id: String, val parameters: String)
             class DootahAdapters
             class DootahCapability(val id: String)
             class DootahCapabilities
@@ -629,8 +629,9 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
 
             fun dootahAdapter(
                 id: String,
+                parameters: String,
                 content: @Composable (DootahProps) -> Unit,
-            ): DootahAdapter = DootahAdapter(id)
+            ): DootahAdapter = DootahAdapter(id, parameters)
 
             fun dootahAdapters(vararg adapters: DootahAdapter): DootahAdapters = DootahAdapters()
 

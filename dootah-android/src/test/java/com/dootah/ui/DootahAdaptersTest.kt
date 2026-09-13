@@ -22,15 +22,22 @@ import org.junit.Test
 class DootahAdaptersTest {
 
     private val iconButton = "androidx.compose.material3.IconButton(content|modifier|onClick)"
-    private val icon = "androidx.compose.material3.Icon(contentDescription|painter)"
+    private val icon = "androidx.compose.material3.Icon(contentDescription|painter|tint)"
+
+    private val registered = mapOf(
+        iconButton to "content,modifier,onClick",
+        icon to "contentDescription,painter,tint",
+    )
 
     private fun bindings(
-        adapters: List<String> = listOf(iconButton, icon),
+        adapters: Map<String, String> = registered,
         capabilities: List<String> = emptyList(),
         handles: List<String> = emptyList(),
         resources: List<String> = emptyList(),
     ) = DootahNativeBindings(
-        adapters = dootahAdapters(*adapters.map { id -> dootahAdapter(id) {} }.toTypedArray()),
+        adapters = dootahAdapters(
+            *adapters.map { (id, parameters) -> dootahAdapter(id, parameters) {} }.toTypedArray()
+        ),
         capabilities = dootahCapabilities(
             *capabilities.map { id -> dootahCapability(id) {} }.toTypedArray()
         ),
@@ -137,7 +144,7 @@ class DootahAdaptersTest {
             adapterId = icon,
             props = mapOf(
                 "painter" to PropValue.PainterResourceValue("drawable:missing"),
-                "model" to PropValue.HandleValue("otherScreensViewModel"),
+                "tint" to PropValue.HandleValue("otherScreensViewModel"),
             ),
         )
 
@@ -145,6 +152,58 @@ class DootahAdaptersTest {
             listOf("value otherScreensViewModel", "resource drawable:missing"),
             bindings().shortfall(screen.requirements()),
         )
+    }
+
+    /**
+     * The edit that used to change nothing and say nothing.
+     *
+     * An adapter passes through only the arguments the APK's own source gave the
+     * composable somewhere. Adding an argument to a call and publishing that as
+     * a bundle used to render exactly as before: the app had no slot to put the
+     * value in, so it drew with the composable's default and logged nothing.
+     */
+    @Test
+    fun `an argument this build never supplied is refused by name`() {
+
+        val bindings = bindings(
+            adapters = mapOf(
+                iconButton to "content,modifier,onClick",
+                icon to "contentDescription,painter",
+            ),
+            resources = listOf("drawable:share", "string:share"),
+        )
+
+        val screen = BundleUiNode.Component(
+            adapterId = icon,
+            props = mapOf(
+                "painter" to PropValue.PainterResourceValue("drawable:share"),
+                "contentDescription" to PropValue.StringResourceValue("string:share"),
+                "tint" to PropValue.ThemeColorValue("primary"),
+            ),
+        )
+
+        assertEquals(
+            listOf("argument tint on component $icon"),
+            bindings.shortfall(screen.requirements()),
+        )
+    }
+
+    /** An argument the APK does supply may be given anything the bundle likes. */
+    @Test
+    fun `an argument this build supplies somewhere may be varied`() {
+
+        val bindings = bindings(resources = listOf("drawable:share", "string:share"))
+
+        val screen = BundleUiNode.Component(
+            adapterId = icon,
+            props = mapOf(
+                "painter" to PropValue.PainterResourceValue("drawable:share"),
+                "contentDescription" to PropValue.StringResourceValue("string:share"),
+                "tint" to PropValue.ThemeColorValue("primary"),
+            ),
+        )
+
+        assertEquals(emptyList<String>(), bindings.shortfall(screen.requirements()))
     }
 
     /** Requirements are collected through everything that can hold a component. */

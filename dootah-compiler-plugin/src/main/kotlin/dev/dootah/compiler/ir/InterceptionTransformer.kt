@@ -220,7 +220,8 @@ internal class InterceptionTransformer(
                 elements = adapters.map { adapter ->
                     irCall(symbols.adapter).apply {
                         arguments[0] = irString(adapter.id)
-                        arguments[1] = adapterLambda(function, adapter, composable)
+                        arguments[1] = irString(adapter.suppliedParameters.sorted().joinToString(","))
+                        arguments[2] = adapterLambda(function, adapter, composable)
                     }
                 },
             )
@@ -247,7 +248,7 @@ internal class InterceptionTransformer(
         composable: List<IrConstructorCall>,
     ): IrExpression {
 
-        val entry = symbols.adapter.owner.parameters[1]
+        val entry = symbols.adapter.owner.parameters[2]
         val type = entry.type
 
         // Offsets from the call this adapter is built out of. Compose keys and

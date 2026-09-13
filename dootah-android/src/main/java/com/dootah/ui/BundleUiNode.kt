@@ -132,7 +132,10 @@ fun BundleUiNode.requirements(): BundleRequirements = when (this) {
     is BundleUiNode.Fragment -> children.requirements()
 
     is BundleUiNode.Component ->
-        BundleRequirements(adapters = listOf(adapterId)) +
+        BundleRequirements(
+            adapters = listOf(adapterId),
+            arguments = props.keys.map { name -> AdapterArgument(adapterId, name) },
+        ) +
             props.values.map { value -> value.requirements() }.merge() +
             children.values.flatten().requirements()
 
@@ -178,17 +181,22 @@ private fun List<BundleUiNode>.requirements(): BundleRequirements =
 private fun List<BundleRequirements>.merge(): BundleRequirements =
     fold(BundleRequirements()) { total, next -> total + next }
 
+/** One argument a bundle gave to one native component. */
+data class AdapterArgument(val adapter: String, val name: String)
+
 /** The names a bundle used, deduplicated when they are read back. */
 data class BundleRequirements(
     val adapters: List<String> = emptyList(),
     val capabilities: List<String> = emptyList(),
     val handles: List<String> = emptyList(),
     val resources: List<String> = emptyList(),
+    val arguments: List<AdapterArgument> = emptyList(),
 ) {
     operator fun plus(other: BundleRequirements): BundleRequirements = BundleRequirements(
         adapters = adapters + other.adapters,
         capabilities = capabilities + other.capabilities,
         handles = handles + other.handles,
         resources = resources + other.resources,
+        arguments = arguments + other.arguments,
     )
 }

@@ -35,6 +35,17 @@ import com.dootah.DOOTAH_LOG_TAG
  */
 class DootahAdapter internal constructor(
     internal val id: String,
+
+    /**
+     * The arguments this adapter passes through to the composable.
+     *
+     * An adapter is a copy of a call the source wrote, with the arguments that
+     * call supplied replaced by reads from the bundle. A parameter no call site
+     * supplied has no slot in the binary at all, so a bundle naming one would be
+     * ignored -- the screen would draw with the app's own default and nothing
+     * would say why. Carrying the set makes that difference visible instead.
+     */
+    internal val parameters: Set<String>,
     internal val content: @Composable (DootahProps) -> Unit,
 )
 
@@ -47,6 +58,19 @@ class DootahAdapters internal constructor(
 
     internal fun missingFrom(requested: List<String>): List<String> =
         requested.filterNot { adapter -> adapter in byId }.distinct().sorted()
+
+    /**
+     * The arguments a bundle named that the adapter registered here cannot take.
+     *
+     * Only for adapters this build has: one it has not got is already reported
+     * as a missing component, and saying both about the same node would name the
+     * same problem twice.
+     */
+    internal fun unsupportedArguments(requested: List<AdapterArgument>): List<AdapterArgument> =
+        requested
+            .filter { argument -> byId[argument.adapter]?.parameters?.contains(argument.name) == false }
+            .distinct()
+            .sortedWith(compareBy({ it.adapter }, { it.name }))
 
     internal operator fun get(id: String): DootahAdapter? = byId[id]
 
@@ -266,8 +290,15 @@ private object EmptyPainter : Painter() {
 }
 
 @DootahGeneratedApi
-fun dootahAdapter(id: String, content: @Composable (DootahProps) -> Unit): DootahAdapter =
-    DootahAdapter(id, content)
+fun dootahAdapter(
+    id: String,
+    parameters: String,
+    content: @Composable (DootahProps) -> Unit,
+): DootahAdapter = DootahAdapter(
+    id = id,
+    parameters = if (parameters.isEmpty()) emptySet() else parameters.split(",").toSet(),
+    content = content,
+)
 
 @DootahGeneratedApi
 fun dootahAdapters(vararg adapters: DootahAdapter): DootahAdapters =
@@ -321,6 +352,8 @@ class DootahNativeBindings internal constructor(
     /** What this build cannot supply, out of what a bundle asked for. */
     internal fun shortfall(required: BundleRequirements): List<String> =
         adapters.missingFrom(required.adapters).map { "component $it" } +
+            adapters.unsupportedArguments(required.arguments)
+                .map { "argument ${it.name} on component ${it.adapter}" } +
             capabilities.missingFrom(required.capabilities).map { "action $it" } +
             handles.missingFrom(required.handles).map { "value $it" } +
             resources.missingFrom(required.resources).map { "resource $it" }
