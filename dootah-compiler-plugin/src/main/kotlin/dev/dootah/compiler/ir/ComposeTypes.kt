@@ -34,9 +34,31 @@ internal fun IrType.isComposableFunctionType(): Boolean {
     }
 }
 
-/** Whether this parameter takes composable content rather than a value. */
+/**
+ * Whether this parameter takes composable content rather than a value.
+ *
+ * Any arity, because the extra parameters are scopes a layout hands its
+ * children -- `Button` takes `@Composable RowScope.() -> Unit`, and requiring
+ * arity zero classified that as a *handler*, which copied the button's label
+ * into a lambda with no composer to draw it with.
+ */
 internal fun IrType.isComposableContent(): Boolean =
-    isComposableFunctionType() && functionArity() == 0 && returnsUnit()
+    isComposableFunctionType() && returnsUnit()
+
+/**
+ * The scopes this content is handed, if any.
+ *
+ * A lambda standing in for content has to take them to be the type the
+ * component asked for, even though the bundle's children cannot read one: a
+ * component whose call reads its surrounding scope is refused by both passes.
+ */
+internal fun IrType.contentScopes(): List<IrType> =
+    (this as? IrSimpleType)?.arguments.orEmpty().dropLast(1).mapNotNull { it.typeOrNull }
+
+/** Whether the first of [contentScopes] is a receiver rather than a parameter. */
+internal fun IrType.hasReceiverScope(): Boolean = annotations.any { annotation ->
+    annotation.type.classFqName == EXTENSION_FUNCTION_TYPE
+}
 
 /**
  * How many arguments this takes, if it is a plain `(…) -> Unit` handler.
@@ -54,7 +76,7 @@ internal fun IrType.unitFunctionArity(): Int? {
     return arity.takeIf { returnsUnit() }
 }
 
-private fun IrType.functionArity(): Int? {
+internal fun IrType.functionArity(): Int? {
 
     val name = classFqName?.asString() ?: return null
 
@@ -74,3 +96,4 @@ private const val FUNCTION = "kotlin.Function"
 private const val COMPOSABLE_FUNCTION = "androidx.compose.runtime.internal.ComposableFunction"
 
 private val UNIT = FqName("kotlin.Unit")
+private val EXTENSION_FUNCTION_TYPE = FqName("kotlin.ExtensionFunctionType")

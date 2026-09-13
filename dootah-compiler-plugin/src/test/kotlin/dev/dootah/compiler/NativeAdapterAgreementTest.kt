@@ -214,6 +214,29 @@ class NativeAdapterAgreementTest {
         )
     }
 
+    /**
+     * Content handed the scope it sits in is still content.
+     *
+     * `Button` takes `@Composable RowScope.() -> Unit`, and a rule that only
+     * recognised content taking no arguments called that a handler -- so the
+     * button's label was copied into a plain lambda and the Compose backend
+     * refused the build. The extraction pass had always read it as content, so
+     * the two passes disagreed about what a button even was.
+     */
+    @Test
+    fun `content given a scope is still content`() {
+
+        assertAgreement(installed = screenWithScopedContent(), published = screenWithScopedContent())
+
+        val compiled = intercept(screenWithScopedContent())
+            .compiledClassText("com/example/ScreenKt.class")
+
+        assertFalse(
+            "a component's label was registered as an action",
+            compiled.contains("Text(\"Save\")"),
+        )
+    }
+
     @Test
     fun `a registered adapter is a composable lambda`() {
 
@@ -462,6 +485,29 @@ class NativeAdapterAgreementTest {
         )
     }
 
+
+
+    /** A screen whose component hands its content the scope it is laid out in. */
+    private fun screenWithScopedContent(): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.Chip
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen(onSave: () -> Unit) {
+                Column {
+                    Chip(onClick = onSave) { Text("Save") }
+                }
+            }
+        """.trimIndent(),
+    )
 
     /** A screen that reads a themed colour, which is a value rather than a component. */
     private fun screenReadingTheTheme(): SourceFile = SourceFile(

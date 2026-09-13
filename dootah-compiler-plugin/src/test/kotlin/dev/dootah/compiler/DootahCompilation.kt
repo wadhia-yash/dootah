@@ -377,6 +377,7 @@ private fun composeStubs(): List<SourceFile> = listOf(
             package androidx.compose.material3
 
             import androidx.compose.foundation.layout.ColumnScope
+            import androidx.compose.foundation.layout.RowScope
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.graphics.Color
@@ -424,6 +425,18 @@ private fun composeStubs(): List<SourceFile> = listOf(
                 onClick: () -> Unit,
                 modifier: Modifier = Modifier,
                 content: @Composable () -> Unit,
+            ) {}
+
+            // Content handed the scope it is laid out in, the way the real
+            // `Button` takes `@Composable RowScope.() -> Unit`. Content that
+            // takes an argument is still content: asking for none classified
+            // this one as a handler and copied the label inside it into a
+            // lambda with no composer to draw it with.
+            @Composable
+            fun Chip(
+                onClick: () -> Unit,
+                modifier: Modifier = Modifier,
+                content: @Composable RowScope.() -> Unit,
             ) {}
 
             // Reached through an object, the way icon packs are usually

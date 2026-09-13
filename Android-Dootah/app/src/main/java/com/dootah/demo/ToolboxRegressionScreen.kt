@@ -1,11 +1,18 @@
 package com.dootah.demo
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -73,7 +80,10 @@ fun ToolboxRegressionScreen(
         Icon(
             painter = painterResource(R.drawable.regression_brush),
             contentDescription = stringResource(R.string.regression_brush),
-            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.background(
+                color = if (isActive) Color.Transparent else MaterialTheme.colorScheme.inversePrimary,
+                shape = CircleShape,
+            ),
         )
     }
 
@@ -108,5 +118,73 @@ fun RegressionMenu(
         options.forEach { option ->
             DropdownMenuItem(text = { Text(option) }, onClick = { onChoose(option) })
         }
+    }
+}
+
+/**
+ * The second shape a toolbox takes: a strip of controls around a local counter.
+ *
+ * Kept beside the first because the two exercise different parts of the walk. A
+ * local `var` read from a handler makes the components that read it ineligible
+ * while their neighbours stay eligible, a button is handed one of the screen's
+ * own callbacks directly rather than a lambda, and a component that *is* a
+ * boundary sits between two that are not.
+ */
+@Bundlable
+@Composable
+fun ControlStripRegressionScreen(
+    model: ToolboxRegressionModel,
+    onClear: () -> Unit,
+    isActive: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    var taps = 0
+
+    Column(modifier = modifier) {
+        Text("History")
+
+        ControlStripBody(model = model, onClear = onClear, isActive = isActive)
+
+        Text("Taps: $taps")
+
+        Button(onClick = { taps = taps + 1 }) {
+            Text("Count")
+        }
+
+        Button(onClick = onClear) {
+            Text("Clear all")
+        }
+    }
+}
+
+@Composable
+fun ControlStripBody(
+    model: ToolboxRegressionModel,
+    onClear: () -> Unit,
+    isActive: Boolean,
+) {
+    IconButton(
+        onClick = onClear,
+        enabled = isActive,
+        modifier = Modifier.size(48.dp),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.regression_brush),
+            contentDescription = stringResource(R.string.regression_brush),
+            tint = if (isActive) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+        )
+    }
+
+    Spacer(modifier = Modifier.size(4.dp))
+
+    IconButton(onClick = { model.setActive(true) }, modifier = Modifier.size(48.dp)) {
+        Icon(
+            painter = if (isActive) {
+                painterResource(R.drawable.regression_brush)
+            } else {
+                painterResource(R.drawable.regression_brush)
+            },
+            contentDescription = stringResource(R.string.regression_brush),
+        )
     }
 }

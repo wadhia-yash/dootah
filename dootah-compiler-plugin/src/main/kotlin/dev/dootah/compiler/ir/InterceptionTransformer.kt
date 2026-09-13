@@ -404,6 +404,19 @@ internal class InterceptionTransformer(
         }.apply {
             this.parent = parent
             annotations = composable.map { annotation -> annotation.deepCopyWithSymbols(parent) }
+
+            // The scopes the component hands its content, declared so this is
+            // the type the component asked for. Nothing reads them: a component
+            // whose call reads its surrounding scope is refused by both passes,
+            // so the bundle's children never have one to read.
+            type.contentScopes().forEachIndexed { index, scope ->
+                addValueParameter("\$this\$content$index", scope).also { scopeParameter ->
+                    if (index == 0 && type.hasReceiverScope()) {
+                        scopeParameter.kind = IrParameterKind.ExtensionReceiver
+                    }
+                }
+            }
+
             body = DeclarationIrBuilder(pluginContext, symbol).irBlockBody {
                 +irCall(children).apply {
                     arguments[0] = irGet(props)
