@@ -253,13 +253,35 @@ private fun composeStubs(): List<SourceFile> = listOf(
             // Compose declares Color as a value class over ULong with a
             // top-level Long factory. The factory is what a call site resolves
             // to, and what Dootah reads.
-            class Color(val packed: ULong)
+            class Color(val packed: ULong) {
+
+                // The named colours the real companion carries. A screen picks
+                // one of these as often as it writes a literal, and until they
+                // were here no fixture could be written the way a screen is.
+                companion object {
+                    val Black: Color = Color(0uL)
+                    val DarkGray: Color = Color(0uL)
+                    val Gray: Color = Color(0uL)
+                    val LightGray: Color = Color(0uL)
+                    val White: Color = Color(0uL)
+                    val Red: Color = Color(0uL)
+                    val Green: Color = Color(0uL)
+                    val Blue: Color = Color(0uL)
+                    val Yellow: Color = Color(0uL)
+                    val Cyan: Color = Color(0uL)
+                    val Magenta: Color = Color(0uL)
+                    val Transparent: Color = Color(0uL)
+                }
+            }
 
             fun Color(color: Long): Color = Color(color.toULong())
 
             interface Shape
 
-            object RectangleShape : Shape
+            // A property, the way the real one is declared. As an object it
+            // resolved to a qualifier instead of a read, which is a different
+            // shape of expression and let a fixture pass where a screen failed.
+            val RectangleShape: Shape = object : Shape {}
         """.trimIndent(),
     ),
     SourceFile(
@@ -277,7 +299,7 @@ private fun composeStubs(): List<SourceFile> = listOf(
 
             import androidx.compose.ui.graphics.Shape
 
-            object CircleShape : Shape
+            val CircleShape: Shape = object : Shape {}
         """.trimIndent(),
     ),
     SourceFile(
@@ -367,8 +389,12 @@ private fun composeStubs(): List<SourceFile> = listOf(
 
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.graphics.Color
+            import androidx.compose.ui.graphics.RectangleShape
+            import androidx.compose.ui.graphics.Shape
 
-            fun Modifier.background(color: Color): Modifier = this
+            // Takes a shape like the real one, because an icon drawn on a
+            // coloured circle is how a selected tool is usually shown.
+            fun Modifier.background(color: Color, shape: Shape = RectangleShape): Modifier = this
         """.trimIndent(),
     ),
     SourceFile(

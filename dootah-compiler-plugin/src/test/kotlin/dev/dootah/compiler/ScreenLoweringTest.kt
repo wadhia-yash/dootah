@@ -427,6 +427,63 @@ class ScreenLoweringTest {
      * components: there is no position to lose and nothing frozen into the name.
      */
     /**
+     * A real tool button: an icon on a themed background, inside a button.
+     *
+     * The whole of a toolbox's shape in one call -- a component nested inside
+     * another component's content, drawn from resources, wearing a modifier
+     * whose colour is chosen by a value the bundle computes and whose shape is
+     * a token.
+     */
+    @Test
+    fun `carries an icon on a themed background inside a button`() {
+
+        val lowered = lower(
+            SourceFile(
+                name = "Screen.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.foundation.background
+                    import androidx.compose.foundation.layout.Column
+                    import androidx.compose.foundation.layout.size
+                    import androidx.compose.foundation.shape.CircleShape
+                    import androidx.compose.material3.Icon
+                    import androidx.compose.material3.IconButton
+                    import androidx.compose.material3.MaterialTheme
+                    import androidx.compose.runtime.Composable
+                    import androidx.compose.ui.Modifier
+                    import androidx.compose.ui.graphics.Color
+                    import androidx.compose.ui.unit.dp
+                    import dev.dootah.Bundlable
+
+                    @Bundlable
+                    @Composable
+                    fun Screen(onPick: () -> Unit, erasing: Boolean) {
+                        Column {
+                            IconButton(onClick = onPick, modifier = Modifier.size(48.dp)) {
+                                Icon(
+                                    "brush",
+                                    modifier = Modifier.background(
+                                        color = if (erasing) Color.Transparent
+                                            else MaterialTheme.colorScheme.inversePrimary,
+                                        shape = CircleShape,
+                                    ),
+                                )
+                            }
+                        }
+                    }
+                """.trimIndent(),
+            )
+        )
+
+        assertTrue("the button was not carried: $lowered", lowered.contains("IconButton"))
+        assertTrue("the icon was not carried: $lowered", lowered.contains("Icon"))
+        assertTrue("the background was not carried: $lowered", lowered.contains("background"))
+        assertTrue("the shape token was not carried: $lowered", lowered.contains("ShapeProp"))
+        assertTrue("the theme colour was not carried: $lowered", lowered.contains("inversePrimary"))
+    }
+
+    /**
      * A native component given a size, which is how almost every one is written.
      *
      * `Modifier.size(48.dp)` failed on both halves of itself. The frontend

@@ -326,7 +326,7 @@ internal class ComponentLowering(
         val name = access.calleeReference.toResolvedCallableSymbol()?.name?.asString() ?: return null
         val qualifier = access.explicitReceiver as? FirResolvedQualifier ?: return null
 
-        if (qualifier.classId?.asSingleFqName() != SupportedCatalog.COLOR_COMPANION) return null
+        if (!qualifier.namesCompanionOf(SupportedCatalog.COLOR_COMPANION)) return null
 
         return SupportedCatalog.NAMED_COLORS[name]?.let { PropValue.ColorValue(it) }
     }
@@ -364,6 +364,23 @@ internal class ComponentLowering(
         requirements.handles += handle
 
         return PropValue.HandleValue(handle)
+    }
+
+    /**
+     * Whether this qualifier names [companion]'s owner or [companion] itself.
+     *
+     * `Color.White` and `Modifier.size(...)` resolve their leading `Color` and
+     * `Modifier` to the *type*; only the spellings nobody writes --
+     * `Color.Companion.White`, `Modifier.Companion.size(...)` -- resolve to the
+     * companion. Comparing against the companion alone therefore matched
+     * neither of the two forms a screen is actually written in, and refused
+     * every named colour and every modifier chain in the codebase.
+     */
+    private fun FirResolvedQualifier.namesCompanionOf(companion: FqName): Boolean {
+
+        val named = classId?.asSingleFqName() ?: return false
+
+        return named == companion || named == companion.parent()
     }
 
     /** The name, if this reads a parameter Dootah cannot serialise. */
@@ -414,10 +431,10 @@ internal class ComponentLowering(
         while (true) {
 
             // Two spellings of the same start. `Modifier.size(...)` resolves
-            // its receiver to the type, while `Modifier.Companion.size(...)`
-            // resolves it to the companion property.
+            // its receiver to a qualifier, while `Modifier.Companion.size(...)`
+            // resolves it to a property read.
             val qualifier = current as? FirResolvedQualifier
-            if (qualifier?.classId?.asSingleFqName() == SupportedCatalog.MODIFIER_TYPE) {
+            if (qualifier?.namesCompanionOf(SupportedCatalog.MODIFIER_COMPANION) == true) {
                 return BundleProp.Modifier(operations.reversed())
             }
 
