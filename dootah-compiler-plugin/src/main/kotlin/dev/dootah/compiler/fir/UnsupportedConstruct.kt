@@ -28,6 +28,8 @@ internal enum class RejectionCode {
 
     /** A composable drawn into the scope of the layout around it. */
     COMPONENT_READS_SCOPE,
+    COMPONENT_READS_BODY,
+    UNREADABLE_REGION_SOURCE,
 
     UNSUPPORTED_STATEMENT_IN_HANDLER,
     UNSUPPORTED_ASSIGNMENT_TARGET,

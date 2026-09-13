@@ -43,13 +43,38 @@ import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.contracts.description.LogicOperationKind
 import org.jetbrains.kotlin.types.ConstantValueKind
+import dev.dootah.contract.FrozenRegionId
 import org.jetbrains.kotlin.name.FqName
+import java.io.File
 import java.util.IdentityHashMap
 
 /** The outcome of lowering one screen. */
 internal sealed interface LoweringResult {
 
-    data class Lowered(val screen: BundleScreen) : LoweringResult
+    /**
+     * [degraded] is what could not be described and stayed native instead.
+     *
+     * Not errors. A screen is worth publishing when enough of it is remote, and
+     * the parts that are not are the ordinary case rather than a failure -- but
+     * they are what a developer needs to see to understand why an edit did not
+     * take effect, and what the coverage figures have to count.
+     */
+    data class Lowered(
+        val screen: BundleScreen,
+        val degraded: List<UnsupportedConstruct> = emptyList(),
+    ) : LoweringResult
+
+    /**
+     * Describable, but publishing it would change nothing.
+     *
+     * Not a failure and not a success. The screen came out of lowering intact
+     * and is simply not worth the bundle size, the download or the risk, so it
+     * keeps its native implementation and says why.
+     */
+    data class NotWorthShipping(
+        val screen: BundleScreen,
+        val shape: RemoteShape,
+    ) : LoweringResult
 
     /** Nothing is emitted for a rejected screen; the app keeps its native body. */
     data class Rejected(val reasons: List<UnsupportedConstruct>) : LoweringResult
@@ -113,11 +138,36 @@ internal class ScreenLowering(
             reject(offset, found, code, detail, remedy)
         },
         lowerExpression = { expression -> lowerExpression(expression) },
+        readsBody = { element -> element.declarationsReadFromBody().isNotEmpty() },
     )
 
     private val prelude = mutableListOf<BundleStatement>()
     private val actions = mutableListOf<BundleAction>()
     private val functions = LinkedHashMap<String, BundleFunction>()
+
+    /**
+     * Locals whose value exists only on the Android side.
+     *
+     * A `CoroutineScope`, a view model, a lazy list state: a screen declares
+     * these constantly, and until now the first one refused the whole screen.
+     * They are not a problem in themselves -- they are a problem only for the
+     * parts of the screen that read them, and those parts stay native.
+     */
+    private val nativeOnlyLocals = mutableSetOf<String>()
+
+    /** What could not be described and stayed native. Never fatal. */
+    private val degraded = mutableListOf<UnsupportedConstruct>()
+
+    /**
+     * The file's own text, for naming a region by exactly what it says.
+     *
+     * Read from disk rather than from the compiler's source element, because the
+     * pass that registers these regions in the app's own build has the file path
+     * and nothing else in common with this one.
+     */
+    private val sourceText: String by lazy {
+        runCatching { File(filePath).readText() }.getOrDefault("")
+    }
 
     private val modifiers = ModifierLowering(
         rejector = { offset, found, remedy, code, detail ->
@@ -125,6 +175,75 @@ internal class ScreenLowering(
         },
         modifierParameterName = modifierParameter,
     )
+
+    /**
+     * Everything lowering has built so far, and how to go back to it.
+     *
+     * An attempt that fails has usually already declared a value, recorded an
+     * adapter or registered an action before it hit the thing it could not do.
+     * Rolling back only the complaints -- which is all this used to do -- left a
+     * screen carrying values nothing reads and requirements nothing asks for.
+     */
+    private inner class Snapshot {
+        val reasonCount = reasons.size
+        val values = LinkedHashMap(this@ScreenLowering.values)
+        val states = LinkedHashMap(this@ScreenLowering.states)
+        val bodyDeclarations = this@ScreenLowering.bodyDeclarations.toList()
+        val nativeOnlyLocals = this@ScreenLowering.nativeOnlyLocals.toList()
+        val subjects = this@ScreenLowering.subjects.toList()
+        val prelude = this@ScreenLowering.prelude.toList()
+        val actions = this@ScreenLowering.actions.toList()
+        val functions = LinkedHashMap(this@ScreenLowering.functions)
+        val requirements = components.requirements.snapshot()
+
+        fun restore() {
+            while (reasons.size > reasonCount) reasons.removeAt(reasons.lastIndex)
+            this@ScreenLowering.values.clear()
+            this@ScreenLowering.values.putAll(values)
+            this@ScreenLowering.states.clear()
+            this@ScreenLowering.states.putAll(states)
+            this@ScreenLowering.bodyDeclarations.clear()
+            this@ScreenLowering.bodyDeclarations += bodyDeclarations
+            this@ScreenLowering.nativeOnlyLocals.clear()
+            this@ScreenLowering.nativeOnlyLocals += nativeOnlyLocals
+            this@ScreenLowering.subjects.clear()
+            this@ScreenLowering.subjects += subjects
+            this@ScreenLowering.prelude.clear()
+            this@ScreenLowering.prelude += prelude
+            this@ScreenLowering.actions.clear()
+            this@ScreenLowering.actions += actions
+            this@ScreenLowering.functions.clear()
+            this@ScreenLowering.functions.putAll(functions)
+            components.requirements.restore(requirements)
+        }
+    }
+
+    /** What one attempt produced, and what it complained about if it failed. */
+    private class Outcome<T>(val value: T?, val causes: List<UnsupportedConstruct>) {
+        val failed: Boolean get() = value == null
+    }
+
+    /**
+     * Runs a lowering that is allowed to fail, leaving nothing behind if it does.
+     *
+     * Failure is "complained about something", not "returned null": most of the
+     * lowering reports what it cannot do and carries on with what it can, and
+     * for an attempt those two are the same thing.
+     */
+    private fun <T : Any> attempt(block: () -> T?): Outcome<T> {
+
+        val snapshot = Snapshot()
+        val value = block()
+
+        if (value != null && reasons.size == snapshot.reasonCount) {
+            return Outcome(value, emptyList())
+        }
+
+        val causes = reasons.subList(snapshot.reasonCount, reasons.size).toList()
+        snapshot.restore()
+
+        return Outcome(null, causes)
+    }
 
     fun lower(screenId: String): LoweringResult {
 
@@ -145,9 +264,11 @@ internal class ScreenLowering(
 
         val ui = lowerBody(body)
 
-        return if (reasons.isNotEmpty() || ui == null) LoweringResult.Rejected(reasons)
-        else LoweringResult.Lowered(
-            BundleScreen(
+        if (reasons.isNotEmpty() || ui == null) return LoweringResult.Rejected(reasons)
+
+        val lowered = LoweringResult.Lowered(
+            degraded = degraded.toList(),
+            screen = BundleScreen(
                 screenId = screenId,
                 functionName = functionName,
                 parameters = signature.valueParameters(),
@@ -160,8 +281,13 @@ internal class ScreenLowering(
                 capabilities = components.requirements.capabilities.toList(),
                 handles = components.requirements.handles.toList(),
                 resources = components.requirements.resources.toList(),
-            )
+            ),
         )
+
+        val shape = lowered.screen.remoteShape()
+
+        return if (shape.worthShipping) lowered
+        else LoweringResult.NotWorthShipping(lowered.screen, shape)
     }
 
     /**
@@ -185,7 +311,7 @@ internal class ScreenLowering(
 
                 is FirProperty -> lowerDeclaration(unwrapped, into = prelude)
 
-                else -> roots += lowerUiStatement(unwrapped)
+                else -> roots += lowerUiStatementPartially(unwrapped) ?: return null
             }
         }
 
@@ -212,32 +338,47 @@ internal class ScreenLowering(
         val type = bundleTypeOf(property.returnTypeRef.coneTypeSafe<ConeKotlinType>())
 
         if (type == null) {
-            reject(
+            keepNative(
                 property.source?.startOffset,
                 "the local `$name`, which is not a number, String or Boolean",
                 code = RejectionCode.UNSUPPORTED_LOCAL_TYPE,
                 detail = property.returnTypeRef.coneTypeSafe<ConeKotlinType>()
                     ?.classId?.asSingleFqName()?.asString(),
-                remedy = "Dootah bundles Int, String and Boolean locals. Keep other " +
-                    "values native, and use them inside a component that stays native.",
+                remedy = "The local stays on the Android side. Anything that reads it " +
+                    "stays there too; the rest of the screen is unaffected.",
             )
+            nativeOnly(name)
             return
         }
 
         val initializer = property.initializer ?: property.delegate?.rememberedInitialValue()
 
         if (initializer == null) {
-            reject(
+            keepNative(
                 property.source?.startOffset,
                 "the local `$name` with no value Dootah could read",
                 code = RejectionCode.UNREADABLE_LOCAL_INITIALIZER,
                 remedy = "Give the local a literal or an expression over other " +
-                    "bundled values.",
+                    "bundled values, or leave it native.",
             )
+            nativeOnly(name)
             return
         }
 
-        val value = lowerExpression(initializer) ?: return
+        val value = speculate { lowerExpression(initializer) }
+
+        if (value == null) {
+            keepNative(
+                property.source?.startOffset,
+                "the value of the local `$name`",
+                code = RejectionCode.UNREADABLE_LOCAL_INITIALIZER,
+                detail = name,
+                remedy = "The local stays on the Android side, and so does anything " +
+                    "that reads it.",
+            )
+            nativeOnly(name)
+            return
+        }
 
         bodyDeclarations += name
 
@@ -274,6 +415,144 @@ internal class ScreenLowering(
     }
 
     // ---- UI -------------------------------------------------------------
+
+    /**
+     * Lowers one position in the tree as much of it as can be described.
+     *
+     * The ladder, smallest step first. Describe the statement; failing that keep
+     * the call it is native but still under the bundle's control, so an update
+     * can move it, repeat it, drop it or change what it is given; failing that
+     * keep it exactly as written, which leaves the bundle only the choice of
+     * where it goes and whether it appears at all.
+     *
+     * Only when none of those work does the failure travel outwards, and the
+     * region that degrades grows by one level. That is what stops a single
+     * unsupported corner from costing a whole screen -- and why the boundary
+     * ends up at the smallest place that still preserves what the code does.
+     */
+    private fun lowerUiStatementPartially(statement: FirElement): List<BundleUi>? {
+
+        val direct = attempt { lowerUiStatement(statement) }
+        if (!direct.failed) return direct.value
+
+        val call = statement.unwrapReturn() as? FirFunctionCall
+
+        if (call != null) {
+
+            attempt { lowerNativeComponent(call) }.value?.let { component ->
+                degradeTo("a component the bundle places", direct.causes)
+                return listOf(component)
+            }
+
+            attempt { freeze(call) }.value?.let { region ->
+                degradeTo("a region kept exactly as written", direct.causes)
+                return listOf(region)
+            }
+        }
+
+        reasons += direct.causes
+
+        return null
+    }
+
+    /** Records why a region stopped short of being described. */
+    private fun degradeTo(boundary: String, causes: List<UnsupportedConstruct>) {
+        causes.forEach { cause ->
+            degraded += cause.copy(
+                remedy = "Dootah kept this as $boundary. " + cause.remedy,
+            )
+        }
+    }
+
+    /**
+     * Keeps a region as the native code it already is.
+     *
+     * The last step before giving up on a region, and the one that makes the
+     * rest of a screen updatable regardless of what is inside this part of it.
+     * Nothing about the region is described: the app runs the call it already
+     * compiled, with the arguments it was already written with.
+     *
+     * The two conditions are the ones that decide whether the app can lift the
+     * code out at all. It has to be a composable -- there is nothing to place
+     * otherwise -- and it must not read a name the body declares, because the
+     * region is lifted out of the body and into a value prepared before the body
+     * runs, where that name does not exist.
+     */
+    private fun freeze(call: FirFunctionCall): BundleUi? {
+
+        val callable = call.resolvedCallableName()
+        val shortName = callable?.shortName()?.asString() ?: "unknown"
+
+        if (callable == null || !call.isComposableCall()) {
+            reject(
+                call.sourceOffset(),
+                "the call `$shortName()` inside a layout",
+                code = RejectionCode.UNSUPPORTED_CALL_IN_LAYOUT,
+                detail = callable?.asString(),
+                remedy = "A layout may contain components. Move other work out of " +
+                    "the screen body, or keep this screen native.",
+            )
+            return null
+        }
+
+        if (call.readsAnOuterReceiver()) {
+            reject(
+                call.sourceOffset(),
+                "`$shortName()`, which reads the scope of the layout around it",
+                code = RejectionCode.COMPONENT_READS_SCOPE,
+                detail = callable.asString(),
+                remedy = "A native region is lifted out into a standalone lambda, so " +
+                    "it cannot read a `ColumnScope` or `RowScope` from around it -- " +
+                    "`weight` is the usual reason. The layout holding it can be kept " +
+                    "whole instead.",
+            )
+            return null
+        }
+
+        val readFromBody = call.declarationsReadFromBody()
+
+        if (readFromBody.isNotEmpty()) {
+            reject(
+                call.sourceOffset(),
+                "`$shortName()`, which reads `${readFromBody.first()}` from this body",
+                code = RejectionCode.COMPONENT_READS_BODY,
+                detail = callable.asString(),
+                remedy = "A native region is prepared before the screen's own body " +
+                    "runs, so it cannot read something the body declares. Move the " +
+                    "declaration out of the screen, or keep the screen native.",
+            )
+            return null
+        }
+
+        val text = call.sourceText()
+
+        if (text == null) {
+            reject(
+                call.sourceOffset(),
+                "`$shortName()`, whose source Dootah could not read",
+                code = RejectionCode.UNREADABLE_REGION_SOURCE,
+                detail = callable.asString(),
+                remedy = "Keep this screen native.",
+            )
+            return null
+        }
+
+        val id = FrozenRegionId.of(callable.asString(), text)
+        components.requirements.adapters += id
+
+        return BundleUi.ComponentUi(adapterId = id)
+    }
+
+    /** The source this element was written as, for naming it by what it says. */
+    private fun FirElement.sourceText(): String? {
+
+        val start = source?.startOffset ?: return null
+        val end = source?.endOffset ?: return null
+
+        if (start < 0 || end > sourceText.length || end <= start) return null
+
+        return sourceText.substring(start, end)
+    }
 
     /** A statement in a UI position contributes zero, one or several children. */
     private fun lowerUiStatement(statement: FirElement): List<BundleUi> =
@@ -388,7 +667,9 @@ internal class ScreenLowering(
             return null
         }
 
-        val children = content.statements.flatMap { lowerUiStatement(it) }
+        val children = content.statements.flatMap { statement ->
+            lowerUiStatementPartially(statement) ?: return null
+        }
 
         return build(modifierList, children)
     }
@@ -572,7 +853,7 @@ internal class ScreenLowering(
         val mark = reasons.size
 
         val children = content.body?.statements.orEmpty()
-            .flatMap { statement -> lowerUiStatement(statement) }
+            .flatMap { statement -> lowerUiStatementPartially(statement) ?: return null }
 
         return if (reasons.size > mark) null else children
     }
@@ -1184,37 +1465,63 @@ internal class ScreenLowering(
         direct: () -> BundleUi?,
     ): BundleUi? {
 
-        val mark = reasons.size
+        val attempted = attempt(direct)
 
-        direct()?.let { return it }
+        if (!attempted.failed) return attempted.value
 
-        val discarded = reasons.subList(mark, reasons.size).toList()
-        while (reasons.size > mark) reasons.removeAt(reasons.lastIndex)
+        attempt { lowerNativeComponent(call) }.value?.let { component ->
+            degradeTo("a component the bundle places", attempted.causes)
+            return component
+        }
 
-        lowerNativeComponent(call)?.let { return it }
+        attempt { freeze(call) }.value?.let { region ->
+            degradeTo("a region kept exactly as written", attempted.causes)
+            return region
+        }
 
-        reasons.addAll(mark, discarded)
+        reasons += attempted.causes
 
         return null
     }
 
     /** Runs a lowering that may legitimately fail, discarding what it reported. */
-    private fun <T> speculate(attempt: () -> T?): T? {
-
-        val mark = reasons.size
-        val result = attempt()
-
-        if (result == null) {
-            while (reasons.size > mark) reasons.removeAt(reasons.lastIndex)
-        }
-
-        return result
-    }
+    private fun <T : Any> speculate(block: () -> T?): T? = attempt(block).value
 
     private fun FirFunctionCall.isComposableCall(): Boolean = isComposable()
 
     private fun FirExpression.lambdaBody(): FirBlock? =
         (this as? FirAnonymousFunctionExpression)?.anonymousFunction?.body
+
+    /**
+     * Records that a region stayed native, without failing the screen.
+     *
+     * The distinction from [reject] is the whole of partial lowering: a reason
+     * recorded here describes a boundary Dootah chose, and one recorded there
+     * describes a screen it could not take on at all.
+     */
+    private fun keepNative(
+        offset: Int?,
+        found: String,
+        code: RejectionCode,
+        detail: String? = null,
+        remedy: String = "The region keeps running natively.",
+    ) {
+        degraded += UnsupportedConstruct(
+            functionName = functionName,
+            filePath = filePath,
+            sourceOffset = offset,
+            found = found,
+            remedy = remedy,
+            code = code,
+            detail = detail,
+        )
+    }
+
+    /** Marks a name as one only the Android side can read. */
+    private fun nativeOnly(name: String) {
+        nativeOnlyLocals += name
+        bodyDeclarations += name
+    }
 
     private fun reject(
         offset: Int?,

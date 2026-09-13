@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
+import dev.dootah.contract.FrozenRegionId
 import org.jetbrains.kotlin.name.FqName
 
 /**
@@ -74,6 +75,17 @@ internal data class NativeAdapter(
      * one with an argument slot for each of them.
      */
     val suppliedParameters: Set<String>,
+
+    /**
+     * Whether this adapter runs the call exactly as it was written.
+     *
+     * A frozen adapter takes nothing from the bundle. It exists for the regions
+     * no vocabulary reaches -- a component reading the scope around it, a layout
+     * holding one, an argument nothing can express -- so that the rest of the
+     * screen can still be described. The bundle's whole power over it is where
+     * it appears and whether it appears at all.
+     */
+    val frozen: Boolean = false,
 )
 
 /**
@@ -133,7 +145,10 @@ internal class NativeBindings(
  * naming a component the app could not register.
  */
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-internal fun IrBody.nativeBindings(layouts: Set<FqName>): NativeBindings {
+internal fun IrBody.nativeBindings(
+    layouts: Set<FqName>,
+    sourceText: String = "",
+): NativeBindings {
 
     val adapters = LinkedHashMap<String, NativeAdapter>()
     val capabilities = LinkedHashMap<String, NativeCapability>()
@@ -145,9 +160,15 @@ internal fun IrBody.nativeBindings(layouts: Set<FqName>): NativeBindings {
 
         override fun visitElement(element: IrElement) {
 
+            // A frozen region is registered for anything that could become one,
+            // layouts included: the extraction pass may choose to keep a whole
+            // `Column` as it stands when something inside it cannot be described,
+            // and it can only choose what this pass has already registered.
+            if (element is IrCall) element.recordFrozen(adapters, declaredInBody, sourceText)
+
             if (element is IrCall && element.isComponent(layouts, declaredInBody)) {
 
-                element.record(adapters, capabilities, resources)
+                element.record(adapters, capabilities, resources, declaredInBody)
 
                 // Descending anyway: the content of a native component may hold
                 // components of its own, and the bundle can place those too.
@@ -166,11 +187,97 @@ internal fun IrBody.nativeBindings(layouts: Set<FqName>): NativeBindings {
     )
 }
 
+/**
+ * Registers this call as a region the app can draw exactly as written.
+ *
+ * Named by what it says rather than where it sits, so that deleting a sibling
+ * renames nothing -- and so that editing the region itself does rename it, which
+ * is how a bundle published from changed native code is refused instead of
+ * quietly drawing the old version.
+ *
+ * The conditions are the two that decide whether the code can be lifted out of
+ * the body at all: it has to draw something, and it must not read a name the
+ * body declares, because the lifted copy is prepared before the body runs.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrCall.recordFrozen(
+    adapters: MutableMap<String, NativeAdapter>,
+    declaredInBody: BodyScope,
+    sourceText: String,
+) {
+
+    if (sourceText.isEmpty()) return
+
+    val callee = symbol.owner
+
+    if (!callee.hasAnnotation(COMPOSABLE_ANNOTATION)) return
+    if (!callee.returnType.isUnit()) return
+
+    val qualifiedName = callee.fqNameWhenAvailable?.asString() ?: return
+
+    if (readsOuter(declaredInBody, replaced = emptySet())) return
+
+    val text = sourceText.textOf(this) ?: return
+    val id = FrozenRegionId.of(qualifiedName, text)
+
+    adapters.getOrPut(id) {
+        NativeAdapter(
+            id = id,
+            template = this,
+            suppliedParameters = emptySet(),
+            frozen = true,
+        )
+    }
+}
+
+/**
+ * Whether this element reads a name declared in the body around it.
+ *
+ * Shared by everything that gets lifted out of the body: an action, a frozen
+ * region, the parts of a component call that survive being copied.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrElement.readsOutside(declaredInBody: BodyScope): Boolean {
+
+    val outer = declaredHere().let { own ->
+        BodyScope(
+            values = declaredInBody.values - own.values,
+            functions = declaredInBody.functions - own.functions,
+        )
+    }
+
+    var reads = false
+
+    acceptVoid(object : IrVisitorVoid() {
+        override fun visitElement(element: IrElement) {
+
+            if (element is IrGetValue && element.symbol.owner in outer.values) reads = true
+            if (element is IrCall && element.symbol.owner in outer.functions) reads = true
+
+            element.acceptChildrenVoid(this)
+        }
+    })
+
+    return reads
+}
+
+/** The source this call was written as, by the offsets it carries. */
+private fun String.textOf(element: IrElement): String? {
+
+    val start = element.startOffset
+    val end = element.endOffset
+
+    if (start < 0 || end > length || end <= start) return null
+
+    return substring(start, end)
+}
+
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrCall.record(
     adapters: MutableMap<String, NativeAdapter>,
     capabilities: MutableMap<String, NativeCapability>,
     resources: MutableMap<String, NativeResource>,
+    declaredInBody: BodyScope,
 ) {
 
     val callee = symbol.owner
@@ -214,6 +321,15 @@ private fun IrCall.record(
         if (parameter.type.isComposableContent()) continue
 
         val lambda = (argument as? IrFunctionExpression)?.function ?: continue
+
+        // An action is lifted out whole, unlike an argument, which is replaced
+        // by whatever the bundle sent. So the question the adapter no longer has
+        // to ask -- does this read something the body declares? -- is one the
+        // action still does: `onClick = { open = true }` beside a
+        // `var open by remember { ... }` reads it through a delegate the
+        // compiler generated, and lifting that out fails in the JVM backend
+        // long after Dootah has finished, naming none of it.
+        if (lambda.readsOutside(declaredInBody)) continue
 
         // An empty handler reaches IR as a synthetic Unit, which does nothing
         // rather than being something this cannot name. The extraction pass
@@ -403,6 +519,32 @@ private fun IrCall.isComponent(
 
     if ((callee.fqNameWhenAvailable ?: FqName.ROOT) in layouts) return false
 
+    // Every argument this call supplies is replaced by a read from whatever the
+    // bundle sent, so what it was written as cannot be read by the adapter and
+    // cannot disqualify it. Only what survives the copy is asked about: the
+    // receiver, and anything outside the argument list.
+    return !readsOuter(declaredInBody, replaced = suppliedArgumentIndices())
+}
+
+/** The argument positions an adapter overwrites when it places this call. */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrCall.suppliedArgumentIndices(): Set<Int> =
+    symbol.owner.declaredParameters()
+        .map { parameter -> parameter.indexInParameters }
+        .filter { index -> arguments.getOrNull(index) != null }
+        .toSet()
+
+/**
+ * Whether this call reads a name that will not exist where the adapter runs.
+ *
+ * An adapter is lifted out of the body and into a value prepared before the body
+ * runs, so anything the body declares is out of reach. [replaced] names the
+ * argument positions the adapter overwrites, whose contents therefore never
+ * reach the lifted copy.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrCall.readsOuter(declaredInBody: BodyScope, replaced: Set<Int>): Boolean {
+
     val outer = declaredHere().let { own ->
         BodyScope(
             values = declaredInBody.values - own.values,
@@ -410,10 +552,14 @@ private fun IrCall.isComponent(
         )
     }
 
+    val skipped = replaced.mapNotNullTo(mutableSetOf()) { index -> arguments.getOrNull(index) }
+
     var readsOuter = false
 
     acceptVoid(object : IrVisitorVoid() {
         override fun visitElement(element: IrElement) {
+
+            if (element in skipped) return
 
             if (element is IrGetValue && element.symbol.owner in outer.values) {
                 readsOuter = true
@@ -430,7 +576,7 @@ private fun IrCall.isComponent(
         }
     })
 
-    return !readsOuter
+    return readsOuter
 }
 
 /**

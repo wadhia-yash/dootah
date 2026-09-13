@@ -99,6 +99,30 @@ internal class ScreenExtractionChecker(
                     outcome = DiscoveryOutcome.LOWERED,
                     forced = shape.isForced,
                     adapters = result.screen.adapters.size,
+                    shape = result.screen.remoteShape(),
+                )
+
+                // What stayed native is recorded beside what did not. These are
+                // not errors and do not refuse anything; they are the answer to
+                // "why did my edit here not take effect", which is the question
+                // partial lowering makes it possible to ask.
+                if (result.degraded.isNotEmpty()) {
+                    writeDegradationReport(
+                        reportDirectory = reportDirectory,
+                        screenId = screenId,
+                        regions = result.degraded,
+                    )
+                }
+            }
+
+            is LoweringResult.NotWorthShipping -> {
+                writeDiscoveryRecord(
+                    reportDirectory = reportDirectory,
+                    fqName = shape.fqName,
+                    outcome = DiscoveryOutcome.NOT_WORTH_SHIPPING,
+                    forced = shape.isForced,
+                    adapters = result.screen.adapters.size,
+                    shape = result.shape,
                 )
             }
 

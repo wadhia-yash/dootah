@@ -71,7 +71,13 @@ internal class DootahIrExtension(
                 return emptyList()
             }
 
-            val transformer = InterceptionTransformer(pluginContext, symbols)
+            // Read once per file. A region kept exactly as written is named by
+            // the text it was written as, and both passes have to read the same
+            // file to agree on the name.
+            val sourceText = runCatching { java.io.File(file.fileEntry.name).readText() }
+                .getOrDefault("")
+
+            val transformer = InterceptionTransformer(pluginContext, symbols, sourceText)
 
             inFile.mapNotNull { screen -> transformer.transform(screen.function) }
         }

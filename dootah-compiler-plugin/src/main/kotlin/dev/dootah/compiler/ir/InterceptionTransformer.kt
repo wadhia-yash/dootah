@@ -87,6 +87,7 @@ import org.jetbrains.kotlin.name.Name
 internal class InterceptionTransformer(
     private val pluginContext: IrPluginContext,
     private val symbols: DootahRuntimeSymbols,
+    private val sourceText: String = "",
 ) {
 
     /** The identity of the function rewritten, for reporting. */
@@ -104,7 +105,7 @@ internal class InterceptionTransformer(
         // anything. The screen is still intercepted; it simply offers no native
         // components.
         val native = if (composable.isEmpty()) NativeBindings(emptyList(), emptyList(), emptyList())
-        else originalBody.nativeBindings(LAYOUT_COMPOSABLES)
+        else originalBody.nativeBindings(LAYOUT_COMPOSABLES, sourceText)
 
         val builder = DeclarationIrBuilder(pluginContext, function.symbol)
         val unitType = pluginContext.irBuiltIns.unitType
@@ -306,6 +307,10 @@ internal class InterceptionTransformer(
 
         val call = adapter.template.deepCopyWithSymbols(lambda)
         val callee = call.symbol.owner
+
+        // A frozen region is the code as written, and reading anything from the
+        // bundle is exactly what it must not do.
+        if (adapter.frozen) return call
 
         callee.declaredParameters().forEach { parameter ->
 

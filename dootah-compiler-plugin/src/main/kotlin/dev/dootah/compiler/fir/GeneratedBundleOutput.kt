@@ -12,6 +12,16 @@ internal const val SCREEN_METADATA_DIRECTORY = "screens"
 /** Subdirectory of the report directory holding one file per rejected screen. */
 internal const val UNSUPPORTED_DIRECTORY = "unsupported"
 
+/**
+ * Where the regions a screen kept native are recorded.
+ *
+ * Separate from `unsupported/`, and the separation is the point: that directory
+ * holds the screens Dootah could not take on, this one holds the parts of the
+ * screens it did. Counting them together would put a screen that updates fine
+ * with one native icon in it next to a screen that does not update at all.
+ */
+internal const val DEGRADED_DIRECTORY = "degraded"
+
 /** Package path the generated screen implementations are written under. */
 private const val GENERATED_PACKAGE_PATH = "dev/dootah/generated"
 
@@ -115,6 +125,33 @@ private fun writeExports(generatedDirectory: File, reportDirectory: File) {
  * extraction pass runs in its own compiler process, and a message buried in that
  * process's output is far easier to miss than a build failure.
  */
+/** Records the regions a lowered screen kept native, and why. */
+internal fun writeDegradationReport(
+    reportDirectory: File,
+    screenId: String,
+    regions: List<UnsupportedConstruct>,
+) {
+    if (regions.isEmpty()) return
+
+    val directory = File(reportDirectory, DEGRADED_DIRECTORY).apply { mkdirs() }
+
+    val lines = regions.flatMap { region ->
+        listOf(
+            "code=${region.code}",
+            "detail=${region.detail.orEmpty()}",
+            "function=${region.functionName}",
+            "file=${region.filePath}",
+            "offset=${region.sourceOffset ?: -1}",
+            "found=${region.found}",
+            "remedy=${region.remedy}",
+            "--",
+        )
+    }
+
+    File(directory, "${sanitizeForIdentifier(screenId)}.txt")
+        .writeText(lines.joinToString("\n", postfix = "\n"))
+}
+
 internal fun writeUnsupportedReport(
     reportDirectory: File,
     screenId: String,

@@ -50,6 +50,36 @@ internal class ComponentRequirements {
 
     /** Every screen parameter routed into a component untouched. */
     val handles = linkedSetOf<String>()
+
+    /**
+     * What this had collected at some earlier point, and how to go back to it.
+     *
+     * Lowering now tries things that are allowed to fail -- that is what lets one
+     * unsupported corner degrade instead of refusing the screen -- and an attempt
+     * that fails must leave nothing behind. An adapter recorded by a subtree that
+     * was then thrown away would be a requirement on the installed app that
+     * nothing in the published bundle ever asks for.
+     */
+    fun snapshot(): Snapshot = Snapshot(
+        adapters = adapters.toList(),
+        capabilities = capabilities.toList(),
+        resources = resources.toList(),
+        handles = handles.toList(),
+    )
+
+    fun restore(snapshot: Snapshot) {
+        adapters.clear(); adapters += snapshot.adapters
+        capabilities.clear(); capabilities += snapshot.capabilities
+        resources.clear(); resources += snapshot.resources
+        handles.clear(); handles += snapshot.handles
+    }
+
+    class Snapshot(
+        val adapters: List<String>,
+        val capabilities: List<BundleCapability>,
+        val resources: List<String>,
+        val handles: List<String>,
+    )
 }
 
 /**
@@ -73,6 +103,9 @@ internal class ComponentLowering(
     private val signature: List<ScreenParameter>,
     private val reject: (Int?, String, String, RejectionCode, String?) -> Unit,
     private val lowerExpression: (FirExpression) -> BundleExpression?,
+
+    /** Whether an element reads something the screen's own body declares. */
+    private val readsBody: (FirElement) -> Boolean,
 ) {
 
     val requirements = ComponentRequirements()
@@ -543,6 +576,12 @@ internal class ComponentLowering(
 
         val lambda = (expression as? FirAnonymousFunctionExpression)?.anonymousFunction
             ?: return null
+
+        // An action is lifted out of the body whole, so it cannot read anything
+        // the body declares -- the app's own pass refuses to register one that
+        // does, and naming a capability it will not have is a hole in the screen
+        // rather than a component that keeps working.
+        if (readsBody(lambda)) return null
 
         val parameterNames = lambda.valueParameters.map { it.name.asString() }
         // Through the same unwrapping the rest of lowering uses, so an empty

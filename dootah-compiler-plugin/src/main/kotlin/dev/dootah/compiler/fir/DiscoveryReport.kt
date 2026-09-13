@@ -18,6 +18,15 @@ internal enum class DiscoveryOutcome {
 
     /** Not a shape Dootah can ever take over, or excluded deliberately. */
     INELIGIBLE,
+
+    /**
+     * Describable, but publishing it could not change anything anyone sees.
+     *
+     * Partial lowering means almost every screen now lowers to something, so
+     * this is where the honesty lives: a screen that came out as native code
+     * kept whole, with nothing the bundle decides, is not counted as a win.
+     */
+    NOT_WORTH_SHIPPING,
 }
 
 /**
@@ -38,6 +47,7 @@ internal fun writeDiscoveryRecord(
     reason: IneligibleReason? = null,
     forced: Boolean = false,
     adapters: Int = 0,
+    shape: RemoteShape? = null,
 ) {
     val directory = File(reportDirectory, DISCOVERY_DIRECTORY).apply { mkdirs() }
 
@@ -50,6 +60,17 @@ internal fun writeDiscoveryRecord(
         // adapters is describable end to end; one with adapters is a remote
         // layout around components the APK keeps.
         add("adapters=$adapters")
+
+        // What the bundle actually decides, which is what "how much of this app
+        // can change over the air" has to be measured from.
+        shape?.let {
+            add("described=${it.described}")
+            add("placed=${it.placed}")
+            add("frozen=${it.frozen}")
+            add("conditionals=${it.conditionals}")
+            add("actions=${it.actions}")
+            add("states=${it.states}")
+        }
     }
 
     File(directory, "${sanitizeForIdentifier(fqName)}.txt")
