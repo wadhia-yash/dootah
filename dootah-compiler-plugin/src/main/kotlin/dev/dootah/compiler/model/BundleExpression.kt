@@ -11,6 +11,12 @@ internal sealed interface BundleExpression {
 
     data class IntConstant(val value: Int) : BundleExpression
 
+    data class LongConstant(val value: Long) : BundleExpression
+
+    data class FloatConstant(val value: Float) : BundleExpression
+
+    data class DoubleConstant(val value: Double) : BundleExpression
+
     data class StringConstant(val value: String) : BundleExpression
 
     data class BooleanConstant(val value: Boolean) : BundleExpression

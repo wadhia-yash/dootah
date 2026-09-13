@@ -139,8 +139,10 @@ class BundleExecutionTest {
         // No layout was added around them.
         assertTrue(rendered, !rendered.contains(""""type":"column""""))
 
-        // And a component kept native is still named inside the fragment.
-        assertTrue(rendered, rendered.contains(""""type":"native""""))
+        // And a component kept native is still placed inside the fragment, as
+        // an adapter the installed app can instantiate.
+        assertTrue(rendered, rendered.contains(""""type":"component""""))
+        assertTrue(rendered, rendered.contains(""""adapter":"androidx.compose.material3.Icon("""))
     }
 
     // ---- fixture ---------------------------------------------------------

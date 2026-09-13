@@ -16,24 +16,20 @@ fun screenIdsJson(screenIds: List<String>): String =
     "[" + screenIds.joinToString(",") { "\"${it.escapeJson()}\"" } + "]"
 
 /**
- * One response: what to draw, what to run, and how many components of each
- * shape this screen has.
+ * One response: what to draw, and what to run.
  *
- * The shape table is what the app checks the component numbering against. A
- * component's name ends in its position among those sharing its shape, so a
- * source that dropped one renumbers the rest -- and an app still registering all
- * of them would draw the wrong component under a name it recognises. Sent with
- * every response because the app has no other way to know what the bundle's
- * source looked like.
+ * The app works out what this response needs from the tree itself -- which
+ * adapters, actions, values and resources it names -- so there is nothing to
+ * declare alongside it. An earlier version also sent a count of each component
+ * shape, which existed only to detect that the two sources had numbered their
+ * components differently. Components are no longer numbered.
  */
 fun envelope(
     ui: BundleNode,
     commands: List<Command>,
-    componentShapes: String = "{}",
 ): String =
     "{\"ui\":" + ui.toJson() +
-        ",\"commands\":[" + commands.joinToString(",") { it.toJson() } + "]" +
-        ",\"shapes\":" + componentShapes + "}"
+        ",\"commands\":[" + commands.joinToString(",") { it.toJson() } + "]}"
 
 /**
  * The answer to a request naming a screen this bundle does not implement.

@@ -392,7 +392,7 @@ class ScreenLoweringTest {
         )
     }
 
-    // ---- native slots ----------------------------------------------------
+    // ---- native components -----------------------------------------------
 
     @Test
     fun `keeps a styled Text native instead of dropping its styling`() {
@@ -401,7 +401,8 @@ class ScreenLoweringTest {
             screen("""Text("Title", color = Color(0xFF2196F3L))""", extraImports = COLOR_IMPORT)
         )
 
-        assertTrue(generated, generated.contains("NativeSlotNode("))
+        assertTrue(generated, generated.contains("ComponentNode("))
+        assertTrue(generated, generated.contains("ColorProp("))
         assertTrue(generated, !generated.contains("""TextNode("Title")"""))
     }
 
@@ -412,11 +413,46 @@ class ScreenLoweringTest {
             screen("""Icon("save")""", extraImports = "import androidx.compose.material3.Icon")
         )
 
-        assertTrue(generated, generated.contains("NativeSlotNode("))
+        assertTrue(
+            generated,
+            generated.contains("""adapter = "androidx.compose.material3.Icon("""),
+        )
+    }
+
+    /**
+     * A component is named by the declaration it calls, never by where the call
+     * was written or by which arguments it happened to supply.
+     *
+     * That is what lets a published bundle add, remove, reorder and repeat
+     * components: there is no position to lose and nothing frozen into the name.
+     */
+    @Test
+    fun `names a component by its declaration, not by its call site`() {
+
+        val generated = lower(
+            screen(
+                body = """
+                    Icon("save")
+                    Icon("open", tint = Color(0xFF00FF00L))
+                """.trimIndent(),
+                extraImports = "import androidx.compose.material3.Icon\n$COLOR_IMPORT",
+            )
+        )
+
+        val adapters = Regex("""adapter = "([^"]+)"""")
+            .findAll(generated)
+            .map { match -> match.groupValues[1] }
+            .toList()
+
+        // Both calls name the same adapter, although they supply different
+        // arguments -- and neither name mentions the arguments supplied.
+        assertEquals(2, adapters.size)
+        assertEquals(1, adapters.toSet().size)
+        assertEquals("androidx.compose.material3.Icon(modifier|name|tint)", adapters.first())
     }
 
     @Test
-    fun `lets a native component read a screen parameter`() {
+    fun `gives a native component a screen parameter as its argument`() {
 
         val generated = lower(
             screen(
@@ -426,13 +462,24 @@ class ScreenLoweringTest {
             )
         )
 
-        assertTrue(generated, generated.contains("NativeSlotNode("))
+        assertTrue(generated, generated.contains("ComponentNode("))
+        // The parameter is read once into a local, and the component's argument
+        // refers to it -- so a bundle can change what the component is given.
+        assertTrue(generated, generated.contains("""val label: String = arguments.string("label")"""))
+        assertTrue(generated, generated.contains("StringProp(label)"))
     }
 
+    /**
+     * The case the previous design had to refuse.
+     *
+     * A component's argument can now be a value the bundle works out for itself,
+     * because the argument travels as data rather than being frozen into a copy
+     * of the call. Changing what a component is given is an ordinary update.
+     */
     @Test
-    fun `refuses a native component that reads a bundled value`() {
+    fun `lets a native component be given a value the bundle computes`() {
 
-        val rejection = reject(
+        val generated = lower(
             screen(
                 body = """Icon(label)""",
                 prelude = """val label = "save"""",
@@ -440,8 +487,46 @@ class ScreenLoweringTest {
             )
         )
 
-        assertTrue(rejection, rejection.contains("which Dootah keeps native but which reads"))
-        assertTrue(rejection, rejection.contains("`label`"))
+        assertTrue(generated, generated.contains("ComponentNode("))
+        assertTrue(generated, generated.contains("StringProp(label)"))
+    }
+
+    /**
+     * A handler is named by what it does, so it survives being moved, having a
+     * neighbour deleted, or being attached to a different component -- and two
+     * components given the same handler share one entry.
+     */
+    @Test
+    fun `names an action by what it does`() {
+
+        val generated = lower(
+            SourceFile(
+                name = "Screen.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.material3.IconButton
+                    import androidx.compose.material3.Icon
+                    import androidx.compose.runtime.Composable
+                    import androidx.compose.runtime.MutableState
+                    import dev.dootah.Bundlable
+
+                    @Bundlable
+                    @Composable
+                    fun Screen(menu: MutableState<Boolean>) {
+                        IconButton(onClick = { menu.value = true }) { Icon("a") }
+                        IconButton(onClick = { menu.value = true }) { Icon("b") }
+                    }
+                """.trimIndent(),
+            )
+        )
+
+        val actions = Regex("""CallbackProp\("([^"]+)"""")
+            .findAll(generated)
+            .map { match -> match.groupValues[1] }
+            .toList()
+
+        assertEquals(listOf("menu.value=true", "menu.value=true"), actions)
     }
 
     // ---- root shape ------------------------------------------------------
@@ -652,15 +737,46 @@ class ScreenLoweringTest {
         // Two of them are boxes the bundle owns and can rearrange.
         assertTrue(generated, generated.contains("BoxNode("))
 
-        // Everything that touches the view model, the MutableState or the list
-        // stayed native.
-        assertTrue(generated, generated.contains("NativeSlotNode(\"IconButton("))
-        assertTrue(generated, generated.contains("NativeSlotNode(\"BrushesMenu("))
+        // A handler that calls one of the screen's own callbacks is named by
+        // that callback, not by the `invoke` it resolves to -- the other pass
+        // sees the parameter's name, and the two have to agree.
+        assertTrue(
+            generated,
+            generated.contains("""onColorPickerClick();viewModel.setEraserMode(false)"""),
+        )
 
-        // The only value that crossed is the one a bundle can carry. The view
-        // model, the MutableState and the list appear nowhere except inside a
-        // slot's name, which records the shape of a call the app makes, not a
-        // value the bundle holds.
+        // The components stayed native, as instances of one adapter each.
+        val adapters = Regex("""adapter = "([^"]+)"""")
+            .findAll(generated)
+            .map { match -> match.groupValues[1] }
+            .toList()
+
+        // Three icon buttons, and they are three instances of the *same*
+        // adapter. Under the previous design they were three separately named
+        // components, which is why deleting one silently rebound the others.
+        assertEquals(3, adapters.count { it.startsWith("androidx.compose.material3.IconButton") })
+        assertEquals(
+            1,
+            adapters.filter { it.startsWith("androidx.compose.material3.IconButton") }
+                .toSet()
+                .size,
+        )
+        assertTrue(adapters.toString(), adapters.any { it.startsWith("com.example.BrushesMenu") })
+
+        // The view model, the MutableState and the list never become values the
+        // bundle holds. They are named, and the app supplies the objects.
+        assertTrue(generated, generated.contains("""HandleProp("customBrushes")"""))
+        assertTrue(generated, generated.contains("""StateProp("brushesMenuExpanded")"""))
+
+        // A handler taking a value from the component is still native code, and
+        // is named by what it does rather than by where it was written.
+        // The argument is written positionally, because a Kotlin function type
+        // has no parameter names -- two sources that named it differently
+        // describe the same action.
+        assertTrue(generated, generated.contains("viewModel.changeBrush("))
+        assertTrue(generated, generated.contains("0);brushesMenuExpanded.value=false"))
+
+        // The only value that crossed is the one a bundle can carry.
         val read = Regex("""arguments\.[a-zA-Z]+\("([^"]+)"\)""")
             .findAll(generated)
             .map { it.groupValues[1] }
@@ -677,43 +793,68 @@ class ScreenLoweringTest {
         val rejection = reject(
             screen(
                 body = """Text("x")""",
-                prelude = "val ratio = 0.5",
+                prelude = "val at = 'x'",
             )
         )
 
-        assertTrue(rejection, rejection.contains("not an Int, String or Boolean"))
+        assertTrue(rejection, rejection.contains("not a number, String or Boolean"))
     }
 
     @Test
-    fun `keeps a component reading a native-only parameter native`() {
+    fun `keeps a component whose argument the bundle cannot describe native`() {
 
-        // Nothing is lost: the Text still renders, with the value its caller
-        // passed. It simply is not part of what a bundle can change.
-        val generated = lower(
-            screen(
-                body = """Text("Ratio: " + ratio)""",
-                parameters = "ratio: Double",
+        // A `Note` is not a value a bundle can carry, and neither is anything
+        // computed from one. Nothing is lost: the Text still renders, with the
+        // value its caller passed. It simply is not part of what can change.
+        val rejection = reject(
+            SourceFile(
+                name = "Screen.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.material3.Text
+                    import androidx.compose.runtime.Composable
+                    import dev.dootah.Bundlable
+
+                    data class Note(val title: String)
+
+                    @Bundlable
+                    @Composable
+                    fun Screen(note: Note) {
+                        Text("Title: " + note.title)
+                    }
+                """.trimIndent(),
             )
         )
 
-        assertTrue(generated, generated.contains("NativeSlotNode("))
+        assertTrue(rejection, rejection.contains("which Dootah cannot carry"))
     }
 
     @Test
     fun `refuses computing with a parameter it cannot carry`() {
 
         val rejection = reject(
-            screen(
-                body = """
-                if (ratio > 0.5) {
-                    Text("high")
-                }
-                """,
-                parameters = "ratio: Double",
+            SourceFile(
+                name = "Screen.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.material3.Text
+                    import androidx.compose.runtime.Composable
+                    import dev.dootah.Bundlable
+
+                    data class Note(val title: String)
+
+                    @Bundlable
+                    @Composable
+                    fun Screen(note: Note) {
+                        Text("Note: " + note)
+                    }
+                """.trimIndent(),
             )
         )
 
-        assertTrue(rejection, rejection.contains("`ratio`"))
+        assertTrue(rejection, rejection.contains("`note`"))
         assertTrue(rejection, rejection.contains("can still be used inside a component"))
     }
 
@@ -733,9 +874,10 @@ class ScreenLoweringTest {
     @Test
     fun `keeps a button wired to app code native`() {
 
-        // The button keeps working exactly as written. What it does is app code
-        // that cannot cross into a bundle, so the button is not updatable -- and
-        // the build reports that it was kept native.
+        // The button keeps working exactly as written. What it *does* is app
+        // code that cannot cross into a bundle -- but the button itself is now a
+        // component the bundle places, so where it sits and what it says are
+        // still updatable. Only the handler stays behind, by name.
         val generated = lower(
             SourceFile(
                 name = "Screen.kt",
@@ -761,7 +903,15 @@ class ScreenLoweringTest {
             )
         )
 
-        assertTrue(generated, generated.contains("NativeSlotNode("))
+        assertTrue(
+            generated,
+            generated.contains("""adapter = "androidx.compose.material3.Button("""),
+        )
+        assertTrue(generated, generated.contains("""CallbackProp("checkout()", 0)"""))
+
+        // The label is inside the button's content slot, described by the
+        // bundle, so it can change without the app being rebuilt.
+        assertTrue(generated, generated.contains("""TextNode("Buy")"""))
     }
 
     @Test

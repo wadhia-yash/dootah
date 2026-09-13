@@ -26,6 +26,32 @@ class ScreenArguments internal constructor(private val raw: dynamic) {
     fun boolean(name: String): Boolean =
         read(name, "Boolean") as? Boolean ?: missing(name, "Boolean")
 
+    /**
+     * Read back from text.
+     *
+     * Every number here is a JavaScript double, so a Long past 2^53 arrives with
+     * its low digits already gone. Sending it as text is the only way it arrives
+     * intact, and this is the other half of that.
+     */
+    fun long(name: String): Long = when (val value = read(name, "Long")) {
+        is String -> value.toLongOrNull() ?: missing(name, "Long")
+        is Int -> value.toLong()
+        is Double -> value.toLong()
+        else -> missing(name, "Long")
+    }
+
+    fun float(name: String): Float = when (val value = read(name, "Float")) {
+        is Int -> value.toFloat()
+        is Double -> value.toFloat()
+        else -> missing(name, "Float")
+    }
+
+    fun double(name: String): Double = when (val value = read(name, "Double")) {
+        is Int -> value.toDouble()
+        is Double -> value
+        else -> missing(name, "Double")
+    }
+
     fun stringOrNull(name: String): String? = readNullable(name)?.let { value ->
         value as? String ?: missing(name, "String?")
     }
@@ -40,6 +66,31 @@ class ScreenArguments internal constructor(private val raw: dynamic) {
 
     fun booleanOrNull(name: String): Boolean? = readNullable(name)?.let { value ->
         value as? Boolean ?: missing(name, "Boolean?")
+    }
+
+    fun longOrNull(name: String): Long? = readNullable(name)?.let { value ->
+        when (value) {
+            is String -> value.toLongOrNull() ?: missing(name, "Long?")
+            is Int -> value.toLong()
+            is Double -> value.toLong()
+            else -> missing(name, "Long?")
+        }
+    }
+
+    fun floatOrNull(name: String): Float? = readNullable(name)?.let { value ->
+        when (value) {
+            is Int -> value.toFloat()
+            is Double -> value.toFloat()
+            else -> missing(name, "Float?")
+        }
+    }
+
+    fun doubleOrNull(name: String): Double? = readNullable(name)?.let { value ->
+        when (value) {
+            is Int -> value.toDouble()
+            is Double -> value
+            else -> missing(name, "Double?")
+        }
     }
 
     private fun read(name: String, type: String): Any? =

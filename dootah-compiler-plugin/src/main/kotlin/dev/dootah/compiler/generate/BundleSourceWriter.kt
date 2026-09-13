@@ -6,9 +6,11 @@ import dev.dootah.compiler.model.BundleExpression
 import dev.dootah.compiler.model.BundleFunction
 import dev.dootah.compiler.model.BundleModifier
 import dev.dootah.compiler.model.BundleParameter
+import dev.dootah.compiler.model.BundleProp
 import dev.dootah.compiler.model.BundleScreen
 import dev.dootah.compiler.model.BundleStatement
 import dev.dootah.compiler.model.BundleUi
+import dev.dootah.contract.PropValue
 
 internal const val GENERATED_PACKAGE = "dev.dootah.generated"
 
@@ -41,19 +43,33 @@ internal object BundleSourceWriter {
         appendLine("import ui.ButtonNode")
         appendLine("import ui.ColumnNode")
         appendLine("import ui.FragmentNode")
-        appendLine("import ui.NativeSlotNode")
+        appendLine("import ui.BoolProp")
+        appendLine("import ui.CallbackProp")
+        appendLine("import ui.ColorProp")
+        appendLine("import ui.ComponentNode")
+        appendLine("import ui.DoubleProp")
+        appendLine("import ui.DpProp")
+        appendLine("import ui.FloatProp")
+        appendLine("import ui.HandleProp")
+        appendLine("import ui.IntProp")
+        appendLine("import ui.ListProp")
+        appendLine("import ui.LongProp")
+        appendLine("import ui.ModifierOpNode")
+        appendLine("import ui.ModifierProp")
+        appendLine("import ui.NullProp")
+        appendLine("import ui.PainterResourceProp")
+        appendLine("import ui.PropNode")
+        appendLine("import ui.ShapeProp")
+        appendLine("import ui.StateProp")
+        appendLine("import ui.StringProp")
+        appendLine("import ui.StringResourceProp")
+        appendLine("import ui.ThemeColorProp")
         appendLine("import ui.RowNode")
         appendLine("import ui.TextNode")
         appendLine()
         appendLine("internal object ${screenObjectName(screen)} {")
         appendLine()
         appendLine("    const val SCREEN_ID: String = ${kotlinStringLiteral(screen.screenId)}")
-        appendLine()
-        appendLine("    /** How many components of each shape this screen's source had. */")
-        appendLine(
-            "    const val COMPONENT_SHAPES: String = " +
-                kotlinStringLiteral(componentShapesJson(screen))
-        )
         appendLine()
 
         appendRender(screen)
@@ -67,21 +83,6 @@ internal object BundleSourceWriter {
 
         appendLine("}")
     }
-
-    /**
-     * The screen's shape table, as the JSON spliced into every response.
-     *
-     * Sorted, so the same source always produces the same bundle. No escaping:
-     * a shape is a callee name and its argument names, which are identifiers,
-     * joined by `(`, `|`, `)` and `#`.
-     */
-    private fun componentShapesJson(screen: BundleScreen): String =
-        screen.componentShapes
-            .entries
-            .sortedBy { entry -> entry.key }
-            .joinToString(",", prefix = "{", postfix = "}") { (shape, count) ->
-                "\"$shape\":$count"
-            }
 
     private fun StringBuilder.appendRender(screen: BundleScreen) {
 
@@ -211,7 +212,7 @@ internal object BundleSourceWriter {
         appendLine("    val arguments = parseArguments(argumentsJson)")
         appendLine("    val ui = renderOf(screenId, arguments, state)")
         appendLine("    if (ui == null) unknownScreen(screenId)")
-        appendLine("    else envelope(ui, emptyList(), shapesOf(screenId))")
+        appendLine("    else envelope(ui, emptyList())")
         appendLine("} catch (failure: Throwable) {")
         appendLine("    failure(failure.message ?: \"the screen could not be rendered\")")
         appendLine("}")
@@ -227,18 +228,9 @@ internal object BundleSourceWriter {
         appendLine("    val commands = performOn(screenId, action, arguments, state)")
         appendLine("    val ui = renderOf(screenId, arguments, state)")
         appendLine("    if (commands == null || ui == null) unknownScreen(screenId)")
-        appendLine("    else envelope(ui, commands, shapesOf(screenId))")
+        appendLine("    else envelope(ui, commands)")
         appendLine("} catch (failure: Throwable) {")
         appendLine("    failure(failure.message ?: \"the action could not be handled\")")
-        appendLine("}")
-        appendLine()
-        appendLine("private fun shapesOf(screenId: String): String = when (screenId) {")
-        screens.forEach { screen ->
-            appendLine(
-                "    ${screen.objectName}.SCREEN_ID -> ${screen.objectName}.COMPONENT_SHAPES"
-            )
-        }
-        appendLine("    else -> \"{}\"")
         appendLine("}")
         appendLine()
         appendLine("private fun renderOf(")
@@ -350,6 +342,130 @@ internal object BundleSourceWriter {
         }
     }
 
+    /**
+     * Emits one instance of a native component.
+     *
+     * What travels is which adapter to place and what to give it. Nothing here
+     * is positional and nothing is a reference into the app's memory: an
+     * argument is a constant the bundle computed, a name from a table the app
+     * built at its own call site, or a token the app resolves against its own
+     * theme and resources. That is what lets a published bundle add, remove,
+     * reorder and repeat components without the installed binary changing.
+     */
+    private fun renderComponent(ui: BundleUi.ComponentUi, indent: Int): String {
+
+        val pad = " ".repeat(indent)
+
+        return buildString {
+            appendLine("$pad" + "ComponentNode(")
+            appendLine("$pad    adapter = ${kotlinStringLiteral(ui.adapterId)},")
+
+            if (ui.props.isNotEmpty()) {
+                appendLine("$pad    props = mapOf(")
+                ui.props.forEach { (name, prop) ->
+                    appendLine("$pad        ${kotlinStringLiteral(name)} to ${renderProp(prop)},")
+                }
+                appendLine("$pad    ),")
+            }
+
+            if (ui.children.isNotEmpty()) {
+                appendLine("$pad    children = mapOf(")
+                ui.children.forEach { (name, nodes) ->
+                    appendLine("$pad        ${kotlinStringLiteral(name)} to buildList {")
+                    nodes.forEach { node -> append(addChild(node, indent + 12)) }
+                    appendLine("$pad        },")
+                }
+                appendLine("$pad    ),")
+            }
+
+            appendLine("$pad)")
+        }
+    }
+
+    /**
+     * One argument, as the expression that produces it.
+     *
+     * Most are fixed when the screen is lowered. A conditional is not, and that
+     * is the point of emitting an expression rather than a literal: a colour
+     * chosen by `if (isEraserMode)` is decided by the bundle, at render time,
+     * from a value the app passed in.
+     */
+    private fun renderProp(prop: BundleProp): String = when (prop) {
+
+        is BundleProp.Constant -> renderPropValue(prop.value)
+
+        is BundleProp.Computed -> scalarProp(prop.kind, renderExpression(prop.expression))
+
+        is BundleProp.Conditional ->
+            "(if (${renderExpression(prop.condition)}) ${renderProp(prop.ifTrue)} " +
+                "else ${renderProp(prop.ifFalse)})"
+
+        is BundleProp.Modifier ->
+            "ModifierProp(listOf(" +
+                prop.operations.joinToString(", ") { operation ->
+                    "ModifierOpNode(${kotlinStringLiteral(operation.name)}, mapOf(" +
+                        operation.arguments.entries.joinToString(", ") { (name, value) ->
+                            "${kotlinStringLiteral(name)} to ${renderProp(value)}"
+                        } + "))"
+                } + "))"
+
+        is BundleProp.ListOf ->
+            "ListProp(listOf(" +
+                prop.elements.joinToString(", ") { element -> renderProp(element) } + "))"
+    }
+
+    private fun scalarProp(kind: String, value: String): String = when (kind) {
+        PropValue.Kind.STRING -> "StringProp($value)"
+        PropValue.Kind.INT -> "IntProp($value)"
+        PropValue.Kind.BOOL -> "BoolProp($value)"
+        PropValue.Kind.LONG -> "LongProp(($value).toString())"
+        PropValue.Kind.FLOAT -> "FloatProp(($value).toDouble())"
+        PropValue.Kind.DOUBLE -> "DoubleProp($value)"
+        else -> "NullProp()"
+    }
+
+    private fun renderPropValue(value: PropValue): String = when (value) {
+
+        is PropValue.NullValue -> "NullProp()"
+        is PropValue.BoolValue -> "BoolProp(${value.value})"
+        is PropValue.IntValue -> "IntProp(${value.value})"
+        // Written as text end to end: a bundle's numbers are doubles, and a Long
+        // past 2^53 loses its low digits without anything failing.
+        is PropValue.LongValue -> "LongProp(${kotlinStringLiteral(value.value.toString())})"
+        is PropValue.FloatValue -> "FloatProp(${value.value.toDouble()})"
+        is PropValue.DoubleValue -> "DoubleProp(${value.value})"
+        is PropValue.StringValue -> "StringProp(${kotlinStringLiteral(value.value)})"
+
+        is PropValue.DpValue -> "DpProp(${value.value})"
+        is PropValue.ColorValue -> "ColorProp(${value.argb}L)"
+        is PropValue.ThemeColorValue -> "ThemeColorProp(${kotlinStringLiteral(value.token)})"
+        is PropValue.ShapeValue -> "ShapeProp(${kotlinStringLiteral(value.token)})"
+
+        is PropValue.PainterResourceValue ->
+            "PainterResourceProp(${kotlinStringLiteral(value.key)})"
+        is PropValue.StringResourceValue ->
+            "StringResourceProp(${kotlinStringLiteral(value.key)})"
+
+        is PropValue.ModifierValue ->
+            "ModifierProp(listOf(" +
+                value.operations.joinToString(", ") { operation ->
+                    "ModifierOpNode(${kotlinStringLiteral(operation.name)}, mapOf(" +
+                        operation.arguments.entries.joinToString(", ") { (name, argument) ->
+                            "${kotlinStringLiteral(name)} to ${renderPropValue(argument)}"
+                        } + "))"
+                } + "))"
+
+        is PropValue.ListValue ->
+            "ListProp(listOf(" +
+                value.elements.joinToString(", ") { element -> renderPropValue(element) } + "))"
+
+        is PropValue.HandleValue -> "HandleProp(${kotlinStringLiteral(value.name)})"
+        is PropValue.StateValue -> "StateProp(${kotlinStringLiteral(value.name)})"
+
+        is PropValue.CallbackValue ->
+            "CallbackProp(${kotlinStringLiteral(value.capability)}, ${value.arity})"
+    }
+
     /** One branch of a root `if`, as the single value that branch must yield. */
     private fun List<BundleUi>.asRoot(): BundleUi =
         singleOrNull() ?: BundleUi.FragmentUi(this)
@@ -373,8 +489,7 @@ internal object BundleSourceWriter {
                     "${kotlinStringLiteral(ui.action)}" +
                     modifierArgument(ui.modifiers) + ")\n"
 
-            is BundleUi.NativeSlotUi ->
-                "$pad" + "NativeSlotNode(${kotlinStringLiteral(ui.slot)})\n"
+            is BundleUi.ComponentUi -> renderComponent(ui, indent)
 
             is BundleUi.FragmentUi -> buildString {
                 appendLine("$pad" + "FragmentNode(")
@@ -468,6 +583,9 @@ internal object BundleSourceWriter {
     private fun renderExpression(expression: BundleExpression): String = when (expression) {
 
         is BundleExpression.IntConstant -> expression.value.toString()
+        is BundleExpression.LongConstant -> "${expression.value}L"
+        is BundleExpression.FloatConstant -> "${expression.value}f"
+        is BundleExpression.DoubleConstant -> expression.value.toString()
 
         is BundleExpression.StringConstant -> kotlinStringLiteral(expression.value)
 

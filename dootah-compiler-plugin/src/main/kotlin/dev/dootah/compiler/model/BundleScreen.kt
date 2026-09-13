@@ -30,25 +30,21 @@ internal data class BundleScreen(
     val functions: List<BundleFunction>,
 
     /**
-     * Components kept native, named as the developer wrote them.
+     * What this screen needs the installed app to have.
      *
-     * Reported by the build. A component Dootah keeps native keeps working
-     * exactly as it did, but it will not change when a bundle is published, and
-     * a developer who edits one and sees nothing happen deserves to have been
-     * told which ones those are.
-     */
-    val nativeComponents: List<String>,
-
-    /**
-     * How many components of each shape the screen's source contains.
+     * The four together are the whole contract between a published bundle and
+     * an installed binary. The app generates them; a bundle may use any of them
+     * and nothing else; and a bundle that names one the binary has not got is
+     * refused when it is published rather than discovered as a gap on a device.
      *
-     * Sent with every render so the app can check the numbering still means what
-     * it meant when the APK was built. A component's name ends in its position
-     * among those sharing its shape, so removing one slides every later one down
-     * -- and the app, still registering all of them, would draw the wrong one
-     * under a name it recognises.
+     * They are also what the build reports, because a developer whose edit does
+     * nothing over the air deserves to know which parts of the screen the APK
+     * owns.
      */
-    val componentShapes: Map<String, Int>,
+    val adapters: List<String>,
+    val capabilities: List<BundleCapability>,
+    val handles: List<String>,
+    val resources: List<String>,
 )
 
 internal data class BundleParameter(
@@ -80,7 +76,10 @@ internal data class BundleFunction(
 internal enum class BundleType {
     INT,
     STRING,
-    BOOLEAN;
+    BOOLEAN,
+    LONG,
+    FLOAT,
+    DOUBLE;
 
     /** The Kotlin type name to emit in generated source. */
     val kotlinName: String
@@ -88,6 +87,9 @@ internal enum class BundleType {
             INT -> "Int"
             STRING -> "String"
             BOOLEAN -> "Boolean"
+            LONG -> "Long"
+            FLOAT -> "Float"
+            DOUBLE -> "Double"
         }
 
     /** The accessor suffix used by the bundle's argument and state stores. */
@@ -96,5 +98,8 @@ internal enum class BundleType {
             INT -> "int"
             STRING -> "string"
             BOOLEAN -> "boolean"
+            LONG -> "long"
+            FLOAT -> "float"
+            DOUBLE -> "double"
         }
 }

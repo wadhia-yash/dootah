@@ -35,6 +35,12 @@ class ScreenState {
 
     fun boolean(name: String): Boolean = read(name) as? Boolean ?: wrongType(name, "Boolean")
 
+    fun long(name: String): Long = read(name) as? Long ?: wrongType(name, "Long")
+
+    fun float(name: String): Float = read(name) as? Float ?: wrongType(name, "Float")
+
+    fun double(name: String): Double = read(name) as? Double ?: wrongType(name, "Double")
+
     fun setInt(name: String, value: Int) {
         values[name] = value
     }

@@ -55,6 +55,12 @@ class DootahArguments internal constructor(
         is String -> JsonPrimitive(value)
         is Int -> JsonPrimitive(value)
         is Boolean -> JsonPrimitive(value)
+        is Float -> JsonPrimitive(value)
+        is Double -> JsonPrimitive(value)
+
+        // As text. A bundle's numbers are JavaScript doubles, and a Long past
+        // 2^53 arrives with its low digits quietly gone.
+        is Long -> JsonPrimitive(value.toString())
 
         else -> {
             Log.e(

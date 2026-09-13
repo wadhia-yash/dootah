@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.fir.expressions.FirLiteralExpression
 import org.jetbrains.kotlin.fir.expressions.FirPropertyAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirReturnExpression
 import org.jetbrains.kotlin.fir.expressions.FirStringConcatenationCall
+import org.jetbrains.kotlin.fir.expressions.impl.FirUnitExpression
 import org.jetbrains.kotlin.fir.expressions.FirThisReceiverExpression
 import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
 import org.jetbrains.kotlin.fir.expressions.FirWhenExpression
@@ -40,9 +41,8 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.contracts.description.LogicOperationKind
+import org.jetbrains.kotlin.types.ConstantValueKind
 import org.jetbrains.kotlin.name.FqName
-import dev.dootah.compiler.ir.nativeSlotName
-import dev.dootah.compiler.ir.nativeSlotShape
 import java.util.IdentityHashMap
 
 /** The outcome of lowering one screen. */
@@ -99,27 +99,18 @@ internal class ScreenLowering(
     /** `when` subjects, which FIR stores in a synthetic variable. */
     private val subjects = mutableListOf<Pair<String, BundleExpression>>()
 
-    /** Components kept native, so the build can say what will not update. */
-    private val nativeSlots = linkedSetOf<String>()
-
     /**
-     * What each call in the body would be called if it became a native slot.
+     * Turns the composables Dootah does not describe into component instances.
      *
-     * Computed once, over the whole body, so that a component's name does not
-     * depend on which of its neighbours turned out to be slots.
+     * Holds what the screen ended up needing from the app -- which adapters,
+     * actions, values and resources -- which is what the app generates and what
+     * a published bundle is checked against.
      */
-    private var slotNames: Map<FirFunctionCall, String> = emptyMap()
-
-    /**
-     * How many components of each shape this screen's source contains.
-     *
-     * A component's name ends in its position among the components sharing its
-     * shape. Removing one slides every later one down, and the installed app --
-     * which still has all of them registered -- would draw the wrong component
-     * under a name it recognises, reporting nothing. The app compares these
-     * counts against its own before it draws.
-     */
-    private var componentShapes: Map<String, Int> = emptyMap()
+    private val components = ComponentLowering(
+        signature = signature,
+        reject = { offset, found, remedy -> reject(offset, found, remedy) },
+        lowerExpression = { expression -> lowerExpression(expression) },
+    )
 
     private val prelude = mutableListOf<BundleStatement>()
     private val actions = mutableListOf<BundleAction>()
@@ -142,10 +133,6 @@ internal class ScreenLowering(
             return LoweringResult.Rejected(reasons)
         }
 
-        val naming = body.nativeSlotNames()
-        slotNames = naming.names
-        componentShapes = naming.shapeCounts
-
         val ui = lowerBody(body)
 
         return if (reasons.isNotEmpty() || ui == null) LoweringResult.Rejected(reasons)
@@ -159,8 +146,10 @@ internal class ScreenLowering(
                 ui = ui,
                 actions = actions.toList(),
                 functions = functions.values.toList(),
-                nativeComponents = nativeSlots.toList(),
-                componentShapes = componentShapes,
+                adapters = components.requirements.adapters.toList(),
+                capabilities = components.requirements.capabilities.toList(),
+                handles = components.requirements.handles.toList(),
+                resources = components.requirements.resources.toList(),
             )
         )
     }
@@ -214,7 +203,7 @@ internal class ScreenLowering(
         if (type == null) {
             reject(
                 property.source?.startOffset,
-                "the local `$name`, which is not an Int, String or Boolean",
+                "the local `$name`, which is not a number, String or Boolean",
                 "Dootah bundles Int, String and Boolean locals. Keep other values " +
                     "native, and use them inside a component that stays native.",
             )
@@ -313,7 +302,7 @@ internal class ScreenLowering(
 
             SupportedCatalog.BUTTON -> lowerComponent(call) { lowerButton(call) }
 
-            else -> lowerNativeSlot(call)
+            else -> lowerNativeComponent(call)
         }
 
     /**
@@ -507,7 +496,7 @@ internal class ScreenLowering(
      * so closing over one is refused rather than silently producing a slot that
      * cannot be built.
      */
-    private fun lowerNativeSlot(call: FirFunctionCall): BundleUi? {
+    private fun lowerNativeComponent(call: FirFunctionCall): BundleUi? {
 
         val callable = call.resolvedCallableName()
         val shortName = callable?.shortName()?.asString() ?: "unknown"
@@ -526,40 +515,34 @@ internal class ScreenLowering(
             reject(
                 call.sourceOffset(),
                 "`$shortName()`, which reads the scope of the layout around it",
-                "A component Dootah keeps native is lifted out into its own " +
-                    "lambda, so it cannot read a `ColumnScope` or `RowScope` " +
-                    "from around it -- `weight` is the usual reason. Give it a " +
-                    "size instead, or keep this screen native.",
+                "A native component is placed from a standalone adapter, so it " +
+                    "cannot read a `ColumnScope` or `RowScope` from around it -- " +
+                    "`weight` is the usual reason. Give it a size instead, or " +
+                    "keep this screen native.",
             )
             return null
         }
 
-        val captured = call.declarationsReadFromBody()
+        return components.lower(call) { content -> lowerContent(content) }
+    }
 
-        if (captured.isNotEmpty()) {
-            reject(
-                call.sourceOffset(),
-                "`$shortName()`, which Dootah keeps native but which reads " +
-                    captured.joinToString(", ") { "`$it`" },
-                "A component Dootah keeps native cannot read a value the bundle " +
-                    "computes. Pass it in as a screen parameter, or build the " +
-                    "component out of Column, Row, Box, Text and Button.",
-            )
-            return null
-        }
+    /**
+     * Lowers the content a native component was given.
+     *
+     * Through the ordinary UI lowering, not through component lowering: the
+     * children of a native component need not themselves be native. An icon
+     * button's content is usually an `Icon`, which becomes a component in turn,
+     * but it may equally be a `Text` or a whole layout that Dootah describes and
+     * can therefore change over the air.
+     */
+    private fun lowerContent(content: FirAnonymousFunction): List<BundleUi>? {
 
-        val name = slotNames[call]
+        val mark = reasons.size
 
-        if (name == null) {
-            reject(call.sourceOffset(), "`$shortName()`, which Dootah could not name", "Simplify the call.")
-            return null
-        }
+        val children = content.body?.statements.orEmpty()
+            .flatMap { statement -> lowerUiStatement(statement) }
 
-        // Recorded under the name the app registers it by, so a developer
-        // reading the build output can match it against what a device reports.
-        nativeSlots += name
-
-        return BundleUi.NativeSlotUi(name)
+        return if (reasons.size > mark) null else children
     }
 
     /**
@@ -830,21 +813,42 @@ internal class ScreenLowering(
             }
         }
 
-    private fun lowerLiteral(literal: FirLiteralExpression): BundleExpression? =
-        when (val value = literal.value) {
-            is Int -> BundleExpression.IntConstant(value)
-            is Long -> BundleExpression.IntConstant(value.toInt())
-            is String -> BundleExpression.StringConstant(value)
-            is Boolean -> BundleExpression.BooleanConstant(value)
+    /**
+     * Reads a literal as the type it actually is.
+     *
+     * By its kind, not by the class of the boxed value: FIR stores every integer
+     * literal as a `Long` whatever its type, so `0` and `0L` are indistinguishable
+     * from the value alone -- and reading them that way turns every `Int` in a
+     * screen into a `Long`, which the generated bundle then fails to type-check
+     * against the app's own arguments.
+     */
+    private fun lowerLiteral(literal: FirLiteralExpression): BundleExpression? {
+
+        val value = literal.value
+
+        return when (literal.kind) {
+
+            ConstantValueKind.Int,
+            ConstantValueKind.IntegerLiteral,
+            -> BundleExpression.IntConstant((value as Number).toInt())
+
+            ConstantValueKind.Long -> BundleExpression.LongConstant((value as Number).toLong())
+            ConstantValueKind.Float -> BundleExpression.FloatConstant((value as Number).toFloat())
+            ConstantValueKind.Double -> BundleExpression.DoubleConstant((value as Number).toDouble())
+
+            ConstantValueKind.String -> BundleExpression.StringConstant(value as String)
+            ConstantValueKind.Boolean -> BundleExpression.BooleanConstant(value as Boolean)
+
             else -> {
                 reject(
                     literal.sourceOffset(),
                     "the literal `$value`",
-                    "Dootah bundles Int, String and Boolean literals.",
+                    "Dootah bundles numbers, String and Boolean literals.",
                 )
                 null
             }
         }
+    }
 
     private fun lowerReference(access: FirPropertyAccessExpression): BundleExpression? {
 
@@ -863,7 +867,7 @@ internal class ScreenLowering(
             reject(
                 access.sourceOffset(),
                 "`${parameter.name}`, which is ${parameter.typeName}",
-                "Dootah carries String, Int and Boolean values to a bundle. " +
+                "Dootah carries numbers, String and Boolean values to a bundle. " +
                     "`${parameter.name}` can still be used inside a component " +
                     "that stays native.",
             )
@@ -1128,7 +1132,7 @@ internal class ScreenLowering(
         val discarded = reasons.subList(mark, reasons.size).toList()
         while (reasons.size > mark) reasons.removeAt(reasons.lastIndex)
 
-        lowerNativeSlot(call)?.let { return it }
+        lowerNativeComponent(call)?.let { return it }
 
         reasons.addAll(mark, discarded)
 
@@ -1174,70 +1178,6 @@ internal class ScreenLowering(
     }
 }
 
-/**
- * Names every call in a screen body: what it is called, and which one it is.
- *
- * Must agree with the walk the app's own build does, because the two run over
- * two different versions of the source -- the one the APK was built from, and
- * the edited one a bundle is published from. Counting per callee name, over the
- * whole body, is what makes a name survive an edit somewhere else in the file.
- */
-private fun FirElement.nativeSlotNames(): SlotNaming {
-
-    val counts = mutableMapOf<String, Int>()
-    val composableShapes = mutableSetOf<String>()
-    val names = IdentityHashMap<FirFunctionCall, String>()
-
-    accept(object : org.jetbrains.kotlin.fir.visitors.FirVisitorVoid() {
-
-        override fun visitElement(element: FirElement) {
-
-            if (element is FirFunctionCall) {
-
-                val callee = element.calleeReference
-                    .toResolvedCallableSymbol()
-                    ?.callableId
-                    ?.callableName
-                    ?.asString()
-                    ?: UNNAMED_CALLEE
-
-                val shape = nativeSlotShape(
-                    callee = callee,
-                    argumentNames = element.resolvedArgumentMapping
-                        ?.values
-                        ?.map { parameter -> parameter.name.asString() }
-                        .orEmpty(),
-                )
-
-                val ordinal = counts.getOrElse(shape) { 0 }
-                counts[shape] = ordinal + 1
-                names[element] = nativeSlotName(shape, ordinal)
-
-                if (element.isComposable()) composableShapes += shape
-            }
-
-            element.acceptChildren(this)
-        }
-    })
-
-    return SlotNaming(names = names, shapeCounts = counts.filterKeys { it in composableShapes })
-}
-
-/**
- * What every call in a screen body would be called, and how many of each there
- * are.
- *
- * The counts cover components only. A call's ordinal is its position among the
- * calls sharing its shape, so the count is what tells the app whether that
- * numbering still means the same thing -- and the two passes walk slightly
- * different trees for everything that is not a component, which would otherwise
- * make the tables disagree for no reason.
- */
-private class SlotNaming(
-    val names: Map<FirFunctionCall, String>,
-    val shapeCounts: Map<String, Int>,
-)
-
 private fun FirFunctionCall.isComposable(): Boolean =
     calleeReference.toResolvedCallableSymbol()
         ?.resolvedAnnotationClassIds
@@ -1253,16 +1193,23 @@ private const val UNNAMED_CALLEE = "unknown"
  */
 internal fun FirElement.unwrapReturn(): FirElement? {
 
+    // An empty lambda is one synthetic Unit, usually inside the implicit
+    // return. It is a statement that does nothing, rather than a statement
+    // Dootah does not understand, and it carries the lambda's own source -- so
+    // the "no source means nothing was produced" rule below does not catch it.
+    if (this is FirUnitExpression) return null
+
     if (this !is FirReturnExpression) return this
 
     return when (val produced = result) {
+        is FirUnitExpression -> null
         is FirFunctionCall, is FirWhenExpression -> produced
         is FirLiteralExpression -> if (produced.value == null) null else produced
         else -> if (produced.source == null) null else produced
     }
 }
 
-private fun FirElement.sourceOffset(): Int? = source?.startOffset
+internal fun FirElement.sourceOffset(): Int? = source?.startOffset
 
 /**
  * Whether this branch is the `else`.

@@ -24,6 +24,15 @@ internal class ScreenBinding private constructor(
     val values: List<IrValueParameter>,
     val callbacks: List<IrValueParameter>,
     val modifier: IrValueParameter?,
+
+    /**
+     * The parameters Dootah cannot serialise, which a bundle may route into a
+     * native component by name.
+     *
+     * A view model, a list of domain objects, a `MutableState`. The bundle never
+     * holds one; it names one, and the app takes it out of this table.
+     */
+    val natives: List<IrValueParameter>,
 ) {
 
     val valueNames: String get() = values.joinToString(",") { it.name.asString() }
@@ -41,6 +50,11 @@ internal class ScreenBinding private constructor(
                 values = parameters.filter { it.type.isBundleValue() },
                 callbacks = parameters.filter { it.type.isNoArgumentUnitFunction() },
                 modifier = parameters.firstOrNull { it.type.classFqName == MODIFIER },
+                natives = parameters.filterNot { parameter ->
+                    parameter.type.isBundleValue() ||
+                        parameter.type.isNoArgumentUnitFunction() ||
+                        parameter.type.classFqName == MODIFIER
+                },
             )
         }
     }
@@ -75,4 +89,11 @@ private val MODIFIER = FqName("androidx.compose.ui.Modifier")
 private val FUNCTION_ZERO = FqName("kotlin.Function0")
 private val UNIT = FqName("kotlin.Unit")
 
-private val BUNDLE_VALUE_TYPES = setOf("kotlin.String", "kotlin.Int", "kotlin.Boolean")
+private val BUNDLE_VALUE_TYPES = setOf(
+    "kotlin.String",
+    "kotlin.Int",
+    "kotlin.Boolean",
+    "kotlin.Long",
+    "kotlin.Float",
+    "kotlin.Double",
+)

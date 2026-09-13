@@ -105,6 +105,9 @@ internal fun bundleTypeOf(type: ConeKotlinType?): BundleType? =
         "kotlin.Int" -> BundleType.INT
         "kotlin.String" -> BundleType.STRING
         "kotlin.Boolean" -> BundleType.BOOLEAN
+        "kotlin.Long" -> BundleType.LONG
+        "kotlin.Float" -> BundleType.FLOAT
+        "kotlin.Double" -> BundleType.DOUBLE
         else -> null
     }
 

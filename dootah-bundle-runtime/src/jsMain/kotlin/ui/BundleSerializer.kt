@@ -25,13 +25,73 @@ fun BundleNode.toJson(): String = when (this) {
             "\"action\":\"${action.escapeJson()}\"" +
             modifiersField(modifiers) + "}"
 
-    is NativeSlotNode ->
-        "{\"type\":\"native\",\"slot\":\"${slot.escapeJson()}\"}"
+    is ComponentNode ->
+        "{\"type\":\"component\",\"adapter\":\"${adapter.escapeJson()}\"" +
+            propsField(props) + slotsField(children) + "}"
 
     is FragmentNode ->
         "{\"type\":\"fragment\",\"children\":[" +
             children.joinToString(",") { it.toJson() } + "]}"
 }
+
+private fun propsField(props: Map<String, PropNode>): String =
+    if (props.isEmpty()) ""
+    else ",\"props\":{" + props.entries.joinToString(",") { (name, value) ->
+        "\"${name.escapeJson()}\":" + value.toJson()
+    } + "}"
+
+private fun slotsField(children: Map<String, List<BundleNode>>): String =
+    if (children.isEmpty()) ""
+    else ",\"slots\":{" + children.entries.joinToString(",") { (name, nodes) ->
+        "\"${name.escapeJson()}\":[" + nodes.joinToString(",") { it.toJson() } + "]"
+    } + "}"
+
+/**
+ * Renders one argument to a native component.
+ *
+ * Exhaustive with no `else`, on both sides of the wire: a kind added here and
+ * not in the app's parser would be refused there, and a kind the app knows and
+ * this does not could never be sent.
+ */
+private fun PropNode.toJson(): String = when (this) {
+
+    is NullProp -> "{\"k\":\"null\"}"
+    is BoolProp -> "{\"k\":\"bool\",\"v\":$value}"
+    is IntProp -> "{\"k\":\"int\",\"v\":$value}"
+    is LongProp -> "{\"k\":\"long\",\"v\":\"${value.escapeJson()}\"}"
+    is FloatProp -> "{\"k\":\"float\",\"v\":$value}"
+    is DoubleProp -> "{\"k\":\"double\",\"v\":$value}"
+    is StringProp -> "{\"k\":\"string\",\"v\":\"${value.escapeJson()}\"}"
+
+    is DpProp -> "{\"k\":\"dp\",\"v\":$value}"
+    is ColorProp -> "{\"k\":\"color\",\"v\":$argb}"
+    is ThemeColorProp -> "{\"k\":\"themeColor\",\"token\":\"${token.escapeJson()}\"}"
+    is ShapeProp -> "{\"k\":\"shape\",\"token\":\"${token.escapeJson()}\"}"
+
+    is PainterResourceProp -> "{\"k\":\"painterRes\",\"key\":\"${key.escapeJson()}\"}"
+    is StringResourceProp -> "{\"k\":\"stringRes\",\"key\":\"${key.escapeJson()}\"}"
+
+    is ModifierProp ->
+        "{\"k\":\"modifier\",\"ops\":[" +
+            operations.joinToString(",") { it.toJson() } + "]}"
+
+    is ListProp ->
+        "{\"k\":\"list\",\"items\":[" +
+            elements.joinToString(",") { it.toJson() } + "]}"
+
+    is HandleProp -> "{\"k\":\"handle\",\"name\":\"${name.escapeJson()}\"}"
+    is StateProp -> "{\"k\":\"state\",\"name\":\"${name.escapeJson()}\"}"
+
+    is CallbackProp ->
+        "{\"k\":\"callback\",\"id\":\"${id.escapeJson()}\",\"arity\":$arity}"
+}
+
+private fun ModifierOpNode.toJson(): String =
+    "{\"op\":\"${op.escapeJson()}\"" +
+        (if (arguments.isEmpty()) "" else ",\"args\":{" +
+            arguments.entries.joinToString(",") { (name, value) ->
+                "\"${name.escapeJson()}\":" + value.toJson()
+            } + "}") + "}"
 
 private fun container(
     type: String,

@@ -40,6 +40,39 @@ internal object SupportedCatalog {
     /** `Color(0xFF2196F3)`, the only colour form Dootah reads. */
     val COLOR_FUNCTION: FqName = FqName("androidx.compose.ui.graphics.Color")
 
+    /** `painterResource(R.drawable.x)` and `stringResource(R.string.x)`. */
+    val PAINTER_RESOURCE: FqName = FqName("androidx.compose.ui.res.painterResource")
+    val STRING_RESOURCE: FqName = FqName("androidx.compose.ui.res.stringResource")
+
+    /** `MaterialTheme.colorScheme.<token>`, resolved by the installed app. */
+    val MATERIAL_THEME: FqName = FqName("$MATERIAL.MaterialTheme")
+    val COLOR_SCHEME_PROPERTY: FqName = FqName("$MATERIAL.MaterialTheme.colorScheme")
+
+    val CIRCLE_SHAPE: FqName = FqName("androidx.compose.foundation.shape.CircleShape")
+    val RECTANGLE_SHAPE: FqName = FqName("androidx.compose.ui.graphics.RectangleShape")
+
+    /**
+     * `Color.White` and its siblings, which are compile-time constants Compose
+     * declares on the companion. Listed because FIR does not fold them, and a
+     * bundle has to carry the number rather than the name.
+     */
+    val NAMED_COLORS: Map<String, Long> = mapOf(
+        "Black" to 0xFF000000L,
+        "DarkGray" to 0xFF444444L,
+        "Gray" to 0xFF888888L,
+        "LightGray" to 0xFFCCCCCCL,
+        "White" to 0xFFFFFFFFL,
+        "Red" to 0xFFFF0000L,
+        "Green" to 0xFF00FF00L,
+        "Blue" to 0xFF0000FFL,
+        "Yellow" to 0xFFFFFF00L,
+        "Cyan" to 0xFF00FFFFL,
+        "Magenta" to 0xFFFF00FFL,
+        "Transparent" to 0x00000000L,
+    )
+
+    val COLOR_COMPANION: FqName = FqName("androidx.compose.ui.graphics.Color.Companion")
+
     val PADDING: FqName = FqName("$LAYOUT.padding")
     val FILL_MAX_WIDTH: FqName = FqName("$LAYOUT.fillMaxWidth")
     val FILL_MAX_HEIGHT: FqName = FqName("$LAYOUT.fillMaxHeight")

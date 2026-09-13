@@ -36,13 +36,23 @@ internal sealed interface BundleUi {
     ) : BundleUi
 
     /**
-     * A composable that stays in the APK, rendered where the bundle says.
+     * An instance of a native composable that shipped in the APK.
      *
      * How a screen keeps using components Dootah cannot describe -- an icon, a
      * themed text, an app's own card -- without Dootah having to reimplement
-     * them. The bundle carries the slot's identity and nothing else.
+     * them.
+     *
+     * The bundle carries which adapter to place and what to give it, which is
+     * what lets an update add, remove, reorder and repeat components freely. The
+     * app decides what an adapter is, and supplies everything a bundle is not
+     * allowed to name for itself: the objects behind the handles, the code
+     * behind the capabilities, the numbers behind the resource keys.
      */
-    data class NativeSlotUi(val slot: String) : BundleUi
+    data class ComponentUi(
+        val adapterId: String,
+        val props: Map<String, BundleProp> = emptyMap(),
+        val children: Map<String, List<BundleUi>> = emptyMap(),
+    ) : BundleUi
 
     /**
      * Several components in a row, with no layout around them.

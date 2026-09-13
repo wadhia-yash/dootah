@@ -48,12 +48,20 @@ data class FragmentNode(
 ) : BundleNode
 
 /**
- * A hole in the remote tree filled by a composable already inside the APK.
+ * An instance of a native composable that shipped in the APK.
  *
- * The bundle names a slot and nothing more. What it draws, and every value it
- * closes over, stay on the Android side, so a native component can appear inside
- * a remotely described screen without its arguments crossing the boundary.
+ * The bundle decides which adapter to place, how many, where, in what order, and
+ * what to give each one -- none of which the installed app has to have
+ * anticipated, because an adapter is a reusable entry point rather than a copy
+ * of one call. A bundle needs a new APK only when it names an adapter, an
+ * action, a value or a resource that binary genuinely does not contain.
+ *
+ * [children] is keyed by the parameter that takes the content, because a
+ * component may have more than one content slot and the bundle has to say which
+ * is which.
  */
-data class NativeSlotNode(
-    val slot: String,
+data class ComponentNode(
+    val adapter: String,
+    val props: Map<String, PropNode> = emptyMap(),
+    val children: Map<String, List<BundleNode>> = emptyMap(),
 ) : BundleNode

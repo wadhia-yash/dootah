@@ -58,7 +58,14 @@ private fun writeScreenMetadata(reportDirectory: File, screen: BundleScreen) {
         "parameters=${screen.parameters.joinToString(",") { it.name }}",
         "callbacks=${screen.callbacks.joinToString(",")}",
         "actions=${screen.actions.joinToString(",") { it.name }}",
-        "nativeComponents=${screen.nativeComponents.joinToString(", ")}",
+        // What the screen needs the installed app to have generated for it.
+        // Separated by "," and never by ", ": this file is read back by the
+        // build, and a space that crept into one of these once made every entry
+        // after the first fail to match.
+        "adapters=${screen.adapters.joinToString(",")}",
+        "capabilities=${screen.capabilities.joinToString(",") { it.id }}",
+        "handles=${screen.handles.joinToString(",")}",
+        "resources=${screen.resources.joinToString(",")}",
     )
 
     File(directory, "${sanitizeForIdentifier(screen.screenId)}.properties")

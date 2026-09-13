@@ -259,6 +259,14 @@ fun dootahResources(vararg resources: Pair<String, Int>): DootahResources =
 @DootahGeneratedApi
 fun dootahResource(key: String, id: Int): Pair<String, Int> = key to id
 
+@DootahGeneratedApi
+fun dootahBindings(
+    adapters: DootahAdapters,
+    capabilities: DootahCapabilities,
+    handles: DootahHandles,
+    resources: DootahResources,
+): DootahNativeBindings = DootahNativeBindings(adapters, capabilities, handles, resources)
+
 /**
  * Everything a screen lets a bundle reach, in one place.
  *

@@ -256,6 +256,43 @@ private fun composeStubs(): List<SourceFile> = listOf(
             class Color(val packed: ULong)
 
             fun Color(color: Long): Color = Color(color.toULong())
+
+            interface Shape
+
+            object RectangleShape : Shape
+        """.trimIndent(),
+    ),
+    SourceFile(
+        name = "ComposePainterStubs.kt",
+        contents = """
+            package androidx.compose.ui.graphics.painter
+
+            abstract class Painter
+        """.trimIndent(),
+    ),
+    SourceFile(
+        name = "ComposeShapeStubs.kt",
+        contents = """
+            package androidx.compose.foundation.shape
+
+            import androidx.compose.ui.graphics.Shape
+
+            object CircleShape : Shape
+        """.trimIndent(),
+    ),
+    SourceFile(
+        name = "ComposeResourceStubs.kt",
+        contents = """
+            package androidx.compose.ui.res
+
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.graphics.painter.Painter
+
+            @Composable
+            fun painterResource(id: Int): Painter = object : Painter() {}
+
+            @Composable
+            fun stringResource(id: Int): String = ""
         """.trimIndent(),
     ),
     SourceFile(
@@ -418,9 +455,43 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
 
+            import androidx.compose.ui.graphics.Color
+            import androidx.compose.ui.graphics.Shape
+            import androidx.compose.ui.graphics.painter.Painter
+            import androidx.compose.ui.unit.Dp
+
             class DootahArguments
             class DootahCallbacks
-            class DootahSlots
+
+            class DootahAdapter(val id: String)
+            class DootahAdapters
+            class DootahCapability(val id: String)
+            class DootahCapabilities
+            class DootahHandles
+            class DootahResources
+            class DootahNativeBindings
+
+            // The adapter surface. An adapter is given its arguments rather than
+            // capturing them, which is what lets one registration serve any
+            // number of instances.
+            class DootahProps {
+                fun string(name: String): String = ""
+                fun boolean(name: String): Boolean = false
+                fun int(name: String): Int = 0
+                fun long(name: String): Long = 0L
+                fun float(name: String): Float = 0f
+                fun double(name: String): Double = 0.0
+                fun modifier(name: String): Modifier = Modifier
+                fun color(name: String): Color = Color(0L)
+                fun dp(name: String): Dp = Dp(0f)
+                fun shape(name: String): Shape? = null
+                fun painter(name: String): Painter? = null
+                fun stringOrNull(name: String): String? = null
+                fun handle(name: String): Any? = null
+                fun callback(name: String): () -> Unit = {}
+                fun callback1(name: String): (Any?) -> Unit = {}
+                @Composable fun children(name: String) {}
+            }
 
             class DootahScreenState(val screenId: String)
 
@@ -438,18 +509,44 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
                 vararg callbacks: () -> Unit,
             ): DootahCallbacks = DootahCallbacks()
 
-            fun dootahSlots(
-                ids: String,
-                shapes: String,
-                vararg slots: @Composable () -> Unit,
-            ): DootahSlots = DootahSlots()
+            fun dootahAdapter(
+                id: String,
+                content: @Composable (DootahProps) -> Unit,
+            ): DootahAdapter = DootahAdapter(id)
+
+            fun dootahAdapters(vararg adapters: DootahAdapter): DootahAdapters = DootahAdapters()
+
+            fun dootahCapability(
+                id: String,
+                action: (List<Any?>) -> Unit,
+            ): DootahCapability = DootahCapability(id)
+
+            fun dootahCapabilities(
+                vararg capabilities: DootahCapability,
+            ): DootahCapabilities = DootahCapabilities()
+
+            fun dootahHandle(name: String, value: Any?): Pair<String, Any?> = name to value
+
+            fun dootahHandles(vararg handles: Pair<String, Any?>): DootahHandles = DootahHandles()
+
+            fun dootahResource(key: String, id: Int): Pair<String, Int> = key to id
+
+            fun dootahResources(vararg resources: Pair<String, Int>): DootahResources =
+                DootahResources()
+
+            fun dootahBindings(
+                adapters: DootahAdapters,
+                capabilities: DootahCapabilities,
+                handles: DootahHandles,
+                resources: DootahResources,
+            ): DootahNativeBindings = DootahNativeBindings()
 
             @Composable
             fun rememberDootahScreen(
                 screenId: String,
                 arguments: DootahArguments,
                 callbacks: DootahCallbacks,
-                slots: DootahSlots,
+                bindings: DootahNativeBindings,
             ): DootahScreenState = DootahScreenState(screenId)
 
             fun hasRemoteImplementation(state: DootahScreenState): Boolean = false
