@@ -26,6 +26,26 @@ tasks.register("publishDootahToMavenLocal") {
     )
 }
 
+/**
+ * Compiles the demo app, which is where Dootah's output meets real Compose.
+ *
+ * The compiler plugin's own tests attach the plugin to a compilation whose
+ * Compose declarations are hand-written stubs and whose Compose compiler is not
+ * running at all. They are fast and they check the contract between the two
+ * passes, but no failure in the Compose backend can appear in them -- and every
+ * one Dootah has had so far appeared only in an app build, as a stack trace
+ * inside the Compose compiler with no Dootah frame in it.
+ *
+ * `ToolboxRegressionScreen` exists to be compiled by this, and this exists so
+ * that compiling it is something you can ask for by name.
+ */
+tasks.register("dootahRealComposeCheck") {
+    group = "dootah"
+    description = "Compiles the regression screen against the real Compose compiler"
+
+    dependsOn(":app:compileDebugKotlin")
+}
+
 tasks.register<Copy>("buildBundle") {
     dependsOn(":dootah-bundle:jsBrowserProductionWebpack")
 
