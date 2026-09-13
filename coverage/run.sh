@@ -7,6 +7,9 @@ NAME=$2
 GP=$D/dootah-gradle-plugin/build/libs/dootah-gradle-plugin-0.1.0-SNAPSHOT.jar
 CP=$D/dootah-compiler-plugin/build/libs/dootah-compiler-plugin-0.1.0-SNAPSHOT.jar
 CT=$D/dootah-contract/build/libs/dootah-contract-0.1.0-SNAPSHOT.jar
+# Corpus apps pin their own toolchains; the JDK this repo builds with is newer
+# than some of them accept. DOOTAH_JDK overrides it per app.
+export JAVA_HOME=${DOOTAH_JDK:-/Users/yashwadhia/Library/Java/JavaVirtualMachines/ms-17.0.20.1/Contents/Home}
 
 cd $APP
 START=$(date +%s)

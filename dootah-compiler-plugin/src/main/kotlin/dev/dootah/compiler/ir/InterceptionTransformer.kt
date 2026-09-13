@@ -361,12 +361,14 @@ internal class InterceptionTransformer(
         composable: List<IrConstructorCall>,
     ): IrExpression {
 
-        val call = adapter.template.deepCopyWithSymbols(lambda)
-        val callee = call.symbol.owner
-
         // A frozen region is the code as written, and reading anything from the
         // bundle is exactly what it must not do.
-        if (adapter.frozen) return call
+        if (adapter.frozen) {
+            return (adapter.region ?: adapter.template).deepCopyWithSymbols(lambda)
+        }
+
+        val call = adapter.template.deepCopyWithSymbols(lambda)
+        val callee = call.symbol.owner
 
         callee.declaredParameters().forEach { parameter ->
 

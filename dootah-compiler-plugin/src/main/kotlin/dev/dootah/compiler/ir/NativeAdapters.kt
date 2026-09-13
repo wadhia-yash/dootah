@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrContainerExpression
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
@@ -86,6 +87,16 @@ internal data class NativeAdapter(
      * it appears and whether it appears at all.
      */
     val frozen: Boolean = false,
+
+    /**
+     * What the app actually draws for a frozen region.
+     *
+     * Usually the call itself. It is wider when the call cannot stand alone:
+     * Kotlin lowers a call with defaulted arguments into a block that hoists the
+     * arguments into temporaries first, and lifting the call out without them
+     * would leave it reading locals that no longer exist.
+     */
+    val region: IrExpression? = null,
 )
 
 /**
@@ -166,6 +177,13 @@ internal fun IrBody.nativeBindings(
             // and it can only choose what this pass has already registered.
             if (element is IrCall) element.recordFrozen(adapters, declaredInBody, sourceText)
 
+            // And for the block a defaulted call was lowered into, which is the
+            // same region written a different way.
+            if (element is IrContainerExpression) {
+                (element.statements.lastOrNull() as? IrCall)
+                    ?.recordFrozen(adapters, declaredInBody, sourceText, region = element)
+            }
+
             if (element is IrCall && element.isComponent(layouts, declaredInBody)) {
 
                 element.record(adapters, capabilities, resources, declaredInBody)
@@ -204,6 +222,7 @@ private fun IrCall.recordFrozen(
     adapters: MutableMap<String, NativeAdapter>,
     declaredInBody: BodyScope,
     sourceText: String,
+    region: IrExpression = this,
 ) {
 
     if (sourceText.isEmpty()) return
@@ -215,8 +234,15 @@ private fun IrCall.recordFrozen(
 
     val qualifiedName = callee.fqNameWhenAvailable?.asString() ?: return
 
-    if (readsOuter(declaredInBody, replaced = emptySet())) return
+    // Asked of the region, not of the call. A call with defaulted arguments is
+    // lowered into a block that hoists each argument into a temporary first, so
+    // the call reads locals that were written by the very thing being frozen.
+    // Freezing the block takes them with it; asking the call alone reported
+    // every styled `Text` in the corpus as reading something it declared itself.
+    if (region.readsOuter(declaredInBody, replaced = emptySet())) return
 
+    // Named from the call's own span even when the region is wider, because the
+    // extraction pass reads the source and sees the call the developer wrote.
     val text = sourceText.textOf(this) ?: return
     val id = FrozenRegionId.of(qualifiedName, text)
 
@@ -226,6 +252,7 @@ private fun IrCall.recordFrozen(
             template = this,
             suppliedParameters = emptySet(),
             frozen = true,
+            region = region,
         )
     }
 }
@@ -577,7 +604,7 @@ private fun IrCall.suppliedArgumentIndices(): Set<Int> =
  * reach the lifted copy.
  */
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-private fun IrCall.readsOuter(declaredInBody: BodyScope, replaced: Set<Int>): Boolean {
+private fun IrExpression.readsOuter(declaredInBody: BodyScope, replaced: Set<Int>): Boolean {
 
     val outer = declaredHere().let { own ->
         BodyScope(
@@ -586,7 +613,9 @@ private fun IrCall.readsOuter(declaredInBody: BodyScope, replaced: Set<Int>): Bo
         )
     }
 
-    val skipped = replaced.mapNotNullTo(mutableSetOf()) { index -> arguments.getOrNull(index) }
+    val skipped = (this as? IrCall)
+        ?.let { call -> replaced.mapNotNullTo(mutableSetOf()) { call.arguments.getOrNull(it) } }
+        .orEmpty()
 
     var readsOuter = false
 
