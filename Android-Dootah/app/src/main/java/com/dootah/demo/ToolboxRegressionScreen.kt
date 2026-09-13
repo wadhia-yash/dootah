@@ -23,7 +23,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dootah.R
-import dev.dootah.Bundlable
 
 /**
  * The shape of a real toolbox, built out of real Compose rather than stubs.
@@ -43,6 +42,10 @@ import dev.dootah.Bundlable
  * value from the component it is attached to, several instances of one
  * component, a component nested two levels deep, drawable and string resources,
  * and a themed colour chosen by a value the bundle computes.
+ *
+ * Nothing here is annotated. Dootah discovers both screens because of what they
+ * are -- ordinary composables returning Unit -- which is the only way a real app
+ * would ever be onboarded.
  */
 class ToolboxRegressionModel {
 
@@ -51,7 +54,6 @@ class ToolboxRegressionModel {
     fun setActive(active: Boolean) = Unit
 }
 
-@Bundlable
 @Composable
 fun ToolboxRegressionScreen(
     model: ToolboxRegressionModel,
@@ -130,7 +132,6 @@ fun RegressionMenu(
  * own callbacks directly rather than a lambda, and a component that *is* a
  * boundary sits between two that are not.
  */
-@Bundlable
 @Composable
 fun ControlStripRegressionScreen(
     model: ToolboxRegressionModel,

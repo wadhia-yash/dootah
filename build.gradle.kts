@@ -48,8 +48,31 @@ tasks.register("dootahRealComposeCheck") {
     val classes = layout.projectDirectory
         .dir("Android-Dootah/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")
     val screen = "com/dootah/demo/ToolboxRegressionScreenKt.class"
+    val source = layout.projectDirectory
+        .file("Android-Dootah/app/src/main/java/com/dootah/demo/ToolboxRegressionScreen.kt")
+    val report = layout.projectDirectory
+        .file("Android-Dootah/app/build/dootah/reports/dootah-ordering.txt")
 
     doLast {
+        // The screen is found because of what it is, not because anyone marked
+        // it. An annotation creeping back in here would make every assertion
+        // below pass for the wrong reason.
+        require(!source.asFile.readText().contains("@Bundlable")) {
+            "The regression screen must prove automatic discovery, so it carries " +
+                "no @Bundlable. Remove it, or this check no longer tests anything."
+        }
+
+        val discovered = report.asFile
+            .takeIf { it.exists() }
+            ?.readLines()
+            .orEmpty()
+            .filter { it.startsWith("intercepted=") }
+
+        require("intercepted=com.dootah.demo.ToolboxRegressionScreen" in discovered) {
+            "Dootah did not discover the regression screen on its own. Intercepted:\n" +
+                discovered.joinToString("\n")
+        }
+
         val compiled = classes.file(screen).asFile
 
         require(compiled.exists()) { "The regression screen was not compiled: $compiled" }

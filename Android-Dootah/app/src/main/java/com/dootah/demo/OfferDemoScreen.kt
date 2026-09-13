@@ -26,6 +26,7 @@ import com.dootah.UpdateResult
 import com.dootah.ui.DootahScreenState
 import com.dootah.ui.DootahBundleHost
 import com.dootah.ui.rememberDootahHostState
+import dev.dootah.DootahNative
 
 /**
  * The one isolated screen used to validate Dootah inside a real app.
@@ -34,7 +35,12 @@ import com.dootah.ui.rememberDootahHostState
  * required native fallback, and nothing else in the app aware that remote
  * content exists. The diagnostics panel is validation scaffolding and is
  * expected to be deleted afterwards.
+ *
+ * Kept out of automatic discovery because it drives the remote screen by hand,
+ * through the host API, against the same id its own name would produce. Letting
+ * discovery intercept it too would leave a screen that hosts itself.
  */
+@DootahNative
 @Composable
 fun OfferDemoScreen() {
 
