@@ -49,7 +49,29 @@ import org.jetbrains.kotlin.name.FqName
  */
 internal data class NativeAdapter(
     val id: String,
-    val callee: IrSimpleFunctionSymbol,
+
+    /**
+     * One of the calls the source wrote, used as the shape to build from.
+     *
+     * The adapter is a *copy of this call with its arguments replaced*, rather
+     * than a call built from nothing. Building one from nothing leaves the
+     * composable's defaulted parameters empty, and the Compose compiler then
+     * tries to evaluate a default like `IconButtonDefaults.iconButtonColors()`
+     * inside the adapter -- where it has no composer, and the build fails in the
+     * backend with `Unexpected null argument for composable call`.
+     *
+     * Copying keeps whatever the frontend set up for the defaults, which is the
+     * one arrangement Compose is guaranteed to understand.
+     */
+    val template: IrCall,
+
+    /**
+     * The arguments the adapter passes through, and therefore the ones a bundle
+     * may vary.
+     *
+     * Taken from whichever call supplies the most, because that call is the only
+     * one with an argument slot for each of them.
+     */
     val suppliedParameters: Set<String>,
 )
 
@@ -153,7 +175,7 @@ private fun IrCall.record(
     val callee = symbol.owner
     val qualifiedName = callee.fqNameWhenAvailable?.asString() ?: return
 
-    val declared = callee.parameters.filter { parameter -> parameter.kind == IrParameterKind.Regular }
+    val declared = callee.declaredParameters()
     val id = AdapterId.of(qualifiedName, declared.map { parameter -> parameter.name.asString() })
 
     val supplied = declared
@@ -163,11 +185,11 @@ private fun IrCall.record(
 
     val existing = adapters[id]
 
-    adapters[id] = NativeAdapter(
-        id = id,
-        callee = symbol,
-        suppliedParameters = supplied + existing?.suppliedParameters.orEmpty(),
-    )
+    // The call with the most arguments wins: it is the only one whose shape has
+    // somewhere to put each of them.
+    if (existing == null || supplied.size > existing.suppliedParameters.size) {
+        adapters[id] = NativeAdapter(id = id, template = this, suppliedParameters = supplied)
+    }
 
     for (parameter in declared) {
 
@@ -280,8 +302,7 @@ private fun IrElement.capabilityStatement(
         (argument as? IrGetValue)?.symbol?.owner?.name?.asString()
     }
 
-    val supplied = owner.parameters
-        .filter { parameter -> parameter.kind == IrParameterKind.Regular }
+    val supplied = owner.declaredParameters()
         .mapNotNull { parameter -> call.arguments.getOrNull(parameter.indexInParameters) }
 
     // `state.value = x` reaches IR as a call to the property's setter.
@@ -379,6 +400,23 @@ private fun IrElement.declarations(): Set<IrValueDeclaration> {
 
     return declared
 }
+
+/**
+ * The parameters a composable actually declares.
+ *
+ * Not the ones it ends up with. The Compose compiler adds `${'$'}composer` and
+ * `${'$'}changed` to every composable, and a declaration read from a dependency has
+ * already been through that -- while the same declaration read during analysis
+ * has not. Naming an adapter from the unfiltered list would give the app
+ * `Icon(${'$'}changed|${'$'}composer|painter|…)` and the bundle `Icon(painter|…)`, which
+ * is a disagreement with no symptom until a component is missing on a device.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+internal fun IrFunction.declaredParameters(): List<IrValueParameter> =
+    parameters.filter { parameter ->
+        parameter.kind == IrParameterKind.Regular &&
+            !parameter.name.asString().startsWith("$")
+    }
 
 private val IrValueParameter.indexInParameters: Int
     get() = (parent as IrFunction).parameters.indexOf(this)

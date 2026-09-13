@@ -5,6 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.Dp
 import com.dootah.DOOTAH_LOG_TAG
@@ -179,9 +182,21 @@ class DootahProps internal constructor(
 
     fun dp(name: String): Dp = of(name, Dp.Unspecified)
 
-    fun shape(name: String): Shape? = values[name] as? Shape
+    /**
+     * Non-null, with a fallback that draws nothing.
+     *
+     * A component's `painter` is usually declared non-null, so handing one a
+     * null would not compile into the adapter at all. A bundle that omits it
+     * gets an empty image rather than a crash, and the omission is caught when
+     * the bundle is published.
+     */
+    fun painter(name: String): Painter = values[name] as? Painter ?: EmptyPainter
 
-    fun painter(name: String): Painter? = values[name] as? Painter
+    fun shape(name: String): Shape = values[name] as? Shape ?: RectangleShape
+
+    fun painterOrNull(name: String): Painter? = values[name] as? Painter
+
+    fun shapeOrNull(name: String): Shape? = values[name] as? Shape
 
     /** A `String?` prop, where absent and explicitly null are the same answer. */
     fun stringOrNull(name: String): String? = values[name] as? String
@@ -227,6 +242,12 @@ class DootahProps internal constructor(
 
         return value
     }
+}
+
+/** Draws nothing, for a painter a bundle did not supply. */
+private object EmptyPainter : Painter() {
+    override val intrinsicSize: Size get() = Size.Unspecified
+    override fun DrawScope.onDraw() = Unit
 }
 
 @DootahGeneratedApi

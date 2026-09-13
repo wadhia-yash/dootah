@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeArgument
 import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.classFqName
+import org.jetbrains.kotlin.ir.types.isMarkedNullable
 import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.IrElement
@@ -262,6 +263,8 @@ internal class InterceptionTransformer(
             +placeComponent(lambda, props, adapter, composable)
         }
 
+        lambda.patchDeclarationParents(parent)
+
         return IrFunctionExpressionImpl(
             startOffset = UNDEFINED_OFFSET,
             endOffset = UNDEFINED_OFFSET,
@@ -271,25 +274,43 @@ internal class InterceptionTransformer(
         )
     }
 
+    /**
+     * Builds the call the adapter makes, as a copy of one the source wrote.
+     *
+     * Every argument the source supplied is replaced by a read from whatever the
+     * bundle sent; everything else -- the defaulted parameters a composable
+     * relies on -- is left exactly as the frontend arranged it.
+     *
+     * A copy rather than a fresh call, because a fresh one leaves those defaults
+     * empty and the Compose compiler then evaluates them inside this lambda,
+     * which has no composer to do it with. That failed in the backend with
+     * `Unexpected null argument for composable call`, on an icon button whose
+     * unsupplied `colors` default reads the Material theme.
+     */
+    @OptIn(UnsafeDuringIrConstructionAPI::class)
     private fun IrBuilderWithScope.placeComponent(
         lambda: IrSimpleFunction,
         props: IrValueParameter,
         adapter: NativeAdapter,
         composable: List<IrConstructorCall>,
-    ): IrExpression = irCall(adapter.callee).apply {
+    ): IrExpression {
 
-        val callee = adapter.callee.owner
+        val call = adapter.template.deepCopyWithSymbols(lambda)
+        val callee = call.symbol.owner
 
-        callee.parameters.forEachIndexed { index, parameter ->
+        callee.declaredParameters().forEach { parameter ->
 
-            if (parameter.kind != IrParameterKind.Regular) return@forEachIndexed
-
+            val index = callee.parameters.indexOf(parameter)
             val name = parameter.name.asString()
-            if (name !in adapter.suppliedParameters) return@forEachIndexed
 
-            arguments[index] = argumentFor(lambda, props, parameter, name, composable)
-                ?: return@forEachIndexed
+            if (name !in adapter.suppliedParameters) return@forEach
+            if (call.arguments.getOrNull(index) == null) return@forEach
+
+            call.arguments[index] =
+                argumentFor(lambda, props, parameter, name, composable) ?: return@forEach
         }
+
+        return call
     }
 
     /**
@@ -325,7 +346,12 @@ internal class InterceptionTransformer(
         }
 
         accessorFor(type)?.let { accessor ->
-            return readProp(props, accessor, name)
+            // A nullable parameter takes the accessor that can answer null, so
+            // an argument the bundle left out stays left out rather than
+            // becoming an empty string or a blank image.
+            val chosen = if (type.isMarkedNullable()) NULLABLE_ACCESSORS[accessor] ?: accessor
+            else accessor
+            return readProp(props, chosen, name)
         }
 
         val handle = readProp(props, HANDLE_ACCESSOR, name) ?: return null
@@ -672,6 +698,13 @@ internal class InterceptionTransformer(
          * a list of what a bundle may *describe*, not a list of what a component
          * may take.
          */
+        /** The accessor to use instead, when the parameter is nullable. */
+        val NULLABLE_ACCESSORS: Map<String, String> = mapOf(
+            "string" to "stringOrNull",
+            "painter" to "painterOrNull",
+            "shape" to "shapeOrNull",
+        )
+
         val ACCESSORS: Map<String, String> = mapOf(
             "kotlin.String" to "string",
             "kotlin.Int" to "int",

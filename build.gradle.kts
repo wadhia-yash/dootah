@@ -18,6 +18,7 @@ tasks.register("publishDootahToMavenLocal") {
 
     dependsOn(
         ":dootah-annotations:publishToMavenLocal",
+        ":dootah-contract:publishToMavenLocal",
         ":dootah-compiler-plugin:publishToMavenLocal",
         ":dootah-gradle-plugin:publishToMavenLocal",
         ":dootah-bundle-runtime:publishToMavenLocal",
