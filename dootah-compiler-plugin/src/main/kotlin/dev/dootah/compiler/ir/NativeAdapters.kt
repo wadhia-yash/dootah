@@ -139,7 +139,7 @@ internal fun IrBody.nativeBindings(layouts: Set<FqName>): NativeBindings {
     val capabilities = LinkedHashMap<String, NativeCapability>()
     val resources = LinkedHashMap<String, NativeResource>()
 
-    val declaredInBody = declarations()
+    val declaredInBody = declaredHere()
 
     acceptVoid(object : IrVisitorVoid() {
 
@@ -379,7 +379,7 @@ private fun IrElement.producesNothing(): Boolean {
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrCall.isComponent(
     layouts: Set<FqName>,
-    declaredInBody: Set<IrValueDeclaration>,
+    declaredInBody: BodyScope,
 ): Boolean {
 
     val callee = symbol.owner
@@ -393,13 +393,29 @@ private fun IrCall.isComponent(
 
     if ((callee.fqNameWhenAvailable ?: FqName.ROOT) in layouts) return false
 
-    val outer = declaredInBody - declarations()
+    val outer = declaredHere().let { own ->
+        BodyScope(
+            values = declaredInBody.values - own.values,
+            functions = declaredInBody.functions - own.functions,
+        )
+    }
 
     var readsOuter = false
 
     acceptVoid(object : IrVisitorVoid() {
         override fun visitElement(element: IrElement) {
-            if (element is IrGetValue && element.symbol.owner in outer) readsOuter = true
+
+            if (element is IrGetValue && element.symbol.owner in outer.values) {
+                readsOuter = true
+            }
+
+            // A read through something the body declared beside it. This is the
+            // only way the read is invisible above: the expression holds a call
+            // and never mentions the variable.
+            if (element is IrCall && element.symbol.owner in outer.functions) {
+                readsOuter = true
+            }
+
             element.acceptChildrenVoid(this)
         }
     })
@@ -408,25 +424,43 @@ private fun IrCall.isComponent(
 }
 
 /**
- * Everything declared inside this element, including the receiver a layout
- * hands its content.
+ * What a piece of a screen declares for itself.
  *
- * An adapter is lifted out into a standalone lambda, so a component that reads
- * one of these has nothing left to read.
+ * An adapter is lifted out of the body and into an argument evaluated before the
+ * body runs, so a component reading anything declared *in* the body has nothing
+ * left to read -- and the read is not a compile error but an assertion inside
+ * the JVM backend, thrown long after Dootah has finished and naming none of it.
  */
-private fun IrElement.declarations(): Set<IrValueDeclaration> {
+private class BodyScope(
+    val values: Set<IrValueDeclaration>,
+    val functions: Set<IrSimpleFunction>,
+)
 
-    val declared = mutableSetOf<IrValueDeclaration>()
+/**
+ * Everything declared inside this element, including the receiver a layout
+ * hands its content and the accessors behind a delegated local.
+ *
+ * The accessors matter because `var open by remember { mutableStateOf(false) }`
+ * is how most screens hold state, and reading `open` compiles to a call to a
+ * function the compiler generated beside it. A scan looking only for the
+ * variable sees a component that mentions nothing at all, lifts it out, and
+ * leaves a read of a local that does not exist yet.
+ */
+private fun IrElement.declaredHere(): BodyScope {
+
+    val values = mutableSetOf<IrValueDeclaration>()
+    val functions = mutableSetOf<IrSimpleFunction>()
 
     acceptVoid(object : IrVisitorVoid() {
         override fun visitElement(element: IrElement) {
-            if (element is IrVariable) declared += element
-            if (element is IrFunction) declared += element.parameters
+            if (element is IrVariable) values += element
+            if (element is IrFunction) values += element.parameters
+            if (element is IrSimpleFunction) functions += element
             element.acceptChildrenVoid(this)
         }
     })
 
-    return declared
+    return BodyScope(values = values, functions = functions)
 }
 
 /**

@@ -17,6 +17,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -141,14 +145,23 @@ fun ControlStripRegressionScreen(
 ) {
     var taps = 0
 
+    // How a real screen holds state. A read of `expanded` compiles to a call to
+    // an accessor the compiler generated beside it, so a component that reads
+    // it contains no mention of it at all -- and one lifted out into an adapter
+    // would read a local that does not exist yet, which the JVM backend refuses
+    // with an assertion naming nothing Dootah did.
+    var expanded by remember { mutableStateOf(false) }
+
     Column(modifier = modifier) {
         Text("History")
 
         ControlStripBody(model = model, onClear = onClear, isActive = isActive)
 
+        RegressionBadge(label = if (expanded) "expanded" else "collapsed")
+
         Text("Taps: $taps")
 
-        Button(onClick = { taps = taps + 1 }) {
+        Button(onClick = { taps = taps + 1; expanded = !expanded }) {
             Text("Count")
         }
 
@@ -188,4 +201,10 @@ fun ControlStripBody(
             contentDescription = stringResource(R.string.regression_brush),
         )
     }
+}
+
+/** A component whose only argument is read through a delegated local. */
+@Composable
+fun RegressionBadge(label: String) {
+    Text(label)
 }
