@@ -1,6 +1,7 @@
 package dev.dootah.compiler.ir
 
 import dev.dootah.compiler.DootahDiscovery
+import dev.dootah.contract.RuntimeVersion
 import dev.dootah.contract.ScreenFilter
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -79,7 +80,22 @@ internal class DootahIrExtension(
 
             val transformer = InterceptionTransformer(pluginContext, symbols, sourceText)
 
-            inFile.mapNotNull { screen -> transformer.transform(screen.function) }
+            val ids = inFile.mapNotNull { screen -> transformer.transform(screen.function) }
+
+            // Written as the screens are rewritten, so that what the app can be
+            // asked for is recorded by the build that produced the app rather
+            // than worked out again later from source that may have moved on.
+            reportDirectory?.let { directory ->
+                transformer.contracts.forEach { contract ->
+                    writeContractFragment(
+                        reportDirectory = directory,
+                        runtimeVersion = RuntimeVersion.CURRENT,
+                        screen = contract,
+                    )
+                }
+            }
+
+            ids
         }
 }
 

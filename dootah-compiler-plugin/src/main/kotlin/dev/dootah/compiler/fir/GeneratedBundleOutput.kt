@@ -4,6 +4,13 @@ import dev.dootah.compiler.generate.BundleSourceWriter
 import dev.dootah.compiler.generate.ScreenEntry
 import dev.dootah.compiler.generate.sanitizeForIdentifier
 import dev.dootah.compiler.model.BundleScreen
+import dev.dootah.compiler.model.BundleUi
+import dev.dootah.contract.AdapterUse
+import dev.dootah.contract.BundleRequirements
+import dev.dootah.contract.CapabilityContract
+import dev.dootah.contract.ContractJson
+import dev.dootah.contract.RuntimeVersion
+import dev.dootah.contract.ScreenRequirements
 import java.io.File
 
 /** Subdirectory of the report directory holding one file per lowered screen. */
@@ -11,6 +18,9 @@ internal const val SCREEN_METADATA_DIRECTORY = "screens"
 
 /** Subdirectory of the report directory holding one file per rejected screen. */
 internal const val UNSUPPORTED_DIRECTORY = "unsupported"
+
+/** Where the extraction pass leaves what each screen needs the app to have. */
+internal const val REQUIREMENTS_DIRECTORY = "requirements"
 
 /**
  * Where the regions a screen kept native are recorded.
@@ -48,6 +58,7 @@ internal fun writeGeneratedBundle(
         .writeText(BundleSourceWriter.writeScreen(screen))
 
     writeScreenMetadata(reportDirectory, screen)
+    writeRequirementsFragment(reportDirectory, screen)
     writeExports(generatedDirectory, reportDirectory)
 }
 
@@ -80,6 +91,74 @@ private fun writeScreenMetadata(reportDirectory: File, screen: BundleScreen) {
 
     File(directory, "${sanitizeForIdentifier(screen.screenId)}.properties")
         .writeText(lines.joinToString("\n", postfix = "\n"))
+}
+
+/**
+ * Records what this screen needs the installed app to have.
+ *
+ * The other half of the check that catches an edit the binary cannot carry. A
+ * tint added to an icon no call site ever tinted is a perfectly good bundle and
+ * a perfectly good app, and only these two files put side by side show that the
+ * one cannot ask the other for it.
+ *
+ * Which props each component is given is recorded per adapter, because that is
+ * the granularity the failure has: the component exists, the argument does not.
+ */
+private fun writeRequirementsFragment(reportDirectory: File, screen: BundleScreen) {
+
+    val directory = File(reportDirectory, REQUIREMENTS_DIRECTORY).apply { mkdirs() }
+
+    val requirements = BundleRequirements(
+        runtimeVersion = RuntimeVersion.CURRENT,
+        screens = listOf(
+            ScreenRequirements(
+                id = screen.screenId,
+                adapters = screen.propsByAdapter().map { (id, props) ->
+                    AdapterUse(id = id, props = props.sorted())
+                },
+                capabilities = screen.capabilities.map { capability ->
+                    CapabilityContract(id = capability.id, arity = capability.arity)
+                },
+                handles = screen.handles.sorted(),
+                resources = screen.resources.sorted(),
+            )
+        ),
+    )
+
+    File(directory, "${sanitizeForIdentifier(screen.screenId)}.json")
+        .writeText(ContractJson.write(requirements))
+}
+
+/** Every argument the screen gives each component, gathered across its tree. */
+private fun BundleScreen.propsByAdapter(): Map<String, Set<String>> {
+
+    val used = linkedMapOf<String, MutableSet<String>>()
+
+    fun walk(node: BundleUi) {
+        when (node) {
+            is BundleUi.ComponentUi -> {
+                used.getOrPut(node.adapterId) { linkedSetOf() } += node.props.keys
+                node.children.values.flatten().forEach(::walk)
+            }
+            is BundleUi.ConditionalUi -> {
+                node.ifTrue.forEach(::walk)
+                node.ifFalse.forEach(::walk)
+            }
+            is BundleUi.FragmentUi -> node.children.forEach(::walk)
+            is BundleUi.ColumnUi -> node.children.forEach(::walk)
+            is BundleUi.RowUi -> node.children.forEach(::walk)
+            is BundleUi.BoxUi -> node.children.forEach(::walk)
+            is BundleUi.TextUi, is BundleUi.ButtonUi -> Unit
+        }
+    }
+
+    walk(ui)
+
+    // A component the tree never places is still a component the app must have,
+    // so the adapters the screen recorded are the floor.
+    adapters.forEach { id -> used.getOrPut(id) { linkedSetOf() } }
+
+    return used
 }
 
 /**

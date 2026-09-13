@@ -110,6 +110,10 @@ internal class ComponentLowering(
 
     val requirements = ComponentRequirements()
 
+    private companion object {
+        const val UNNAMED = "unknown"
+    }
+
     /**
      * Lowers one call, with [lowerContent] used for any argument that is itself
      * composable content.
@@ -235,21 +239,54 @@ internal class ComponentLowering(
             }
         }
 
+        val type = parameter.returnTypeRef.coneTypeSafe<ConeKotlinType>()
+            ?.classId?.asSingleFqName()?.asString()
+
         reject(
             expression.sourceOffset(),
-            "`$shortName()`'s `${parameter.name.asString()}`, which Dootah cannot carry",
+            "`$shortName()`'s `${parameter.name.asString()}`" +
+                (type?.let { " (a $it)" } ?: "") +
+                ", which Dootah cannot work out",
             "A native component may be given a constant, a value this screen " +
                 "computes, one of the screen's own parameters, a resource or " +
                 "theme token, a modifier, or one of the screen's handlers. " +
                 "Anything else has to stay in a native screen.",
             RejectionCode.UNSUPPORTED_COMPONENT_ARGUMENT,
-            // The argument's own type, not the component's name: a hundred
-            // components refused for taking a `State` are one problem.
-            parameter.returnTypeRef.coneTypeSafe<ConeKotlinType>()
-                ?.classId?.asSingleFqName()?.asString(),
+            // What was written, not what the parameter is declared as. A
+            // hundred arguments refused for being `MaterialTheme.colorScheme
+            // .primary` are one problem; a hundred refused for "being a String"
+            // are a hundred puzzles, because String is a type Dootah carries and
+            // the type was never what stopped it.
+            expression.describe(type),
         )
 
         return null
+    }
+
+    /**
+     * Names an expression by what it is, for counting across apps.
+     *
+     * The argument's declared type is the last resort rather than the first,
+     * because it is the answer least likely to be the reason. It is the reason
+     * only when the expression is an ordinary read of an ordinary value -- a
+     * `Context`, a view model -- and then the type is exactly what to report.
+     */
+    private fun FirExpression.describe(type: String?): String = when (this) {
+
+        is FirFunctionCall ->
+            "call:" + (resolvedCallableName()?.asString() ?: UNNAMED)
+
+        is FirPropertyAccessExpression -> {
+            val name = calleeReference.toResolvedCallableSymbol()
+                ?.callableId?.asSingleFqName()?.asString()
+            if (name == null) "value:" + (type ?: UNNAMED) else "property:$name"
+        }
+
+        is FirWhenExpression -> "conditional"
+
+        is FirAnonymousFunctionExpression -> "lambda:" + (type ?: UNNAMED)
+
+        else -> "expression:" + (this::class.simpleName ?: UNNAMED)
     }
 
     /** The forms whose value is fixed the moment the screen is lowered. */

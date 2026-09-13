@@ -1,49 +1,45 @@
 {
   "app": "jetnews",
-  "modules": 1,
+  "modules": 2,
   "files": 55,
-  "lines": 7480,
+  "lines": 7489,
   "failed_modules": 1,
   "totals": {
     "composables": 92,
     "eligible": 57,
-    "fallback": 53,
+    "fallback": 30,
     "ineligible": 35,
     "ineligible:PREVIEW": 21,
+    "not_worth": 16,
+    "shape:described": 3,
+    "shape:placed": 20,
+    "shape:frozen": 11,
+    "shape:conditionals": 0,
+    "shape:actions": 0,
+    "shape:states": 0,
+    "mixed": 11,
     "ineligible:TAKES_COMPOSABLE_CONTENT": 7,
-    "ineligible:RETURNS_A_VALUE": 7,
-    "mixed": 4
+    "ineligible:RETURNS_A_VALUE": 7
   },
   "blocked_by": {
-    "collections/data classes": 16,
-    "third-party composable": 5,
-    "native capability": 5,
-    "unsupported Kotlin syntax": 11,
-    "Compose value type": 15,
-    "navigation": 1
+    "third-party composable": 11,
+    "Compose value type": 6,
+    "native local read remotely": 3,
+    "unsupported Kotlin syntax": 3,
+    "native capability": 4,
+    "callback argument type": 1,
+    "collections/data classes": 2
   },
   "occurrences": {
-    "collections/data classes": 30,
-    "callback argument type": 5,
-    "third-party composable": 12,
-    "Compose value type": 44,
-    "native capability": 5,
-    "unsupported Kotlin syntax": 30,
-    "navigation": 3
+    "third-party composable": 11,
+    "Compose value type": 7,
+    "native local read remotely": 3,
+    "collections/data classes": 4,
+    "unsupported Kotlin syntax": 3,
+    "native capability": 4,
+    "callback argument type": 1
   },
   "details": {
-    "collections/data classes": {
-      "android.content.Context": 6,
-      "kotlin.String": 6,
-      "androidx.glance.text.TextStyle": 2,
-      "androidx.glance.GlanceModifier": 2,
-      "com.example.jetnews.glance.ui.PostLayout": 2,
-      "androidx.glance.ImageProvider": 2
-    },
-    "callback argument type": {
-      "kotlin.Function0": 3,
-      "kotlin.Function1": 2
-    },
     "third-party composable": {
       "androidx.compose.foundation.lazy.LazyColumn": 2,
       "androidx.glance.layout.Column": 2,
@@ -53,27 +49,282 @@
       "androidx.glance.appwidget.lazy.LazyColumn": 1
     },
     "Compose value type": {
-      "androidx.compose.ui.text.TextStyle": 7,
-      "androidx.compose.ui.graphics.Color": 7,
-      "androidx.compose.ui.Modifier": 7,
-      "androidx.compose.ui.graphics.painter.Painter": 4,
-      "dp": 2,
-      "androidx.compose.ui.semantics.semantics": 2
+      "dp": 1,
+      "androidx.compose.ui.semantics.semantics": 1,
+      "androidx.compose.foundation.clickable": 1,
+      "androidx.compose.foundation.selection.toggleable": 1,
+      "Row.verticalAlignment": 1,
+      "androidx.compose.foundation.verticalScroll": 1
     },
-    "native capability": {
-      "kotlin.collections.forEach": 2,
-      "kotlin.collections.indexOfFirst": 1,
-      "kotlin.with": 1,
-      "kotlin.collections.forEachIndexed": 1
+    "native local read remotely": {
+      "native local:selectedTabIndex": 1,
+      "native local:showUnimplementedActionDialog": 1,
+      "native local:title": 1
+    },
+    "collections/data classes": {
+      "value:kotlin.Int": 1,
+      "value:kotlin.String": 1,
+      "com.example.jetnews.glance.ui.PostLayout": 1,
+      "value:com.example.jetnews.ui.home.HomeUiState": 1
     },
     "unsupported Kotlin syntax": {
       "FirPropertyImpl": 2,
       "FirSmartCastExpressionImpl": 1
     },
-    "navigation": {
-      "com.example.jetnews.ui.navigation.NavigationState": 1,
-      "com.example.jetnews.ui.navigation.Navigator": 1,
-      "com.example.jetnews.ui.navigation.ListDetailSceneStrategy": 1
+    "native capability": {
+      "call:com.example.jetnews.ui.modifiers.interceptKey": 1,
+      "kotlin.with": 1,
+      "kotlin.collections.forEachIndexed": 1,
+      "call:androidx.compose.ui.res.painterResource": 1
+    },
+    "callback argument type": {
+      "lambda:kotlin.Function0": 1
     }
-  }
+  },
+  "inside": {
+    "Compose value type": 3,
+    "native capability": 4,
+    "name from outside the screen": 5,
+    "unsupported Kotlin syntax": 2
+  },
+  "inside_details": {
+    "Compose value type": {
+      "property:com.example.jetnews.model.PostsFeed.highlightedPost": 1,
+      "dp": 1,
+      "Row.horizontalArrangement": 1
+    },
+    "native capability": {
+      "call:androidx.glance.text.TextStyle.copy": 2,
+      "call:androidx.glance.layout.height": 1,
+      "call:androidx.compose.foundation.clickable": 1
+    },
+    "name from outside the screen": {
+      "outside the screen:home_popular_section_title": 1,
+      "outside the screen:home_post_min_read": 1,
+      "outside the screen:post_functionality_not_available": 1,
+      "outside the screen:close": 1,
+      "outside the screen:home_top_section_title": 1
+    },
+    "unsupported Kotlin syntax": {
+      "expression:FirLiteralExpressionImpl": 1
+    }
+  },
+  "shapes": [
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 3,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 2,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    }
+  ]
 }

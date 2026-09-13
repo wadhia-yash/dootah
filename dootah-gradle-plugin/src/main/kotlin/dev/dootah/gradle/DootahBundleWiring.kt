@@ -1,6 +1,8 @@
 package dev.dootah.gradle
 
 import dev.dootah.gradle.tasks.DootahBundleTask
+import dev.dootah.gradle.tasks.DootahRecordContractTask
+import dev.dootah.gradle.tasks.DootahValidateBundleTask
 import org.gradle.api.Project
 
 private const val BUNDLE_RUNTIME_CONFIGURATION = "dootahBundleRuntime"
@@ -36,13 +38,41 @@ internal fun registerBundleTask(
 
     val extension = project.extensions.getByType(DootahExtension::class.java)
 
+    // Where the app's own compilation left its account of what it can be asked
+    // for, and where the developer keeps the copy that outlives this build.
+    val fragments = project.layout.buildDirectory.dir("dootah/reports/contract")
+    val recorded = project.layout.projectDirectory.file("dootah/contract.json")
+
+    project.tasks.register("dootahRecordContract", DootahRecordContractTask::class.java) { task ->
+        task.group = "dootah"
+        task.description = "Records what the app you are about to ship can be asked for"
+        task.fragmentsDirectory.set(fragments)
+        task.contractFile.set(recorded)
+    }
+
+    val validate = project.tasks.register(
+        "dootahValidateBundle",
+        DootahValidateBundleTask::class.java,
+    ) { task ->
+        task.group = "dootah"
+        task.description = "Checks this bundle against the app it will be delivered to"
+        task.dependsOn(extractTaskName)
+        task.requirementsDirectory.set(
+            project.layout.buildDirectory.dir("dootah/extract/requirements")
+        )
+        task.contractFile.set(recorded)
+        task.reportFile.set(project.layout.buildDirectory.file("dootah/contract-check.txt"))
+    }
+
     project.tasks.register("dootahBundle", DootahBundleTask::class.java) { task ->
 
         task.group = "dootah"
         task.description = "Builds the Dootah bundle from this app's Compose functions"
 
-        // Same build, so this ordering is guaranteed rather than hoped for.
-        task.dependsOn(extractTaskName)
+        // Through validation rather than straight to extraction, so that a
+        // bundle the installed app could not render is not something anyone has
+        // to remember to check for.
+        task.dependsOn(validate)
 
         task.generatedSourceDirectory.set(generatedSourceDirectory)
         task.kotlinCompilerClasspath.from(

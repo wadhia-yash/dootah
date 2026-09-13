@@ -11,6 +11,25 @@ import sys, os, glob, json, collections
 # first, then on the concrete type it named -- never on a component's name.
 def cause(code, detail):
     d = (detail or "")
+
+    # Diagnostics now name the expression that failed rather than the type of
+    # the parameter it was going into, so the buckets read the new shapes first.
+    if d.startswith("call:"):
+        return "native capability"
+    if d.startswith("property:"):
+        return "Compose value type"
+    if d.startswith("conditional") or d.startswith("expression:"):
+        return "unsupported Kotlin syntax"
+    if d.startswith("lambda:"):
+        return "callback argument type"
+    if d.startswith("read through a native value:"):
+        return "native value read remotely"
+    if d.startswith("native local:"):
+        return "native local read remotely"
+    if d.startswith("outside the screen:"):
+        return "name from outside the screen"
+    if d.startswith("value:"):
+        d = d[len("value:"):]
     if code in ("UNSUPPORTED_LOCAL_TYPE", "UNSUPPORTED_PARAMETER_TYPE",
                 "UNSUPPORTED_COMPONENT_ARGUMENT", "UNSUPPORTED_FUNCTION_PARAMETER",
                 "UNSUPPORTED_FUNCTION_RETURN"):
@@ -34,7 +53,8 @@ def cause(code, detail):
                 "LAYOUT_WITHOUT_CONTENT"):
         return "Compose value type"
     if code in ("UNRESOLVED_CALL", "UNREADABLE_COMPONENT_ARGUMENTS",
-                "CONTENT_NOT_A_LAMBDA", "COMPONENT_READS_SCOPE"):
+                "CONTENT_NOT_A_LAMBDA", "COMPONENT_READS_SCOPE",
+                "COMPONENT_READS_BODY", "UNREADABLE_REGION_SOURCE"):
         return "third-party composable"
     if code in ("UNSUPPORTED_CALL_IN_HANDLER", "UNSUPPORTED_CALL_IN_VALUE",
                 "UNSUPPORTED_CALL_IN_LAYOUT"):
@@ -51,10 +71,10 @@ def read_kv(path):
             out[k] = v
     return out
 
-def read_rejections(d):
-    """Rejections per function, in file order, so 'first reason' is stable."""
+def read_rejections(d, directory="unsupported"):
+    """Reasons per function, in file order, so 'first reason' is stable."""
     per = collections.defaultdict(list)
-    for f in sorted(glob.glob(os.path.join(d, "unsupported", "*.txt"))):
+    for f in sorted(glob.glob(os.path.join(d, directory, "*.txt"))):
         cur = {}
         for line in open(f, errors="replace").read().splitlines():
             if line == "--":
@@ -71,6 +91,9 @@ def scan(app, dirs):
     blocked_by = collections.Counter()      # screens, first reason only
     occurrences = collections.Counter()
     details = collections.defaultdict(collections.Counter)
+    inside = collections.Counter()
+    inside_details = collections.defaultdict(collections.Counter)
+    shapes = []
     modules = 0
     files = lines = 0
     failed_modules = 0
@@ -86,6 +109,7 @@ def scan(app, dirs):
                 failed_modules += 1
 
         rej = read_rejections(d)
+        deg = read_rejections(d, "degraded")
 
         for f in glob.glob(os.path.join(d, "discovery", "*.txt")):
             r = read_kv(f)
@@ -97,11 +121,28 @@ def scan(app, dirs):
                 total["ineligible:" + r.get("reason", "?")] += 1
                 continue
             total["eligible"] += 1
+            shape = {k: int(r.get(k, 0) or 0) for k in
+                     ("described", "placed", "frozen", "conditionals", "actions", "states")}
             if outcome == "LOWERED":
-                if int(r.get("adapters", 0) or 0) > 0:
-                    total["mixed"] += 1
-                else:
+                # What the bundle decides, which is the thing worth counting now
+                # that a screen almost always lowers to something.
+                for k, v in shape.items():
+                    total["shape:" + k] += v
+                shapes.append(shape)
+                if shape["placed"] == 0 and shape["frozen"] == 0:
                     total["remote"] += 1
+                else:
+                    total["mixed"] += 1
+                # Blockers inside a screen that still updates: these are the
+                # ones worth fixing next, and they were invisible before.
+                for x in deg.get(fq, []):
+                    c = cause(x.get("code", "UNKNOWN"), x.get("detail"))
+                    inside[c] += 1
+                    if x.get("detail"):
+                        inside_details[c][x["detail"]] += 1
+            elif outcome == "NOT_WORTH_SHIPPING":
+                total["not_worth"] += 1
+                shapes.append(shape)
             else:
                 total["fallback"] += 1
                 reasons = rej.get(fq, [])
@@ -118,7 +159,10 @@ def scan(app, dirs):
     return dict(app=app, modules=modules, files=files, lines=lines,
                 failed_modules=failed_modules, totals=dict(total),
                 blocked_by=dict(blocked_by), occurrences=dict(occurrences),
-                details={k: dict(v.most_common(6)) for k, v in details.items()})
+                details={k: dict(v.most_common(6)) for k, v in details.items()},
+                inside=dict(inside),
+                inside_details={k: dict(v.most_common(6)) for k, v in inside_details.items()},
+                shapes=shapes)
 
 if __name__ == "__main__":
     app = sys.argv[1]

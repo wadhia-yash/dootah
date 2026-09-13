@@ -372,7 +372,9 @@ internal class ScreenLowering(
                 property.source?.startOffset,
                 "the value of the local `$name`",
                 code = RejectionCode.UNREADABLE_LOCAL_INITIALIZER,
-                detail = name,
+                detail = (initializer as? FirFunctionCall)
+                    ?.resolvedCallableName()?.asString()
+                    ?.let { callee -> "call:$callee" },
                 remedy = "The local stays on the Android side, and so does anything " +
                     "that reads it.",
             )
@@ -1197,10 +1199,41 @@ internal class ScreenLowering(
             return null
         }
 
+        // Reading through something the screen holds natively. `note.title` is
+        // not a name Dootah is missing, it is a field of an object it never
+        // has, and reporting the field name alone sends a developer looking for
+        // the wrong thing.
+        val receiver = (access.explicitReceiver as? FirPropertyAccessExpression)?.resolvedName()
+
+        if (receiver != null && (receiver in nativeOnlyParameters || receiver in nativeOnlyLocals)) {
+            reject(
+                access.sourceOffset(),
+                "`$receiver.${name ?: "?"}`, read from something this screen holds natively",
+                code = RejectionCode.UNKNOWN_REFERENCE,
+                detail = "read through a native value:" +
+                    (nativeOnlyParameters[receiver]?.typeName ?: receiver),
+                remedy = "A bundled screen may read its own parameters and the values it " +
+                    "declares. `$receiver` stays native, and so does anything read from it.",
+            )
+            return null
+        }
+
         reject(
             access.sourceOffset(),
-            "the reference `${name ?: "unknown"}`",
+            if (name != null && name in nativeOnlyLocals) {
+                "the reference `$name`, which this screen holds natively"
+            } else {
+                "the reference `${name ?: "unknown"}`"
+            },
             code = RejectionCode.UNKNOWN_REFERENCE,
+            // Whether the name is one the screen declared natively or one from
+            // outside it altogether. They look identical in a build log and they
+            // are completely different problems.
+            detail = when {
+                name == null -> null
+                name in nativeOnlyLocals -> "native local:$name"
+                else -> "outside the screen:$name"
+            },
             remedy = "A bundled screen may read its own parameters and the values it " +
                 "declares. Everything else stays native.",
         )

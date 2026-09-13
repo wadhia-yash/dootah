@@ -909,14 +909,19 @@ class ScreenLoweringTest {
     @Test
     fun `refuses a value of a type it cannot carry`() {
 
-        val rejection = reject(
+        // The local is held natively and nothing else changes. It used to refuse
+        // the screen outright, which on real apps was the single largest reason
+        // a screen could not be published -- a coroutine scope or a view model
+        // most of the screen never read.
+        val (generated, kept) = keptNative(
             screen(
                 body = """Text("x")""",
                 prelude = "val at = 'x'",
             )
         )
 
-        assertTrue(rejection, rejection.contains("not a number, String or Boolean"))
+        assertTrue(generated, generated.contains("TextNode"))
+        assertTrue(kept, kept.contains("not a number, String or Boolean"))
     }
 
     @Test
@@ -925,12 +930,13 @@ class ScreenLoweringTest {
         // A `Note` is not a value a bundle can carry, and neither is anything
         // computed from one. Nothing is lost: the Text still renders, with the
         // value its caller passed. It simply is not part of what can change.
-        val rejection = reject(
+        val (generated, kept) = keptNative(
             SourceFile(
                 name = "Screen.kt",
                 contents = """
                     package com.example
 
+                    import androidx.compose.foundation.layout.Column
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
                     import dev.dootah.Bundlable
@@ -940,24 +946,34 @@ class ScreenLoweringTest {
                     @Bundlable
                     @Composable
                     fun Screen(note: Note) {
-                        Text("Title: " + note.title)
+                        Column {
+                            Text("Title: " + note.title)
+                            Text("always here")
+                        }
                     }
                 """.trimIndent(),
             )
         )
 
-        assertTrue(rejection, rejection.contains("which Dootah cannot carry"))
+        // The first Text keeps rendering the value its caller passed, as native
+        // code. The second is still the bundle's, and so is the Column -- which
+        // is what stops one unreachable value from costing the whole screen.
+        assertTrue(generated, generated.contains("ColumnNode("))
+        assertTrue(generated, generated.contains("""TextNode("always here")"""))
+        assertTrue(generated, generated.contains("adapter = \""))
+        assertTrue(kept, kept.contains("read from something this screen holds natively"))
     }
 
     @Test
     fun `refuses computing with a parameter it cannot carry`() {
 
-        val rejection = reject(
+        val (generated, kept) = keptNative(
             SourceFile(
                 name = "Screen.kt",
                 contents = """
                     package com.example
 
+                    import androidx.compose.foundation.layout.Column
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
                     import dev.dootah.Bundlable
@@ -967,27 +983,41 @@ class ScreenLoweringTest {
                     @Bundlable
                     @Composable
                     fun Screen(note: Note) {
-                        Text("Note: " + note)
+                        Column {
+                            Text("Note: " + note)
+                            Text("always here")
+                        }
                     }
                 """.trimIndent(),
             )
         )
 
-        assertTrue(rejection, rejection.contains("`note`"))
-        assertTrue(rejection, rejection.contains("can still be used inside a component"))
+        assertTrue(generated, generated.contains("ColumnNode("))
+        assertTrue(generated, generated.contains("""TextNode("always here")"""))
+        assertTrue(kept, kept.contains("`note`"))
     }
 
     @Test
     fun `refuses a layout argument it does not bundle`() {
 
-        val rejection = reject(
+        // The arrangement is not describable, so the Column stops being a layout
+        // the bundle arranges and becomes a region the app draws as written. The
+        // screen still publishes; that one Column is simply not what an update
+        // can change.
+        val (generated, kept) = keptNative(
             screen(
                 body = """Text("x")""",
                 columnModifier = "verticalArrangement = 2",
             )
         )
 
-        assertTrue(rejection, rejection.contains("Alignment and arrangement are not bundled"))
+        // The Column stops being a layout the bundle arranges and becomes a
+        // component it places -- and its children stay remote, which is the
+        // whole point: the arrangement is native, the content is not.
+        assertTrue(generated, generated.contains("adapter = \"androidx.compose.foundation.layout.Column"))
+        assertTrue(generated, generated.contains("""TextNode("x")"""))
+        assertTrue(kept, kept.contains("Alignment and arrangement are not bundled"))
+        assertTrue(kept, kept.contains("a component the bundle places"))
     }
 
     @Test
@@ -1068,36 +1098,98 @@ class ScreenLoweringTest {
         assertTrue(rejection, rejection.contains("only through the screen's own callback"))
     }
 
+
+    // ---- worth shipping -------------------------------------------------
+
+    /**
+     * A screen that lowered to nothing but a copy of itself.
+     *
+     * Partial lowering means almost anything comes out of lowering as
+     * *something*, and the something can be a single region kept exactly as
+     * written. Publishing that costs a download and a risk and changes nothing
+     * anyone can see, so it is refused -- and refused as its own outcome, not as
+     * a failure, because there is nothing wrong with the screen.
+     */
     @Test
-    fun `refuses a composable that only shares a name with a supported one`() {
+    fun `refuses to publish a screen that is one native region and nothing else`() {
 
-        val rejection = reject(
-            SourceFile(
-                name = "Screen.kt",
-                contents = """
-                    package com.example
+        val result = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(
+                SourceFile(
+                    name = "Screen.kt",
+                    contents = """
+                        package com.example
 
-                    import androidx.compose.foundation.layout.Column
-                    import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
+                        import androidx.compose.foundation.layout.Column
+                        import androidx.compose.runtime.Composable
+                        import dev.dootah.Bundlable
 
-                    // Not Compose's Text. Resolving by name alone would bundle
-                    // this as though it were, which is why the plugin matches on
-                    // the resolved symbol.
-                    fun Text(text: String) {}
+                        // Not Compose's Text. Resolving by name alone would
+                        // bundle this as though it were, which is why the plugin
+                        // matches on the resolved symbol.
+                        fun Text(text: String) {}
 
-                    @Bundlable
-                    @Composable
-                    fun Screen() {
-                        Column {
-                            Text("looks familiar")
+                        @Bundlable
+                        @Composable
+                        fun Screen() {
+                            Column {
+                                Text("not Compose's Text")
+                            }
                         }
-                    }
-                """.trimIndent(),
-            )
+                    """.trimIndent(),
+                )
+            ),
+            mode = "extract",
         )
 
-        assertTrue(rejection, rejection.contains("A layout may contain components"))
+        assertTrue("compilation failed: ${result.messages}", result.succeeded)
+
+        assertEquals("NOT_WORTH_SHIPPING", result.discoveryOutcomes()["com.example.Screen"])
+
+        assertTrue(
+            "a screen worth nothing was still generated",
+            result.generatedSources().keys.none { it.startsWith("DootahScreen_") },
+        )
+    }
+
+    /** One describable node is enough, however much of the rest is native. */
+    @Test
+    fun `publishes a screen with a single describable node among native ones`() {
+
+        val result = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(
+                SourceFile(
+                    name = "Screen.kt",
+                    contents = """
+                        package com.example
+
+                        import androidx.compose.foundation.layout.Column
+                        import androidx.compose.material3.Text
+                        import androidx.compose.runtime.Composable
+                        import dev.dootah.Bundlable
+
+                        @Composable
+                        fun Card(label: String) {}
+
+                        @Bundlable
+                        @Composable
+                        fun Screen() {
+                            Column {
+                                Card(label = "one")
+                                Text("two")
+                            }
+                        }
+                    """.trimIndent(),
+                )
+            ),
+            mode = "extract",
+        )
+
+        assertTrue("compilation failed: ${result.messages}", result.succeeded)
+
+        assertEquals("LOWERED", result.discoveryOutcomes()["com.example.Screen"])
     }
 
     // ---- fixtures -------------------------------------------------------
@@ -1117,6 +1209,32 @@ class ScreenLoweringTest {
         }) {
             "nothing was generated. The screen was refused:\n${result.rejectionReport()}"
         }.value
+    }
+
+    /**
+     * Lowers a screen and returns what it had to keep native.
+     *
+     * The shape most of these tests take now. Before partial lowering the
+     * question was "was the screen refused"; the question worth asking is "which
+     * part of it stopped being updatable, and did the rest survive".
+     */
+    private fun keptNative(source: SourceFile): Pair<String, String> {
+
+        val result = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(source),
+            mode = "extract",
+        )
+
+        assertTrue("compilation failed: ${result.messages}", result.succeeded)
+
+        val generated = requireNotNull(result.generatedSources().entries.firstOrNull {
+            it.key.startsWith("DootahScreen_")
+        }) {
+            "nothing was generated. The screen was refused:\n${result.rejectionReport()}"
+        }.value
+
+        return generated to result.degradationReport().orEmpty()
     }
 
     private fun reject(source: SourceFile): String {

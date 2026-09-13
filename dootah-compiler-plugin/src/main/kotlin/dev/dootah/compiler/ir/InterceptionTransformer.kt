@@ -1,6 +1,9 @@
 package dev.dootah.compiler.ir
 
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
+import dev.dootah.contract.AdapterContract
+import dev.dootah.contract.CapabilityContract
+import dev.dootah.contract.ScreenContract
 import dev.dootah.compiler.LAYOUT_COMPOSABLES
 import dev.dootah.compiler.identity.dootahScreenId
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -90,6 +93,9 @@ internal class InterceptionTransformer(
     private val sourceText: String = "",
 ) {
 
+    /** What each rewritten screen can be asked for, in the order they were done. */
+    val contracts = mutableListOf<ScreenContract>()
+
     /** The identity of the function rewritten, for reporting. */
     fun transform(function: IrSimpleFunction): String? {
 
@@ -106,6 +112,25 @@ internal class InterceptionTransformer(
         // components.
         val native = if (composable.isEmpty()) NativeBindings(emptyList(), emptyList(), emptyList())
         else originalBody.nativeBindings(LAYOUT_COMPOSABLES, sourceText)
+
+        // Recorded here rather than worked out again later, because this is the
+        // only place that knows both what the app registered and what it called
+        // the things it registered. A bundle is checked against this before it
+        // is allowed to publish.
+        contracts += ScreenContract(
+            id = screenId,
+            adapters = native.adapters.map { adapter ->
+                AdapterContract(
+                    id = adapter.id,
+                    supportedProps = adapter.suppliedParameters.sorted(),
+                )
+            },
+            capabilities = native.capabilities.map { capability ->
+                CapabilityContract(id = capability.id, arity = capability.arity)
+            },
+            handles = binding.natives.map { native -> native.name.asString() }.sorted(),
+            resources = native.resources.map { resource -> resource.key }.sorted(),
+        )
 
         val builder = DeclarationIrBuilder(pluginContext, function.symbol)
         val unitType = pluginContext.irBuiltIns.unitType

@@ -92,6 +92,43 @@ class CompilationResult(
             ?.singleOrNull()
             ?.readText()
 
+    /**
+     * What a lowered screen kept native, as the build would report it.
+     *
+     * The counterpart to [rejectionReport]. A screen that lowered with a region
+     * kept native produces no rejection at all, so asserting on the absence of
+     * one would pass for a screen that had no such region either.
+     */
+    fun degradationReport(): String? =
+        File(reportDirectory, "degraded")
+            .takeIf { it.isDirectory }
+            ?.listFiles()
+            ?.singleOrNull()
+            ?.readText()
+
+    /**
+     * What the build decided about each screen it looked at, by name.
+     *
+     * Read from the same records the coverage tooling reads, so a test asserting
+     * an outcome is asserting the thing the corpus figures are counted from.
+     */
+    fun discoveryOutcomes(): Map<String, String> =
+        File(reportDirectory, "discovery")
+            .takeIf { it.isDirectory }
+            ?.listFiles()
+            .orEmpty()
+            .mapNotNull { file ->
+                val fields = file.readLines()
+                    .mapNotNull { line -> line.split("=", limit = 2).takeIf { it.size == 2 } }
+                    .associate { (key, value) -> key to value }
+                val name = fields["fqName"] ?: return@mapNotNull null
+                // The fixtures' own declarations only. Every composable in the
+                // Compose stubs is recorded too, and none of them is what a test
+                // is asserting about.
+                name.takeIf { it.startsWith("com.example.") }?.to(fields.getValue("outcome"))
+            }
+            .toMap()
+
     fun messagesContaining(fragment: String): List<String> =
         messages.filter { it.contains(fragment) }
 
