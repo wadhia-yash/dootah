@@ -40,6 +40,10 @@ dependencies {
     // Modifier, and the composable lambdas a generated call site passes in. A
     // host app already has both, but a consumer should not have to know that to
     // compile against this.
+    // `api`: the contract's value model appears in this module's own node types,
+    // and it is the same agreement the compiler that produced the bundle used.
+    api(project(":dootah-contract"))
+
     api(platform(libs.androidx.compose.bom))
     api(libs.androidx.compose.ui)
     api(libs.androidx.compose.runtime)

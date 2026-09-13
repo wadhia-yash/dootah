@@ -1,5 +1,7 @@
 package com.dootah.ui
 
+import dev.dootah.contract.PropValue
+
 /**
  * The UI a bundle may describe, as the app understands it.
  *
@@ -54,14 +56,22 @@ sealed interface BundleUiNode {
     ) : BundleUiNode
 
     /**
-     * A composable that shipped in the APK, named by slot.
+     * An instance of a native composable that shipped in the APK.
      *
-     * The bundle decides where it goes; the app decides what it is. Nothing
-     * about the component -- not its arguments, not its identity beyond this
-     * slot name -- comes from the bundle.
+     * The bundle chooses which adapter to place, how many of them, where, in
+     * what order, and what to give each one. The app decides what an adapter
+     * *is*, and supplies everything a bundle is not allowed to name for itself:
+     * the objects behind the handles, the code behind the capabilities, the
+     * numbers behind the resource keys.
+     *
+     * Children are keyed by the adapter parameter that takes them, because a
+     * component may have more than one content slot and the bundle has to say
+     * which is which.
      */
-    data class NativeSlot(
-        val slot: String,
+    data class Component(
+        val adapterId: String,
+        val props: Map<String, PropValue> = emptyMap(),
+        val children: Map<String, List<BundleUiNode>> = emptyMap(),
     ) : BundleUiNode
 }
 
@@ -102,18 +112,83 @@ sealed interface BundleUiModifier {
 }
 
 /**
- * Every native component this tree asks the app to draw.
+ * Everything this tree needs the installed app to already have.
  *
- * Exhaustive on purpose, with no `else`. This is what the app checks a bundle
- * against before it draws anything, so a node type that held children and was
- * not listed here would report no components beneath it -- and the one guard
- * between a bundle built against a different APK and a hole in a shipped screen
- * would pass without looking. Adding a node type has to stop compiling here.
+ * Collected before anything is drawn, and compared against what this build
+ * registered. A bundle is refused for exactly one reason: it needs native code,
+ * an action, an object or a resource that this APK genuinely does not contain.
+ * Rearranging components, dropping one, repeating one or changing what one is
+ * given are not reasons -- they are the point.
+ *
+ * Exhaustive on purpose, with no `else`. A node type that held children and was
+ * not listed here would report nothing beneath it, and the check between a
+ * bundle built against a different APK and a hole in a shipped screen would pass
+ * without looking. Adding a node type has to stop compiling here.
  */
-fun BundleUiNode.nativeSlots(): List<String> = when (this) {
-    is BundleUiNode.Container -> children.flatMap { child -> child.nativeSlots() }
-    is BundleUiNode.NativeSlot -> listOf(slot)
-    is BundleUiNode.Fragment -> children.flatMap { child -> child.nativeSlots() }
-    is BundleUiNode.Text -> emptyList()
-    is BundleUiNode.Button -> emptyList()
+fun BundleUiNode.requirements(): BundleRequirements = when (this) {
+
+    is BundleUiNode.Container -> children.requirements()
+
+    is BundleUiNode.Fragment -> children.requirements()
+
+    is BundleUiNode.Component ->
+        BundleRequirements(adapters = listOf(adapterId)) +
+            props.values.map { value -> value.requirements() }.merge() +
+            children.values.flatten().requirements()
+
+    is BundleUiNode.Text -> BundleRequirements()
+
+    is BundleUiNode.Button -> BundleRequirements()
+}
+
+/** What one prop needs to exist in the APK before it can be resolved. */
+private fun PropValue.requirements(): BundleRequirements = when (this) {
+
+    is PropValue.HandleValue -> BundleRequirements(handles = listOf(name))
+    is PropValue.StateValue -> BundleRequirements(handles = listOf(name))
+    is PropValue.CallbackValue -> BundleRequirements(capabilities = listOf(capability))
+
+    is PropValue.PainterResourceValue -> BundleRequirements(resources = listOf(key))
+    is PropValue.StringResourceValue -> BundleRequirements(resources = listOf(key))
+
+    is PropValue.ModifierValue ->
+        operations.flatMap { operation -> operation.arguments.values }
+            .map { argument -> argument.requirements() }
+            .merge()
+
+    is PropValue.ListValue -> elements.map { element -> element.requirements() }.merge()
+
+    is PropValue.NullValue,
+    is PropValue.BoolValue,
+    is PropValue.IntValue,
+    is PropValue.LongValue,
+    is PropValue.FloatValue,
+    is PropValue.DoubleValue,
+    is PropValue.StringValue,
+    is PropValue.DpValue,
+    is PropValue.ColorValue,
+    is PropValue.ThemeColorValue,
+    is PropValue.ShapeValue,
+    -> BundleRequirements()
+}
+
+private fun List<BundleUiNode>.requirements(): BundleRequirements =
+    map { node -> node.requirements() }.merge()
+
+private fun List<BundleRequirements>.merge(): BundleRequirements =
+    fold(BundleRequirements()) { total, next -> total + next }
+
+/** The names a bundle used, deduplicated when they are read back. */
+data class BundleRequirements(
+    val adapters: List<String> = emptyList(),
+    val capabilities: List<String> = emptyList(),
+    val handles: List<String> = emptyList(),
+    val resources: List<String> = emptyList(),
+) {
+    operator fun plus(other: BundleRequirements): BundleRequirements = BundleRequirements(
+        adapters = adapters + other.adapters,
+        capabilities = capabilities + other.capabilities,
+        handles = handles + other.handles,
+        resources = resources + other.resources,
+    )
 }

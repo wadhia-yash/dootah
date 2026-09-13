@@ -10,20 +10,14 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
+import kotlinx.serialization.json.doubleOrNull
+import dev.dootah.contract.ModifierOp
+import dev.dootah.contract.PropValue
 
 /** What one call into a bundle produced. */
 data class BundleResponse(
     val ui: BundleUiNode,
     val commands: List<BundleCommand>,
-
-    /**
-     * How many components of each shape the bundle's source contained.
-     *
-     * Checked against this build's own counts before anything is drawn. A
-     * component's name ends in its position among those sharing its shape, so a
-     * source that dropped one renumbers the rest.
-     */
-    val componentShapes: Map<String, Int> = emptyMap(),
 )
 
 /** A bundle answered, but not with a screen. */
@@ -63,9 +57,6 @@ object BundleUiParser {
         return BundleResponse(
             ui = parseNode(ui),
             commands = root["commands"]?.jsonArray?.map { parseCommand(it.jsonObject) }.orEmpty(),
-            componentShapes = root["shapes"]?.jsonObject
-                ?.mapValues { (_, count) -> count.jsonPrimitive.int }
-                .orEmpty(),
         )
     }
 
@@ -93,11 +84,74 @@ object BundleUiParser {
 
             "fragment" -> BundleUiNode.Fragment(children = node.children())
 
-            "native" -> BundleUiNode.NativeSlot(slot = node.string("slot"))
+            "component" -> BundleUiNode.Component(
+                adapterId = node.string("adapter"),
+                props = node["props"]?.jsonObject
+                    ?.mapValues { (_, value) -> parseProp(value.jsonObject) }
+                    .orEmpty(),
+                children = node["slots"]?.jsonObject
+                    ?.mapValues { (_, nodes) -> nodes.jsonArray.map { parseNode(it.jsonObject) } }
+                    .orEmpty(),
+            )
 
             else -> throw BundleProtocolException("Unknown UI node type '$type'")
         }
     }
+
+    /**
+     * Reads one argument a bundle supplied to a native component.
+     *
+     * Strict, like everything else here: a kind this build does not know is a
+     * bundle describing something this app cannot draw, and the whole response
+     * is refused rather than the component being placed with an argument
+     * silently missing.
+     */
+    private fun parseProp(prop: JsonObject): PropValue =
+        when (val kind = prop.string("k")) {
+
+            PropValue.Kind.NULL -> PropValue.NullValue
+            PropValue.Kind.BOOL -> PropValue.BoolValue(prop.boolean("v"))
+            PropValue.Kind.INT -> PropValue.IntValue(prop.int("v"))
+            // Sent as text: a bundle's numbers are doubles, and a Long past 2^53
+            // loses digits on the way out without anything failing.
+            PropValue.Kind.LONG -> PropValue.LongValue(prop.string("v").toLong())
+            PropValue.Kind.FLOAT -> PropValue.FloatValue(prop.float("v"))
+            PropValue.Kind.DOUBLE -> PropValue.DoubleValue(prop.double("v"))
+            PropValue.Kind.STRING -> PropValue.StringValue(prop.string("v"))
+
+            PropValue.Kind.DP -> PropValue.DpValue(prop.double("v"))
+            PropValue.Kind.COLOR -> PropValue.ColorValue(prop.long("v"))
+            PropValue.Kind.THEME_COLOR -> PropValue.ThemeColorValue(prop.string("token"))
+            PropValue.Kind.SHAPE -> PropValue.ShapeValue(prop.string("token"))
+
+            PropValue.Kind.PAINTER_RESOURCE -> PropValue.PainterResourceValue(prop.string("key"))
+            PropValue.Kind.STRING_RESOURCE -> PropValue.StringResourceValue(prop.string("key"))
+
+            PropValue.Kind.MODIFIER -> PropValue.ModifierValue(
+                prop["ops"]?.jsonArray?.map { parseModifierOp(it.jsonObject) }.orEmpty()
+            )
+
+            PropValue.Kind.LIST -> PropValue.ListValue(
+                prop["items"]?.jsonArray?.map { parseProp(it.jsonObject) }.orEmpty()
+            )
+
+            PropValue.Kind.HANDLE -> PropValue.HandleValue(prop.string("name"))
+            PropValue.Kind.STATE -> PropValue.StateValue(prop.string("name"))
+
+            PropValue.Kind.CALLBACK -> PropValue.CallbackValue(
+                capability = prop.string("id"),
+                arity = prop["arity"]?.jsonPrimitive?.int ?: 0,
+            )
+
+            else -> throw BundleProtocolException("Unknown prop kind '$kind'")
+        }
+
+    private fun parseModifierOp(operation: JsonObject): ModifierOp = ModifierOp(
+        name = operation.string("op"),
+        arguments = operation["args"]?.jsonObject
+            ?.mapValues { (_, value) -> parseProp(value.jsonObject) }
+            .orEmpty(),
+    )
 
     private fun JsonObject.children(): List<BundleUiNode> =
         this["children"]?.jsonArray?.map { parseNode(it.jsonObject) }.orEmpty()
@@ -153,4 +207,16 @@ object BundleUiParser {
     private fun JsonObject.long(field: String): Long =
         (this[field] as? JsonPrimitive)?.longOrNull
             ?: throw BundleProtocolException("Missing numeric '$field'")
+
+    private fun JsonObject.double(field: String): Double =
+        (this[field] as? JsonPrimitive)?.doubleOrNull
+            ?: throw BundleProtocolException("Missing numeric '$field'")
+
+    private fun JsonObject.int(field: String): Int =
+        (this[field] as? JsonPrimitive)?.content?.toIntOrNull()
+            ?: throw BundleProtocolException("Missing numeric '$field'")
+
+    private fun JsonObject.boolean(field: String): Boolean =
+        (this[field] as? JsonPrimitive)?.content?.toBooleanStrictOrNull()
+            ?: throw BundleProtocolException("Missing boolean '$field'")
 }

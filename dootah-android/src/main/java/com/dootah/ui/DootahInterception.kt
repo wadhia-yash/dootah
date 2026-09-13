@@ -39,15 +39,15 @@ annotation class DootahGeneratedApi
  *
  * One instance per screen, holding everything that screen needs and nothing
  * another screen could reach: its identity, the arguments its caller passed, its
- * callbacks, its native slots, and whatever the bundle last drew for it. Two
- * screens on display at once each keep their own, so remote state and action
- * routing cannot cross between them.
+ * callbacks, the native components and values it may use, and whatever the
+ * bundle last drew for it. Two screens on display at once each keep their own,
+ * so remote state, native handles and action routing cannot cross between them.
  */
 class DootahScreenState internal constructor(
     internal val screenId: String,
     internal val arguments: DootahArguments,
     private val callbacks: DootahCallbacks,
-    internal val slots: DootahSlots,
+    internal val bindings: DootahNativeBindings,
     private val scope: CoroutineScope,
 ) {
 
@@ -117,45 +117,31 @@ class DootahScreenState internal constructor(
 
             is BundleLoadResult.Loaded -> {
 
-                val requested = result.ui.nativeSlots()
-                val missing = slots.missingFrom(requested)
-                val renumbered = slots.disagreeingShapes(requested, result.componentShapes)
+                val shortfall = bindings.shortfall(result.ui.requirements())
 
-                if (missing.isEmpty() && renumbered.isNotEmpty()) {
-                    // Every component the bundle asks for exists here, so
-                    // nothing would look wrong -- it would just be the wrong
-                    // component. Only the counts give it away.
-                    Log.e(
-                        DOOTAH_LOG_TAG,
-                        "the bundle for $screenId was built from a source with a " +
-                            "different number of " + renumbered.joinToString(", ") +
-                            " than this build has, so which one it means cannot be " +
-                            "trusted; using the native implementation",
-                    )
-
-                    DootahContent.Fallback(
-                        reason = FallbackReason.RENUMBERED_NATIVE_COMPONENT,
-                        message = "Components renumbered: " + renumbered.joinToString(", "),
-                    )
-                } else if (missing.isEmpty()) {
+                if (shortfall.isEmpty()) {
                     result.commands.forEach { command -> execute(command) }
                     DootahContent.Bundle(result.ui)
                 } else {
                     // Reported loudly. A component that quietly stops appearing
                     // is a defect nobody notices until a user does, and the
-                    // cause -- an edit to a component Dootah keeps native -- is
-                    // impossible to guess from the symptom.
+                    // cause is impossible to guess from the symptom.
+                    //
+                    // This is the only structural reason a bundle is refused:
+                    // it needs native code, an action, a value or a resource
+                    // that this build genuinely has not got. How it arranges
+                    // what this build *does* have is entirely its own business.
                     Log.e(
                         DOOTAH_LOG_TAG,
-                        "the bundle for $screenId draws " +
-                            missing.joinToString(", ") +
+                        "the bundle for $screenId needs " +
+                            shortfall.joinToString(", ") +
                             ", which this build of the app does not have; " +
                             "using the native implementation",
                     )
 
                     DootahContent.Fallback(
                         reason = FallbackReason.UNKNOWN_NATIVE_COMPONENT,
-                        message = "This build has no " + missing.joinToString(", "),
+                        message = "This build has no " + shortfall.joinToString(", "),
                     )
                 }
             }
@@ -214,7 +200,7 @@ fun rememberDootahScreen(
     screenId: String,
     arguments: DootahArguments,
     callbacks: DootahCallbacks,
-    slots: DootahSlots,
+    bindings: DootahNativeBindings,
 ): DootahScreenState {
 
     val scope = rememberCoroutineScope()
@@ -224,7 +210,7 @@ fun rememberDootahScreen(
             screenId = screenId,
             arguments = arguments,
             callbacks = callbacks,
-            slots = slots,
+            bindings = bindings,
             scope = scope,
         )
     }
@@ -270,7 +256,7 @@ fun DootahRemoteContent(state: DootahScreenState) {
     if (content is DootahContent.Bundle) {
         BundleRenderer(
             node = content.ui,
-            slots = state.slots,
+            bindings = state.bindings,
             inherited = state.arguments.modifier,
             onAction = state::dispatch,
         )

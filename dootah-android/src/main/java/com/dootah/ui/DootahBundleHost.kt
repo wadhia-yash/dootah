@@ -33,7 +33,7 @@ fun rememberDootahHostState(screenId: String): DootahScreenState =
         screenId = screenId,
         arguments = DootahArguments.EMPTY,
         callbacks = DootahCallbacks.EMPTY,
-        slots = DootahSlots.EMPTY,
+        bindings = DootahNativeBindings.EMPTY,
     )
 
 /**
@@ -56,7 +56,7 @@ fun DootahBundleHost(
 
         is DootahContent.Bundle -> BundleRenderer(
             node = current.ui,
-            slots = state.slots,
+            bindings = state.bindings,
             inherited = Modifier,
             onAction = state::dispatch,
         )

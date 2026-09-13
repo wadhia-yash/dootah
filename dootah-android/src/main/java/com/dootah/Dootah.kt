@@ -377,7 +377,6 @@ private class DootahClient(
             ui = response.ui,
             source = currentSource,
             commands = response.commands,
-            componentShapes = response.componentShapes,
         )
     }
 

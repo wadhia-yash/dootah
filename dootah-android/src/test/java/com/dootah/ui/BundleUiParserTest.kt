@@ -1,5 +1,7 @@
 package com.dootah.ui
 
+import dev.dootah.contract.PropValue
+
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -66,8 +68,8 @@ class BundleUiParserTest {
         val response = BundleUiParser.parse(
             """
             {"ui":{"type":"fragment","children":[
-               {"type":"box","children":[{"type":"native","slot":"Icon(name)#0"}]},
-               {"type":"native","slot":"Icon(name)#1"},
+               {"type":"box","children":[{"type":"component","adapter":"Icon(name)"}]},
+               {"type":"component","adapter":"Icon(name)"},
                {"type":"text","text":"tail"}
              ]},
              "commands":[]}
@@ -78,19 +80,78 @@ class BundleUiParserTest {
 
         assertEquals(3, fragment.children.size)
         assertEquals(
-            listOf("Icon(name)#0", "Icon(name)#1"),
-            response.ui.nativeSlots(),
+            listOf("Icon(name)", "Icon(name)"),
+            response.ui.requirements().adapters,
         )
     }
 
     @Test
-    fun `reads a native slot`() {
+    fun `reads a component, its arguments and its content`() {
 
         val response = BundleUiParser.parse(
-            """{"ui":{"type":"native","slot":"slot@120"},"commands":[]}"""
+            """{"ui":{"type":"component","adapter":"m3.IconButton(content|onClick)",
+                 "props":{"onClick":{"k":"callback","id":"menu.value=true","arity":0}},
+                 "slots":{"content":[{"type":"component","adapter":"m3.Icon(painter)",
+                   "props":{"painter":{"k":"painterRes","key":"drawable:brush"}}}]}},
+               "commands":[]}"""
         )
 
-        assertEquals(BundleUiNode.NativeSlot("slot@120"), response.ui)
+        assertEquals(
+            BundleUiNode.Component(
+                adapterId = "m3.IconButton(content|onClick)",
+                props = mapOf(
+                    "onClick" to PropValue.CallbackValue("menu.value=true", arity = 0),
+                ),
+                children = mapOf(
+                    "content" to listOf(
+                        BundleUiNode.Component(
+                            adapterId = "m3.Icon(painter)",
+                            props = mapOf(
+                                "painter" to PropValue.PainterResourceValue("drawable:brush"),
+                            ),
+                        )
+                    )
+                ),
+            ),
+            response.ui,
+        )
+    }
+
+    /**
+     * A Long is carried as text.
+     *
+     * A bundle's numbers are JavaScript numbers, which are doubles: past 2^53 a
+     * Long silently loses its low digits, and an identifier that arrives almost
+     * right is worse than one that does not arrive.
+     */
+    @Test
+    fun `reads a long without losing precision`() {
+
+        val response = BundleUiParser.parse(
+            """{"ui":{"type":"component","adapter":"a.B(id)",
+                 "props":{"id":{"k":"long","v":"9007199254740993"}}},"commands":[]}"""
+        )
+
+        assertEquals(
+            PropValue.LongValue(9007199254740993L),
+            (response.ui as BundleUiNode.Component).props["id"],
+        )
+    }
+
+    @Test
+    fun `refuses an argument kind it does not know`() {
+
+        val failure = runCatching {
+            BundleUiParser.parse(
+                """{"ui":{"type":"component","adapter":"a.B(x)",
+                     "props":{"x":{"k":"jvmObject","v":"..."}}},"commands":[]}"""
+            )
+        }.exceptionOrNull()
+
+        assertEquals(
+            "Unknown prop kind 'jvmObject'",
+            (failure as BundleProtocolException).message,
+        )
     }
 
     @Test

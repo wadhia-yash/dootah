@@ -258,3 +258,35 @@ fun dootahResources(vararg resources: Pair<String, Int>): DootahResources =
 
 @DootahGeneratedApi
 fun dootahResource(key: String, id: Int): Pair<String, Int> = key to id
+
+/**
+ * Everything a screen lets a bundle reach, in one place.
+ *
+ * Grouped because they are one decision, not four: this is the complete set of
+ * native things a remote implementation of this screen can name. A bundle can
+ * use any of it and nothing beyond it, and every entry got here because the
+ * screen's own source referred to it.
+ */
+class DootahNativeBindings internal constructor(
+    internal val adapters: DootahAdapters,
+    internal val capabilities: DootahCapabilities,
+    internal val handles: DootahHandles,
+    internal val resources: DootahResources,
+) {
+
+    /** What this build cannot supply, out of what a bundle asked for. */
+    internal fun shortfall(required: BundleRequirements): List<String> =
+        adapters.missingFrom(required.adapters).map { "component $it" } +
+            capabilities.missingFrom(required.capabilities).map { "action $it" } +
+            handles.missingFrom(required.handles).map { "value $it" } +
+            resources.missingFrom(required.resources).map { "resource $it" }
+
+    companion object {
+        internal val EMPTY = DootahNativeBindings(
+            adapters = DootahAdapters.EMPTY,
+            capabilities = DootahCapabilities.EMPTY,
+            handles = DootahHandles.EMPTY,
+            resources = DootahResources.EMPTY,
+        )
+    }
+}
