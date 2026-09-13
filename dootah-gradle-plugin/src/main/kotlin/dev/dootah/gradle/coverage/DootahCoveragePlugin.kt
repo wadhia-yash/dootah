@@ -73,9 +73,7 @@ class DootahCoveragePlugin : Plugin<Project> {
         // plugin creates its compile tasks long after this runs, so anything
         // that looked for one here would find nothing and silently score every
         // Android module zero -- the one wrong answer this tool must not give.
-        val compileTask = target.provider {
-            CANDIDATE_COMPILE_TASKS.firstNotNullOfOrNull { target.tasks.findByName(it) }
-        }
+        val compileTask = target.provider { target.mainKotlinCompileTask() }
 
         target.tasks.register(TASK_NAME, DootahCoverageTask::class.java) { task ->
 
@@ -108,6 +106,27 @@ class DootahCoveragePlugin : Plugin<Project> {
     }
 
     /**
+     * The compilation that best represents this module's own production code.
+     *
+     * Matched by shape rather than by a list of names. A real app has product
+     * flavours -- `compileGithubDebugKotlin`, `compileFdroidDebugKotlin` -- and a
+     * fixed list of names would quietly measure nothing and report the app as
+     * having no Compose in it, which is the most misleading answer available.
+     *
+     * Tests are excluded because they are not what ships, and release variants
+     * because they drag in signing and minification that have nothing to do with
+     * this. Among equals the shortest name wins, which is the plainest variant.
+     */
+    private fun Project.mainKotlinCompileTask(): Task? =
+        tasks.names
+            .filter { it.startsWith("compile") && it.endsWith("Kotlin") }
+            .filterNot { name ->
+                EXCLUDED_VARIANT_MARKERS.any { name.contains(it, ignoreCase = true) }
+            }
+            .sortedWith(compareByDescending<String> { it.contains("Debug") }.thenBy { it.length })
+            .firstNotNullOfOrNull { runCatching { tasks.findByName(it) }.getOrNull() }
+
+    /**
      * The first of [names] this task answers with a file collection.
      *
      * Several names because the accessor has moved between Kotlin Gradle plugin
@@ -126,16 +145,9 @@ class DootahCoveragePlugin : Plugin<Project> {
         const val PLUGIN_JARS_PROPERTY = "dootah.plugin.jars"
         const val TASK_NAME = "dootahCoverage"
 
-        /**
-         * The variants worth measuring, in preference order.
-         *
-         * Debug because every app can build it; release drags in signing and
-         * minification that have nothing to do with this.
-         */
-        val CANDIDATE_COMPILE_TASKS = listOf(
-            "compileDebugKotlin",
-            "compileDebugKotlinAndroid",
-            "compileKotlin",
+        /** Never the app's own production code. */
+        val EXCLUDED_VARIANT_MARKERS = listOf(
+            "AndroidTest", "UnitTest", "TestFixtures", "Release", "Benchmark",
         )
 
         val SOURCE_ACCESSORS = listOf("getSources", "getSource")

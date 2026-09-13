@@ -1,0 +1,71 @@
+{
+  "app": "readyou",
+  "modules": 1,
+  "files": 381,
+  "lines": 49804,
+  "failed_modules": 1,
+  "totals": {
+    "composables": 63,
+    "ineligible": 35,
+    "ineligible:TAKES_COMPOSABLE_CONTENT": 13,
+    "ineligible:RETURNS_A_VALUE": 15,
+    "eligible": 28,
+    "fallback": 27,
+    "ineligible:PREVIEW": 7,
+    "mixed": 1
+  },
+  "blocked_by": {
+    "collections/data classes": 6,
+    "Compose value type": 15,
+    "native capability": 2,
+    "unsupported Kotlin syntax": 2,
+    "callback argument type": 1,
+    "third-party composable": 1
+  },
+  "occurrences": {
+    "collections/data classes": 14,
+    "third-party composable": 4,
+    "Compose value type": 38,
+    "unsupported Kotlin syntax": 6,
+    "native capability": 2,
+    "callback argument type": 2,
+    "state pattern": 1
+  },
+  "details": {
+    "collections/data classes": {
+      "kotlin.Any": 5,
+      "kotlinx.coroutines.CoroutineScope": 2,
+      "android.view.View": 2,
+      "android.content.Context": 1,
+      "me.ash.reader.ui.theme.palette.TonalPalettes": 1,
+      "android.graphics.drawable.PictureDrawable": 1
+    },
+    "third-party composable": {
+      "androidx.compose.runtime.DisposableEffect": 1,
+      "androidx.compose.material3.OutlinedSecureTextField": 1,
+      "androidx.compose.material3.Surface": 1,
+      "me.ash.reader.ui.component.base.RYDialog": 1
+    },
+    "Compose value type": {
+      "androidx.compose.ui.Modifier": 10,
+      "androidx.compose.foundation.text.input.TextFieldState": 4,
+      "androidx.compose.foundation.clickable": 2,
+      "Column.horizontalAlignment": 2,
+      "androidx.compose.ui.focus.FocusRequester": 2,
+      "androidx.compose.foundation.text.KeyboardOptions": 2
+    },
+    "native capability": {
+      "me.ash.reader.infrastructure.preference.DarkThemePreference.isDarkTheme": 1,
+      "kotlin.text.isNullOrEmpty": 1
+    },
+    "unsupported Kotlin syntax": {
+      "FirPropertyImpl": 4
+    },
+    "callback argument type": {
+      "kotlin.Function0": 2
+    },
+    "state pattern": {
+      "kotlinx.coroutines.flow.Flow": 1
+    }
+  }
+}

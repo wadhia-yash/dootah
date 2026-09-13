@@ -291,10 +291,20 @@ private fun IrExpression.resourceKey(): String? {
     return resourceKeyIn(parent, property)
 }
 
-/** Guarded so an unrelated `Something.drawable.x` cannot look like a resource. */
+/**
+ * Guarded so an unrelated `Something.drawable.x` cannot look like a resource.
+ *
+ * And guarded against a name with nothing enclosing it, which is what a
+ * top-level object is. `FqName.parent()` on one is the root, and the root
+ * refuses to be asked for a short name -- so the check meant to be conservative
+ * was instead throwing out of a compiler pass.
+ */
 private fun resourceKeyIn(owner: FqName, name: String): String? {
 
-    if (owner.parent().shortName().asString() != "R") return null
+    if (owner.isRoot) return null
+
+    val enclosing = owner.parent()
+    if (enclosing.isRoot || enclosing.shortName().asString() != "R") return null
 
     return ResourceKey.of(owner.shortName().asString(), name)
 }

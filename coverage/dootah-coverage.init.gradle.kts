@@ -6,12 +6,21 @@
 // it.
 //
 //   ./gradlew --init-script <this file> \
-//       -Pdootah.gradle.plugin.jar=<dootah-gradle-plugin.jar> \
+//       -Ddootah.gradle.plugin.jar=<dootah-gradle-plugin.jar> \
 //       -Pdootah.plugin.jars=<compiler-plugin.jar>:<contract.jar> \
 //       dootahCoverage
+//
+// A system property rather than a Gradle property for the jar: the corpus spans
+// several Gradle versions and `providers` is not available inside `initscript`
+// on the older ones.
 initscript {
     dependencies {
-        classpath(files(providers.gradleProperty("dootah.gradle.plugin.jar").get()))
+        classpath(
+            files(
+                System.getProperty("dootah.gradle.plugin.jar")
+                    ?: error("Set -Ddootah.gradle.plugin.jar=<path to dootah-gradle-plugin.jar>")
+            )
+        )
     }
 }
 

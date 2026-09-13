@@ -283,10 +283,27 @@ internal class ComponentLowering(
         val qualifier = access.explicitReceiver as? FirResolvedQualifier ?: return null
         val relative = qualifier.relativeClassFqName ?: return null
 
-        // Guarded so an unrelated `Something.drawable.x` cannot look like one.
-        if (relative.parent().shortName().asString() != "R") return null
+        // Guarded so an unrelated `Something.drawable.x` cannot look like one --
+        // and guarded against having no enclosing name at all, which is what a
+        // top-level object like `Modifier.fillMaxWidth` is. Asking such a name
+        // for its parent's short name throws, and thrown from a frontend checker
+        // that does not fail the build, it aborts the whole file's analysis.
+        if (!relative.namesResource()) return null
 
         return ResourceKey.of(relative.shortName().asString(), name)
+    }
+
+    /**
+     * Whether this is the `R.<type>` half of a resource reference.
+     *
+     * `R.drawable` has both an enclosing name and a short one; `Modifier` has
+     * only a short one, and `FqName.parent()` on it is the root, which refuses
+     * to be asked for a name.
+     */
+    private fun FqName.namesResource(): Boolean {
+        if (isRoot) return false
+        val enclosing = parent()
+        return !enclosing.isRoot && enclosing.shortName().asString() == "R"
     }
 
     /** `MaterialTheme.colorScheme.inversePrimary`, resolved by the app's theme. */
