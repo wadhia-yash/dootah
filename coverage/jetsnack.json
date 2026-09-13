@@ -71,17 +71,20 @@
     }
   },
   "inside": {
-    "name from outside the screen": 2,
+    "native value read remotely": 1,
     "unsupported Kotlin syntax": 1,
+    "name from outside the screen": 1,
     "native capability": 2
   },
   "inside_details": {
-    "name from outside the screen": {
-      "outside the screen:name": 1,
-      "outside the screen:per_serving": 1
+    "native value read remotely": {
+      "read through a native value:com.example.jetsnack.model.SearchCategoryCollection": 1
     },
     "unsupported Kotlin syntax": {
       "FirPropertyImpl": 1
+    },
+    "name from outside the screen": {
+      "outside the screen:per_serving": 1
     },
     "native capability": {
       "call:kotlin.ranges.rangeTo": 1,

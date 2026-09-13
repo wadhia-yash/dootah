@@ -261,6 +261,28 @@ private fun IrElement.readsOutside(declaredInBody: BodyScope): Boolean {
     return reads
 }
 
+/**
+ * Every value this body declares for itself.
+ *
+ * The screen's own parameters are deliberately absent: they exist wherever the
+ * screen does, so an adapter may read them. Only what the body introduces is out
+ * of reach of something lifted above it.
+ */
+internal fun IrBody.localsDeclaredHere(): Set<IrValueDeclaration> {
+
+    val locals = mutableSetOf<IrValueDeclaration>()
+
+    acceptVoid(object : IrVisitorVoid() {
+        override fun visitElement(element: IrElement) {
+            if (element is IrVariable) locals += element
+            if (element is IrFunction) locals += element.parameters
+            element.acceptChildrenVoid(this)
+        }
+    })
+
+    return locals
+}
+
 /** The source this call was written as, by the offsets it carries. */
 private fun String.textOf(element: IrElement): String? {
 
@@ -306,6 +328,14 @@ private fun IrCall.record(
         // A screen parameter handed straight to a component.
         (argument as? IrGetValue)?.let { forwarded ->
 
+            // A *screen* parameter, and not something the body declared beside
+            // it. The capability closes over whatever it names, and is built
+            // before the body runs, so forwarding a local that holds a lambda
+            // fails in the JVM backend with `Non-mapped local declaration` --
+            // which is what JetNews' interests screen did, passing an
+            // `updateSection` it had just declared.
+            if (forwarded.symbol.owner in declaredInBody.values) return@let
+
             val arity = forwarded.type.unitFunctionArity() ?: return@let
             val name = forwarded.symbol.owner.name.asString()
             val id = CapabilityId.of(listOf(CapabilityId.Invoke(null, name)))
@@ -320,16 +350,20 @@ private fun IrCall.record(
         // Composable content is drawn by the bundle, not run as an action.
         if (parameter.type.isComposableContent()) continue
 
-        val lambda = (argument as? IrFunctionExpression)?.function ?: continue
-
         // An action is lifted out whole, unlike an argument, which is replaced
         // by whatever the bundle sent. So the question the adapter no longer has
         // to ask -- does this read something the body declares? -- is one the
-        // action still does: `onClick = { open = true }` beside a
-        // `var open by remember { ... }` reads it through a delegate the
-        // compiler generated, and lifting that out fails in the JVM backend
-        // long after Dootah has finished, naming none of it.
-        if (lambda.readsOutside(declaredInBody)) continue
+        // action still does.
+        //
+        // The whole argument and not just the lambda inside it. A handler that
+        // came out of a destructured `remember { mutableStateOf(...) }` reaches
+        // here as a reference with the local bound *beside* the function rather
+        // than read within it, so walking the function alone sees nothing and
+        // the JVM backend fails with `Non-mapped local declaration` -- which is
+        // what JetNews' interests screen did.
+        if (argument.readsOutside(declaredInBody)) continue
+
+        val lambda = (argument as? IrFunctionExpression)?.function ?: continue
 
         // An empty handler reaches IR as a synthetic Unit, which does nothing
         // rather than being something this cannot name. The extraction pass

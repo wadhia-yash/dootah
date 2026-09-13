@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -54,6 +55,9 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
+import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
+import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.name.Name
 
 /**
@@ -96,6 +100,23 @@ internal class InterceptionTransformer(
     /** What each rewritten screen can be asked for, in the order they were done. */
     val contracts = mutableListOf<ScreenContract>()
 
+    /**
+     * The locals of the screen being rewritten.
+     *
+     * Adapters and actions are lifted out of the body into values prepared
+     * before it runs, so one that captures a local produces bytecode the JVM
+     * backend refuses -- `Non-mapped local declaration`, thrown from a phase
+     * with nothing in it that names Dootah or the screen.
+     *
+     * The passes that select these already refuse the cases they can see, and
+     * they keep missing ones: a delegated `var` read through a generated
+     * accessor, a handler from a destructured `remember` bound beside a
+     * reference rather than read inside it. Each was found on a real app, after
+     * shipping. So the last word is here, on the built lambda itself, where
+     * every way of reading a local looks the same.
+     */
+    private var bodyLocals: Set<IrValueDeclaration> = emptySet()
+
     /** The identity of the function rewritten, for reporting. */
     fun transform(function: IrSimpleFunction): String? {
 
@@ -137,6 +158,10 @@ internal class InterceptionTransformer(
 
         // Built before the body is replaced: it adopts the original statements,
         // and reading them afterwards would read the replacement instead.
+        // Before the body is taken apart. `asExpression` adopts the statements
+        // into what becomes the fallback branch, leaving nothing behind to scan.
+        bodyLocals = originalBody.localsDeclaredHere()
+
         val nativeFallback = originalBody.asExpression(unitType)
 
         function.body = builder.irBlockBody {
@@ -243,12 +268,18 @@ internal class InterceptionTransformer(
         return irCall(symbols.adapters).apply {
             arguments[0] = varargOf(
                 parameter = parameter,
-                elements = adapters.map { adapter ->
-                    irCall(symbols.adapter).apply {
-                        arguments[0] = irString(adapter.id)
-                        arguments[1] = irString(adapter.suppliedParameters.sorted().joinToString(","))
-                        arguments[2] = adapterLambda(function, adapter, composable)
-                    }
+                elements = adapters.mapNotNull { adapter ->
+                    adapterLambda(function, adapter, composable)
+                        .takeIf { content -> !content.capturesBodyLocal() }
+                        ?.let { content ->
+                            irCall(symbols.adapter).apply {
+                                arguments[0] = irString(adapter.id)
+                                arguments[1] = irString(
+                                    adapter.suppliedParameters.sorted().joinToString(",")
+                                )
+                                arguments[2] = content
+                            }
+                        }
                 },
             )
         }
@@ -405,6 +436,23 @@ internal class InterceptionTransformer(
         )
     }
 
+    /** Whether something about to be lifted out reads one of the body's locals. */
+    private fun IrExpression.capturesBodyLocal(): Boolean {
+
+        if (bodyLocals.isEmpty()) return false
+
+        var captures = false
+
+        acceptVoid(object : IrVisitorVoid() {
+            override fun visitElement(element: IrElement) {
+                if (element is IrGetValue && element.symbol.owner in bodyLocals) captures = true
+                element.acceptChildrenVoid(this)
+            }
+        })
+
+        return captures
+    }
+
     private fun IrBuilderWithScope.readProp(
         props: IrValueParameter,
         accessor: String,
@@ -539,12 +587,14 @@ internal class InterceptionTransformer(
             arguments[0] = varargOf(
                 parameter = parameter,
                 elements = capabilities.mapNotNull { capability ->
-                    capabilityLambda(function, capability)?.let { action ->
-                        irCall(symbols.capability).apply {
-                            arguments[0] = irString(capability.id)
-                            arguments[1] = action
+                    capabilityLambda(function, capability)
+                        ?.takeIf { action -> !action.capturesBodyLocal() }
+                        ?.let { action ->
+                            irCall(symbols.capability).apply {
+                                arguments[0] = irString(capability.id)
+                                arguments[1] = action
+                            }
                         }
-                    }
                 },
             )
         }

@@ -293,6 +293,11 @@ private fun composeStubs(): List<SourceFile> = listOf(
 
             interface MutableState<T> {
                 var value: T
+
+                // Compose's own, and the reason a screen can write
+                // `val (value, setValue) = remember { mutableStateOf(x) }`.
+                operator fun component1(): T = value
+                operator fun component2(): (T) -> Unit = { value = it }
             }
 
             fun <T> mutableStateOf(initial: T): MutableState<T> =
