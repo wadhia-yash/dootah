@@ -57,6 +57,19 @@ public sealed interface PropValue {
         override val kind: String get() = Kind.DP
     }
 
+    /**
+     * A length the app owns, named rather than carried -- see [AnchorId].
+     *
+     * The same thing [Dimension] is for a layout's own modifiers, in the one
+     * other place a length travels: an argument to a native component, which is
+     * where `modifier.padding(horizontal = defaultSpacerSize)` lives. Without
+     * it a component's modifier could hold only numbers, and a screen whose
+     * padding came from the app's own scale had to stay native.
+     */
+    public data class AnchorValue(val anchor: String) : PropValue {
+        override val kind: String get() = Kind.ANCHOR
+    }
+
     public data class ColorValue(val argb: Long) : PropValue {
         override val kind: String get() = Kind.COLOR
     }
@@ -135,6 +148,7 @@ public sealed interface PropValue {
         public const val STRING: String = "string"
         public const val FLOAT: String = "float"
         public const val DP: String = "dp"
+        public const val ANCHOR: String = "anchor"
         public const val COLOR: String = "color"
         public const val THEME_COLOR: String = "themeColor"
         public const val SHAPE: String = "shape"
@@ -148,7 +162,7 @@ public sealed interface PropValue {
 
         /** Every kind, for the agreement test the four implementations share. */
         public val ALL: List<String> = listOf(
-            NULL, BOOL, INT, LONG, FLOAT, DOUBLE, STRING, DP, COLOR,
+            NULL, BOOL, INT, LONG, FLOAT, DOUBLE, STRING, DP, ANCHOR, COLOR,
             THEME_COLOR, SHAPE, PAINTER_RESOURCE, STRING_RESOURCE, MODIFIER,
             LIST, HANDLE, STATE, CALLBACK,
         )
