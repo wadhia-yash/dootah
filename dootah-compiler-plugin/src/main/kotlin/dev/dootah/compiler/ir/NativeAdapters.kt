@@ -274,15 +274,22 @@ private fun IrCall.anchorName(): String? {
 
             is IrCall -> {
                 val owner = node.symbol.owner
-                val property = owner.correspondingPropertySymbol?.owner?.name?.asString()
-                    ?: return null
+                val property = owner.correspondingPropertySymbol?.owner ?: return null
 
                 // A getter takes no arguments. Anything that does is a call, and
                 // a call is not a name.
                 if (node.arguments.filterNotNull().size > 1) return null
 
-                path += property
-                current = node.arguments.filterNotNull().firstOrNull() ?: return null
+                path += property.name.asString()
+
+                current = node.arguments.filterNotNull().firstOrNull()
+                    // No receiver: a property declared at the top of a file,
+                    // which is nameable by its package. Its fully qualified name
+                    // already carries the path, so it ends the walk.
+                    ?: return property.fqNameWhenAvailable
+                        ?.parent()
+                        ?.takeIf { !it.isRoot }
+                        ?.let { pkg -> AnchorId.of(pkg.asString(), path.asReversed().toList()) }
             }
 
             else -> return null

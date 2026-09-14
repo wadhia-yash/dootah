@@ -453,6 +453,49 @@ class NativeAdapterAgreementTest {
     }
 
     /**
+     * A length declared at the top of a file, which is how most apps write one.
+     *
+     * `private val CardHeight = 96.dp` beside the composable that uses it is the
+     * commonest form there is. It has a package and a name, so both compilations
+     * can arrive at it -- unlike the local `val` it looks exactly like.
+     */
+    @Test
+    fun `a top-level length constant is named the same by both passes`() {
+
+        assertAgreement(
+            installed = screenWithFileConstant(),
+            published = screenWithFileConstant(edited = true),
+            expect = "com.example.RowHeight",
+        )
+    }
+
+    private fun screenWithFileConstant(edited: Boolean = false): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.foundation.layout.height
+            import androidx.compose.foundation.layout.padding
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import androidx.compose.ui.unit.dp
+            import dev.dootah.Bundlable
+
+            private val RowHeight = 96.dp
+
+            @Bundlable
+            @Composable
+            fun Screen(title: String, modifier: Modifier = Modifier) {
+                Column(modifier = modifier) {
+                    Text(title, modifier = Modifier.${if (edited) "padding" else "height"}(RowHeight))
+                }
+            }
+        """.trimIndent(),
+    )
+
+    /**
      * A screen using the app's own spacing scale, the way a real one does.
      *
      * [edited] is the published version, with the spacing moved from the

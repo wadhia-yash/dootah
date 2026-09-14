@@ -523,6 +523,40 @@ class LayoutArgumentLoweringTest {
         assertTrue(report, report.contains("dp"))
     }
 
+    /** A length declared at the top of the file, which is how most apps write one. */
+    @Test
+    fun `lowers a top-level length constant as a name`() {
+
+        val generated = lower(
+            SourceFile(
+                name = "Screen.kt",
+                contents = """
+                    package com.example
+
+                    import androidx.compose.foundation.layout.Column
+                    import androidx.compose.foundation.layout.height
+                    import androidx.compose.material3.Text
+                    import androidx.compose.runtime.Composable
+                    import androidx.compose.ui.Modifier
+                    import androidx.compose.ui.unit.dp
+                    import dev.dootah.Bundlable
+
+                    private val RowHeight = 96.dp
+
+                    @Bundlable
+                    @Composable
+                    fun Screen() {
+                        Column {
+                            Text("x", modifier = Modifier.height(RowHeight))
+                        }
+                    }
+                """.trimIndent(),
+            )
+        )
+
+        assertTrue(generated, generated.contains("""DimensionNode(anchor = "com.example.RowHeight")"""))
+    }
+
     /**
      * A screen whose app owns a spacing scale, shaped like the real ones.
      *

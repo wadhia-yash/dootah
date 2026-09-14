@@ -6,6 +6,8 @@ import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirPropertyAccessExpression
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.resolvedType
 
@@ -67,10 +69,15 @@ internal object AnchorLowering {
                 }
 
                 is FirPropertyAccessExpression -> {
-                    val name = node.calleeReference.toResolvedCallableSymbol()?.name?.asString()
-                        ?: return null
-                    path += name
-                    current = node.explicitReceiver ?: return null
+
+                    val symbol = node.calleeReference.toResolvedCallableSymbol() ?: return null
+
+                    path += symbol.name.asString()
+
+                    node.explicitReceiver?.let { receiver ->
+                        current = receiver
+                        return@let
+                    } ?: return topLevelName(symbol, path)
                 }
 
                 // A call, a literal, a local read: none of them is a name the
@@ -78,6 +85,42 @@ internal object AnchorLowering {
                 else -> return null
             }
         }
+    }
+
+    /**
+     * The name of a property read with no receiver, when it has one.
+     *
+     * A top-level `val` and a local `val` are written the same way and are not
+     * the same thing: one has a package and is nameable from anywhere, the other
+     * exists only inside the body and does not survive being lifted out of it.
+     * The callable id is what separates them, which is the same test the rest of
+     * lowering uses to tell a local from a declaration.
+     */
+    private fun topLevelName(symbol: FirCallableSymbol<*>, path: List<String>): String? {
+
+        // A parameter reads exactly like a top-level property and is not one.
+        // It carries a callable id with the enclosing package and no class, so
+        // the id alone cannot tell them apart -- but only one of them is a
+        // declaration the app's own build can register, and naming the other
+        // would produce a name nothing on the device answers to.
+        if (symbol !is FirPropertySymbol) return null
+
+        // And a local `val` reads the same way again. It happens to carry no
+        // package, so the check below would refuse it anyway -- but a local is
+        // refused because it is a local, not because of how its id is shaped,
+        // and saying so is what keeps that true if the shape changes.
+        if (symbol.isLocal) return null
+
+        val id = symbol.callableId ?: return null
+
+        // A member read without a receiver is an implicit `this`, which is a
+        // different thing from a top-level name and is not one either pass can
+        // resolve from the other's source.
+        if (id.classId != null) return null
+
+        val packageName = id.packageName.takeIf { !it.isRoot }?.asString() ?: return null
+
+        return AnchorId.of(packageName, path.asReversed().toList())
     }
 
     /** The dimension this expression is, when it is one the app owns. */
