@@ -32,7 +32,7 @@
   },
   "occurrences": {
     "third-party composable": 11,
-    "Compose value type": 7,
+    "Compose value type": 6,
     "native local read remotely": 3,
     "collections/data classes": 4,
     "unsupported Kotlin syntax": 3,
@@ -53,8 +53,8 @@
       "androidx.compose.ui.semantics.semantics": 1,
       "androidx.compose.foundation.clickable": 1,
       "androidx.compose.foundation.selection.toggleable": 1,
-      "Row.verticalAlignment": 1,
-      "androidx.compose.foundation.verticalScroll": 1
+      "androidx.compose.foundation.verticalScroll": 1,
+      "value:androidx.compose.ui.graphics.Color": 1
     },
     "native local read remotely": {
       "native local:selectedTabIndex": 1,
@@ -82,7 +82,7 @@
     }
   },
   "inside": {
-    "Compose value type": 3,
+    "Compose value type": 2,
     "native capability": 4,
     "name from outside the screen": 5,
     "unsupported Kotlin syntax": 2
@@ -90,8 +90,7 @@
   "inside_details": {
     "Compose value type": {
       "property:com.example.jetnews.model.PostsFeed.highlightedPost": 1,
-      "dp": 1,
-      "Row.horizontalArrangement": 1
+      "dp": 1
     },
     "native capability": {
       "call:androidx.glance.text.TextStyle.copy": 2,

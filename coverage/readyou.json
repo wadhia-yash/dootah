@@ -12,34 +12,34 @@
     "eligible": 133,
     "fallback": 98,
     "ineligible:PREVIEW": 25,
-    "not_worth": 32,
+    "not_worth": 31,
     "ineligible:HAS_RECEIVER": 7,
-    "shape:described": 7,
+    "shape:described": 8,
     "shape:placed": 8,
-    "shape:frozen": 3,
+    "shape:frozen": 4,
     "shape:conditionals": 0,
     "shape:actions": 0,
     "shape:states": 0,
-    "mixed": 3,
+    "mixed": 4,
     "ineligible:INLINE": 1
   },
   "blocked_by": {
-    "third-party composable": 33,
-    "Compose value type": 21,
-    "native local read remotely": 5,
-    "native value read remotely": 13,
-    "callback argument type": 4,
-    "native capability": 14,
-    "unsupported Kotlin syntax": 6,
-    "collections/data classes": 2
-  },
-  "occurrences": {
-    "third-party composable": 33,
-    "Compose value type": 39,
+    "third-party composable": 34,
+    "Compose value type": 19,
     "native local read remotely": 5,
     "native value read remotely": 13,
     "callback argument type": 4,
     "native capability": 15,
+    "unsupported Kotlin syntax": 6,
+    "collections/data classes": 2
+  },
+  "occurrences": {
+    "third-party composable": 34,
+    "Compose value type": 31,
+    "native local read remotely": 5,
+    "native value read remotely": 13,
+    "callback argument type": 4,
+    "native capability": 16,
     "unsupported Kotlin syntax": 6,
     "collections/data classes": 4
   },
@@ -53,12 +53,12 @@
       "androidx.compose.material3.Scaffold": 1
     },
     "Compose value type": {
-      "Row.verticalAlignment": 5,
       "androidx.compose.foundation.clickable": 3,
+      "dp": 3,
       "background.shape": 2,
-      "dp": 2,
-      "Box.contentAlignment": 2,
-      "value:androidx.compose.ui.graphics.painter.Painter": 2
+      "value:androidx.compose.ui.graphics.painter.Painter": 2,
+      "value:androidx.compose.foundation.text.input.TextFieldState": 2,
+      "androidx.compose.ui.draw.alpha": 1
     },
     "native local read remotely": {
       "native local:readText": 1,
@@ -95,10 +95,11 @@
     }
   },
   "inside": {
-    "Compose value type": 2
+    "Compose value type": 3
   },
   "inside_details": {
     "Compose value type": {
+      "androidx.compose.foundation.combinedClickable": 1,
       "property:androidx.compose.material.icons.outlined.Info": 1,
       "property:<local>.modifier": 1
     }
@@ -121,7 +122,7 @@
       "states": 0
     },
     {
-      "described": 0,
+      "described": 1,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,

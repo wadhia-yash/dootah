@@ -10,33 +10,35 @@
     "fallback": 33,
     "ineligible": 61,
     "ineligible:RETURNS_A_VALUE": 13,
-    "shape:described": 6,
-    "shape:placed": 58,
-    "shape:frozen": 18,
+    "shape:described": 8,
+    "shape:placed": 60,
+    "shape:frozen": 20,
     "shape:conditionals": 0,
     "shape:actions": 0,
     "shape:states": 0,
-    "mixed": 29,
+    "mixed": 31,
     "ineligible:HAS_RECEIVER": 6,
     "ineligible:TAKES_COMPOSABLE_CONTENT": 19,
-    "not_worth": 17,
+    "not_worth": 15,
     "ineligible:PREVIEW": 23
   },
   "blocked_by": {
-    "third-party composable": 16,
-    "Compose value type": 9,
+    "third-party composable": 17,
+    "native local read remotely": 1,
     "native capability": 4,
+    "Compose value type": 5,
     "name from outside the screen": 1,
     "callback argument type": 2,
-    "unsupported Kotlin syntax": 1
+    "unsupported Kotlin syntax": 3
   },
   "occurrences": {
-    "third-party composable": 16,
-    "Compose value type": 11,
+    "third-party composable": 17,
+    "native local read remotely": 1,
     "native capability": 4,
+    "Compose value type": 5,
     "name from outside the screen": 1,
     "callback argument type": 2,
-    "unsupported Kotlin syntax": 1
+    "unsupported Kotlin syntax": 3
   },
   "details": {
     "third-party composable": {
@@ -45,21 +47,21 @@
       "androidx.compose.runtime.DisposableEffect": 2,
       "com.google.samples.apps.nowinandroid.core.designsystem.component.NiaNavigationSuiteScaffold": 1,
       "com.google.samples.apps.nowinandroid.core.ui.TrackDisposableJank": 1,
-      "androidx.compose.foundation.Canvas": 1
+      "androidx.compose.material3.CircularProgressIndicator": 1
     },
-    "Compose value type": {
-      "value:androidx.compose.foundation.gestures.ScrollableState": 3,
-      "Box.contentAlignment": 2,
-      "Row.horizontalArrangement": 2,
-      "androidx.compose.foundation.horizontalScroll": 1,
-      "property:<local>.shouldDisplayUndoBookmark": 1,
-      "Row.verticalAlignment": 1
+    "native local read remotely": {
+      "native local:isLocalInspection": 1
     },
     "native capability": {
       "kotlin.collections.forEachIndexed": 1,
       "kotlin.text.isEmpty": 1,
       "kotlin.text.isNotBlank": 1,
       "call:androidx.compose.material3.TextFieldDefaults.colors": 1
+    },
+    "Compose value type": {
+      "value:androidx.compose.foundation.gestures.ScrollableState": 3,
+      "androidx.compose.foundation.horizontalScroll": 1,
+      "property:<local>.shouldDisplayUndoBookmark": 1
     },
     "name from outside the screen": {
       "outside the screen:current": 1
@@ -69,21 +71,23 @@
       "lambda:kotlin.coroutines.SuspendFunction1": 1
     },
     "unsupported Kotlin syntax": {
-      "FirPropertyImpl": 1
+      "FirPropertyImpl": 2,
+      "FirAnonymousFunctionExpressionImpl": 1
     }
   },
   "inside": {
     "Compose value type": 6,
     "native capability": 5,
     "unsupported Kotlin syntax": 7,
-    "collections/data classes": 1
+    "collections/data classes": 2,
+    "name from outside the screen": 1
   },
   "inside_details": {
     "Compose value type": {
       "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.BookmarkBorder": 2,
       "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.Bookmark": 2,
       "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.Add": 1,
-      "Column.horizontalAlignment": 1
+      "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.ArrowBack": 1
     },
     "native capability": {
       "kotlin.text.uppercase": 1,
@@ -96,7 +100,11 @@
       "expression:FirResolvedQualifierImpl": 7
     },
     "collections/data classes": {
+      "com.google.samples.apps.nowinandroid.feature.interests.impl.InterestsUiState": 1,
       "com.google.samples.apps.nowinandroid.feature.search.impl.SearchResultUiState": 1
+    },
+    "name from outside the screen": {
+      "outside the screen:feature_search_api_not_ready": 1
     }
   },
   "shapes": [
@@ -405,15 +413,15 @@
       "states": 0
     },
     {
-      "described": 0,
-      "placed": 0,
+      "described": 1,
+      "placed": 2,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
       "states": 0
     },
     {
-      "described": 0,
+      "described": 1,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,

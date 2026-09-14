@@ -9,51 +9,51 @@
     "ineligible": 194,
     "ineligible:HAS_RECEIVER": 34,
     "eligible": 365,
-    "fallback": 229,
+    "fallback": 228,
     "ineligible:TAKES_COMPOSABLE_CONTENT": 55,
-    "not_worth": 82,
+    "not_worth": 76,
     "ineligible:RETURNS_A_VALUE": 99,
-    "shape:described": 13,
-    "shape:placed": 108,
-    "shape:frozen": 77,
-    "shape:conditionals": 5,
+    "shape:described": 21,
+    "shape:placed": 113,
+    "shape:frozen": 81,
+    "shape:conditionals": 6,
     "shape:actions": 0,
     "shape:states": 0,
-    "mixed": 52,
+    "mixed": 58,
     "ineligible:PREVIEW": 5,
-    "ineligible:NO_BODY": 1,
-    "remote": 2
+    "remote": 3,
+    "ineligible:NO_BODY": 1
   },
   "blocked_by": {
-    "Compose value type": 57,
-    "third-party composable": 93,
-    "unsupported Kotlin syntax": 14,
+    "Compose value type": 51,
+    "third-party composable": 95,
+    "unsupported Kotlin syntax": 15,
     "collections/data classes": 12,
-    "native local read remotely": 16,
+    "native local read remotely": 17,
     "native value read remotely": 10,
     "callback argument type": 6,
     "native capability": 18,
-    "name from outside the screen": 3
+    "name from outside the screen": 4
   },
   "occurrences": {
-    "Compose value type": 84,
-    "third-party composable": 95,
-    "unsupported Kotlin syntax": 20,
-    "collections/data classes": 15,
-    "native local read remotely": 16,
+    "Compose value type": 58,
+    "third-party composable": 97,
+    "unsupported Kotlin syntax": 21,
+    "collections/data classes": 16,
+    "native local read remotely": 17,
     "native value read remotely": 10,
     "callback argument type": 7,
-    "native capability": 24,
-    "name from outside the screen": 3
+    "native capability": 25,
+    "name from outside the screen": 4
   },
   "details": {
     "Compose value type": {
-      "Row.verticalAlignment": 11,
-      "Column.verticalArrangement": 9,
       "dp": 9,
-      "Row.horizontalArrangement": 7,
-      "Column.horizontalAlignment": 5,
-      "androidx.compose.foundation.clickable": 4
+      "Column.verticalArrangement.spacedBy": 4,
+      "Row.horizontalArrangement.spacedBy": 4,
+      "androidx.compose.foundation.clickable": 4,
+      "value:androidx.compose.ui.graphics.vector.ImageVector": 3,
+      "androidx.compose.ui.Modifier.then": 3
     },
     "third-party composable": {
       "tachiyomi.presentation.core.components.material.Scaffold": 13,
@@ -73,7 +73,7 @@
     },
     "collections/data classes": {
       "value:kotlin.Any": 3,
-      "value:kotlin.Boolean": 2,
+      "value:kotlin.Boolean": 3,
       "value:eu.kanade.tachiyomi.ui.manga.notes.MangaNotesScreen.State": 1,
       "value:kotlin.Int": 1,
       "eu.kanade.tachiyomi.extension.model.Extension": 1,
@@ -102,7 +102,7 @@
       "lambda:kotlin.Function1": 1
     },
     "native capability": {
-      "call:tachiyomi.presentation.core.i18n.stringResource": 3,
+      "call:tachiyomi.presentation.core.i18n.stringResource": 4,
       "kotlin.text.isNotEmpty": 2,
       "kotlin.collections.map": 2,
       "call:androidx.compose.ui.res.painterResource": 1,
@@ -112,15 +112,18 @@
     "name from outside the screen": {
       "outside the screen:licenses": 1,
       "outside the screen:label_stats": 1,
-      "outside the screen:label_upcoming": 1
+      "outside the screen:label_upcoming": 1,
+      "outside the screen:also_set_chapter_settings_for_library": 1
     }
   },
   "inside": {
     "name from outside the screen": 54,
-    "Compose value type": 11,
-    "unsupported Kotlin syntax": 10,
+    "Compose value type": 13,
+    "unsupported Kotlin syntax": 12,
     "native value read remotely": 2,
-    "native capability": 17
+    "native capability": 17,
+    "collections/data classes": 1,
+    "callback argument type": 1
   },
   "inside_details": {
     "name from outside the screen": {
@@ -133,18 +136,18 @@
     },
     "Compose value type": {
       "property:tachiyomi.i18n.MR.strings.empty_screen": 2,
+      "androidx.compose.ui.text.TextStyle": 2,
       "property:mihon.icons.materialsymbols.rounded.Preview": 2,
       "property:eu.kanade.tachiyomi.ui.reader.setting.ReadingMode.DEFAULT": 1,
       "property:eu.kanade.tachiyomi.ui.reader.setting.ReadingMode.LEFT_TO_RIGHT": 1,
-      "property:<local>.topBarScrollBehavior": 1,
-      "property:eu.kanade.presentation.library.components.CommonMangaItemDefaults.BrowseFavoriteCoverAlpha": 1
+      "property:<local>.topBarScrollBehavior": 1
     },
     "native value read remotely": {
       "read through a native value:tachiyomi.domain.source.model.Source": 1,
       "read through a native value:tachiyomi.domain.source.model.StubSource": 1
     },
     "unsupported Kotlin syntax": {
-      "expression:FirLiteralExpressionImpl": 4,
+      "expression:FirLiteralExpressionImpl": 5,
       "FirPropertyImpl": 1,
       "conditional": 1
     },
@@ -155,6 +158,12 @@
       "call:eu.kanade.tachiyomi.ui.reader.model.ChapterTransition.Prev.Prev": 1,
       "call:androidx.compose.material3.SnackbarHostState.SnackbarHostState": 1,
       "call:androidx.compose.foundation.layout.imePadding": 1
+    },
+    "collections/data classes": {
+      "kotlinx.datetime.LocalDate": 1
+    },
+    "callback argument type": {
+      "lambda:kotlin.Function0": 1
     }
   },
   "shapes": [
@@ -207,7 +216,7 @@
       "states": 0
     },
     {
-      "described": 0,
+      "described": 1,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,
@@ -407,8 +416,8 @@
       "states": 0
     },
     {
-      "described": 0,
-      "placed": 0,
+      "described": 1,
+      "placed": 1,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -447,8 +456,8 @@
       "states": 0
     },
     {
-      "described": 0,
-      "placed": 0,
+      "described": 2,
+      "placed": 1,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -463,8 +472,8 @@
       "states": 0
     },
     {
-      "described": 0,
-      "placed": 0,
+      "described": 1,
+      "placed": 1,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -503,9 +512,9 @@
       "states": 0
     },
     {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
+      "described": 1,
+      "placed": 1,
+      "frozen": 0,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -695,6 +704,14 @@
       "states": 0
     },
     {
+      "described": 1,
+      "placed": 0,
+      "frozen": 0,
+      "conditionals": 1,
+      "actions": 0,
+      "states": 0
+    },
+    {
       "described": 0,
       "placed": 0,
       "frozen": 1,
@@ -1223,9 +1240,9 @@
       "states": 0
     },
     {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
+      "described": 1,
+      "placed": 1,
+      "frozen": 0,
       "conditionals": 0,
       "actions": 0,
       "states": 0

@@ -33,7 +33,7 @@
   "occurrences": {
     "native capability": 17,
     "third-party composable": 14,
-    "Compose value type": 12,
+    "Compose value type": 9,
     "name from outside the screen": 2,
     "unsupported Kotlin syntax": 3
   },
@@ -57,10 +57,8 @@
     "Compose value type": {
       "property:<local>.modifier": 2,
       "androidx.compose.foundation.clickable": 2,
-      "Row.verticalAlignment": 1,
       "androidx.compose.foundation.layout.heightIn": 1,
-      "Column.horizontalAlignment": 1,
-      "Column.verticalArrangement": 1
+      "androidx.compose.foundation.selection.selectable": 1
     },
     "name from outside the screen": {
       "outside the screen:cart_subtotal_label": 1,
