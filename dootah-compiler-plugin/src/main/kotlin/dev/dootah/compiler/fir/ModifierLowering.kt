@@ -332,10 +332,9 @@ internal class ModifierLowering(
     /** Reads `16.dp`, and nothing else. */
     private fun dimensionOf(expression: FirExpression): Double? {
 
-        val access = expression as? FirPropertyAccessExpression
-        val isDp = access?.resolvedCallableName() == SupportedCatalog.DP_PROPERTY
+        val value = DpLiteral.read(expression)
 
-        if (access == null || !isDp) {
+        if (value == null) {
             reject(
                 expression,
                 "a size Dootah could not read",
@@ -347,20 +346,12 @@ internal class ModifierLowering(
             return null
         }
 
-        return numberOf(access.explicitReceiver ?: return null)
+        return value
     }
 
     private fun numberOf(expression: FirExpression): Double? {
 
-        val value = (expression as? FirLiteralExpression)?.value
-
-        val number = when (value) {
-            is Int -> value.toDouble()
-            is Long -> value.toDouble()
-            is Float -> value.toDouble()
-            is Double -> value
-            else -> null
-        }
+        val number = DpLiteral.number(expression)
 
         if (number == null) {
             reject(

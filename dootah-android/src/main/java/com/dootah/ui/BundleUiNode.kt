@@ -1,5 +1,6 @@
 package com.dootah.ui
 
+import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.PropValue
 
 /**
@@ -18,19 +19,35 @@ sealed interface BundleUiNode {
         val children: List<BundleUiNode>
     }
 
+    /**
+     * Alignment and arrangement arrive as names from a closed vocabulary, never
+     * as objects: an `Alignment` computes a position rather than holding one, so
+     * there is nothing in it to send. The renderer resolves a name against the
+     * value this build already has, from an exhaustive `when`.
+     *
+     * Null is not "centre" or "start" -- it is "the bundle did not say", and the
+     * renderer then leaves Compose's own default alone. A bundle asserting what
+     * it believed the default to be would freeze that default across a version
+     * boundary it does not control.
+     */
     data class Column(
         override val modifiers: List<BundleUiModifier>,
         override val children: List<BundleUiNode>,
+        val horizontalAlignment: String? = null,
+        val verticalArrangement: LayoutArrangement? = null,
     ) : Container
 
     data class Row(
         override val modifiers: List<BundleUiModifier>,
         override val children: List<BundleUiNode>,
+        val verticalAlignment: String? = null,
+        val horizontalArrangement: LayoutArrangement? = null,
     ) : Container
 
     data class Box(
         override val modifiers: List<BundleUiModifier>,
         override val children: List<BundleUiNode>,
+        val contentAlignment: String? = null,
     ) : Container
 
     data class Text(

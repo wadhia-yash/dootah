@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.contracts.description.LogicOperationKind
 import org.jetbrains.kotlin.types.ConstantValueKind
 import dev.dootah.contract.FrozenRegionId
+import dev.dootah.contract.LayoutArrangement
 import org.jetbrains.kotlin.name.FqName
 import java.io.File
 import java.util.IdentityHashMap
@@ -174,6 +175,12 @@ internal class ScreenLowering(
             reject(offset, found, code, detail, remedy)
         },
         modifierParameterName = modifierParameter,
+    )
+
+    private val layouts = LayoutLowering(
+        rejector = { offset, found, remedy, code, detail ->
+            reject(offset, found, code, detail, remedy)
+        },
     )
 
     /**
@@ -582,16 +589,30 @@ internal class ScreenLowering(
     private fun lowerUi(call: FirFunctionCall): BundleUi? =
         when (call.resolvedCallableName()) {
 
-            SupportedCatalog.COLUMN -> lowerContainer(call) { mods, kids ->
-                BundleUi.ColumnUi(mods, kids)
+            SupportedCatalog.COLUMN -> lowerContainer(call) { args, kids ->
+                BundleUi.ColumnUi(
+                    modifiers = args.modifiers,
+                    children = kids,
+                    horizontalAlignment = args.horizontalAlignment,
+                    verticalArrangement = args.verticalArrangement,
+                )
             }
 
-            SupportedCatalog.ROW -> lowerContainer(call) { mods, kids ->
-                BundleUi.RowUi(mods, kids)
+            SupportedCatalog.ROW -> lowerContainer(call) { args, kids ->
+                BundleUi.RowUi(
+                    modifiers = args.modifiers,
+                    children = kids,
+                    verticalAlignment = args.verticalAlignment,
+                    horizontalArrangement = args.horizontalArrangement,
+                )
             }
 
-            SupportedCatalog.BOX -> lowerContainer(call) { mods, kids ->
-                BundleUi.BoxUi(mods, kids)
+            SupportedCatalog.BOX -> lowerContainer(call) { args, kids ->
+                BundleUi.BoxUi(
+                    modifiers = args.modifiers,
+                    children = kids,
+                    contentAlignment = args.contentAlignment,
+                )
             }
 
             // A component Dootah understands, unless it is styled or wired in a
@@ -613,7 +634,7 @@ internal class ScreenLowering(
      */
     private fun lowerContainer(
         call: FirFunctionCall,
-        build: (List<BundleModifier>, List<BundleUi>) -> BundleUi,
+        build: (ContainerArguments, List<BundleUi>) -> BundleUi,
     ): BundleUi? {
 
         val name = call.resolvedCallableName()?.shortName()?.asString() ?: "layout"
@@ -630,17 +651,41 @@ internal class ScreenLowering(
             return null
         }
 
-        var modifierList = emptyList<BundleModifier>()
+        val arguments = ContainerArguments()
         var content: FirBlock? = null
         var rejected = false
 
+        // Dispatched by parameter name alone, because Compose's own signatures
+        // already decide which names a layout has: only `Row` declares
+        // `verticalAlignment`, and the callee was matched by resolved name
+        // before we got here.
         for ((expression, parameter) in mapping) {
             when (parameter.name.asString()) {
 
-                "modifier" -> modifierList = modifiers.lower(expression)
+                "modifier" -> arguments.modifiers = modifiers.lower(expression)
                     ?: run { rejected = true; emptyList() }
 
                 "content" -> content = expression.lambdaBody()
+
+                "horizontalAlignment" ->
+                    arguments.horizontalAlignment = layouts.horizontalAlignment(expression, name)
+                        ?: run { rejected = true; null }
+
+                "verticalAlignment" ->
+                    arguments.verticalAlignment = layouts.verticalAlignment(expression, name)
+                        ?: run { rejected = true; null }
+
+                "contentAlignment" ->
+                    arguments.contentAlignment = layouts.boxAlignment(expression, name)
+                        ?: run { rejected = true; null }
+
+                "verticalArrangement" ->
+                    arguments.verticalArrangement = layouts.verticalArrangement(expression, name)
+                        ?: run { rejected = true; null }
+
+                "horizontalArrangement" ->
+                    arguments.horizontalArrangement = layouts.horizontalArrangement(expression, name)
+                        ?: run { rejected = true; null }
 
                 else -> {
                     reject(
@@ -648,8 +693,8 @@ internal class ScreenLowering(
                         "the $name argument `${parameter.name.asString()}`",
                         code = RejectionCode.UNSUPPORTED_LAYOUT_ARGUMENT,
                         detail = "$name.${parameter.name.asString()}",
-                        remedy = "Dootah bundles $name(modifier) { }. Alignment and " +
-                            "arrangement are not bundled yet.",
+                        remedy = "Dootah bundles $name(modifier, alignment, " +
+                            "arrangement) { }.",
                     )
                     rejected = true
                 }
@@ -673,7 +718,23 @@ internal class ScreenLowering(
             lowerUiStatementPartially(statement) ?: return null
         }
 
-        return build(modifierList, children)
+        return build(arguments, children)
+    }
+
+    /**
+     * What a layout call said, gathered before any of it is built.
+     *
+     * One holder for all three layouts rather than one per layout: the loop that
+     * fills it reads arguments by name in whatever order they were written, and
+     * three holders would mean three nearly identical loops.
+     */
+    private class ContainerArguments {
+        var modifiers: List<BundleModifier> = emptyList()
+        var horizontalAlignment: String? = null
+        var verticalAlignment: String? = null
+        var contentAlignment: String? = null
+        var verticalArrangement: LayoutArrangement? = null
+        var horizontalArrangement: LayoutArrangement? = null
     }
 
     private fun lowerConditionalUi(expression: FirWhenExpression): BundleUi? {

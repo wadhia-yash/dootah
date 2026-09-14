@@ -1004,19 +1004,27 @@ class ScreenLoweringTest {
         // the bundle arranges and becomes a region the app draws as written. The
         // screen still publishes; that one Column is simply not what an update
         // can change.
+        //
+        // The argument used to be a placeholder the stubs typed as an `Int`,
+        // which no real Compose layout has. `propagateMinConstraints` is a real
+        // one Dootah does not bundle, and like the placeholder it is a value the
+        // adapter can carry -- so this still exercises the rung of the ladder it
+        // was written for.
+        //
+        // An unbundled *arrangement* cannot reach this rung: its value is an
+        // `Arrangement`, which is not something an adapter can be handed, so a
+        // layout refused for one degrades further down the ladder instead. That
+        // is covered separately in LayoutArgumentLoweringTest.
         val (generated, kept) = keptNative(
-            screen(
-                body = """Text("x")""",
-                columnModifier = "verticalArrangement = 2",
-            )
+            screen(body = """Box(propagateMinConstraints = true) { Text("x") }""")
         )
 
-        // The Column stops being a layout the bundle arranges and becomes a
+        // The Box stops being a layout the bundle arranges and becomes a
         // component it places -- and its children stay remote, which is the
-        // whole point: the arrangement is native, the content is not.
-        assertTrue(generated, generated.contains("adapter = \"androidx.compose.foundation.layout.Column"))
+        // whole point: the layout is native, the content is not.
+        assertTrue(generated, generated.contains("adapter = \"androidx.compose.foundation.layout.Box"))
         assertTrue(generated, generated.contains("""TextNode("x")"""))
-        assertTrue(kept, kept.contains("Alignment and arrangement are not bundled"))
+        assertTrue(kept, kept.contains("propagateMinConstraints"))
         assertTrue(kept, kept.contains("a component the bundle places"))
     }
 

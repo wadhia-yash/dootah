@@ -10,6 +10,7 @@ import dev.dootah.compiler.model.BundleProp
 import dev.dootah.compiler.model.BundleScreen
 import dev.dootah.compiler.model.BundleStatement
 import dev.dootah.compiler.model.BundleUi
+import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.PropValue
 
 internal const val GENERATED_PACKAGE = "dev.dootah.generated"
@@ -37,6 +38,7 @@ internal object BundleSourceWriter {
         appendLine("import protocol.Command")
         appendLine("import protocol.ScreenArguments")
         appendLine("import protocol.ScreenState")
+        appendLine("import ui.ArrangementNode")
         appendLine("import ui.BoxNode")
         appendLine("import ui.BundleModifier")
         appendLine("import ui.BundleNode")
@@ -476,9 +478,22 @@ internal object BundleSourceWriter {
 
         return when (ui) {
 
-            is BundleUi.ColumnUi -> container("ColumnNode", ui.modifiers, ui.children, indent)
-            is BundleUi.RowUi -> container("RowNode", ui.modifiers, ui.children, indent)
-            is BundleUi.BoxUi -> container("BoxNode", ui.modifiers, ui.children, indent)
+            is BundleUi.ColumnUi -> container(
+                "ColumnNode", ui.modifiers, ui.children, indent,
+                alignment = "horizontalAlignment" to ui.horizontalAlignment,
+                arrangement = "verticalArrangement" to ui.verticalArrangement,
+            )
+
+            is BundleUi.RowUi -> container(
+                "RowNode", ui.modifiers, ui.children, indent,
+                alignment = "verticalAlignment" to ui.verticalAlignment,
+                arrangement = "horizontalArrangement" to ui.horizontalArrangement,
+            )
+
+            is BundleUi.BoxUi -> container(
+                "BoxNode", ui.modifiers, ui.children, indent,
+                alignment = "contentAlignment" to ui.contentAlignment,
+            )
 
             is BundleUi.TextUi ->
                 "$pad" + "TextNode(${renderExpression(ui.text)}" +
@@ -511,11 +526,20 @@ internal object BundleSourceWriter {
         }
     }
 
+    /**
+     * A layout node, with whichever of alignment and arrangement it was given.
+     *
+     * Both are emitted only when the source wrote them, so a layout written
+     * without them produces exactly the source it produced before they existed
+     * and the bundle carries no opinion about what Compose's default is.
+     */
     private fun container(
         node: String,
         modifiers: List<BundleModifier>,
         children: List<BundleUi>,
         indent: Int,
+        alignment: Pair<String, String?> = "" to null,
+        arrangement: Pair<String, LayoutArrangement?> = "" to null,
     ): String {
 
         val pad = " ".repeat(indent)
@@ -523,11 +547,27 @@ internal object BundleSourceWriter {
         return buildString {
             appendLine("$pad$node(")
             appendLine("$pad    modifiers = ${renderModifiers(modifiers)},")
+
+            alignment.second?.let { token ->
+                appendLine("$pad    ${alignment.first} = ${kotlinStringLiteral(token)},")
+            }
+
+            arrangement.second?.let { value ->
+                appendLine("$pad    ${arrangement.first} = ${renderArrangement(value)},")
+            }
+
             appendLine("$pad    children = buildList {")
             children.forEach { child -> append(addChild(child, indent + 8)) }
             appendLine("$pad    },")
             appendLine("$pad)")
         }
+    }
+
+    private fun renderArrangement(value: LayoutArrangement): String {
+
+        val spacing = value.spacing?.let { ", $it" } ?: ""
+
+        return "ArrangementNode(${kotlinStringLiteral(value.token)}$spacing)"
     }
 
     /**

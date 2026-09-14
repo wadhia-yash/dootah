@@ -325,6 +325,37 @@ private fun composeStubs(): List<SourceFile> = listOf(
             interface Modifier {
                 companion object : Modifier
             }
+
+            // Shaped like the real Alignment: the values live on the companion,
+            // and the two axes are separate types. Lowering matches on resolved
+            // fully qualified names, so a stub that merged the axes or moved the
+            // values off the companion would prove nothing about real Compose.
+            interface Alignment {
+
+                interface Horizontal
+
+                interface Vertical
+
+                companion object {
+                    val Start: Horizontal = object : Horizontal {}
+                    val CenterHorizontally: Horizontal = object : Horizontal {}
+                    val End: Horizontal = object : Horizontal {}
+
+                    val Top: Vertical = object : Vertical {}
+                    val CenterVertically: Vertical = object : Vertical {}
+                    val Bottom: Vertical = object : Vertical {}
+
+                    val TopStart: Alignment = object : Alignment {}
+                    val TopCenter: Alignment = object : Alignment {}
+                    val TopEnd: Alignment = object : Alignment {}
+                    val CenterStart: Alignment = object : Alignment {}
+                    val Center: Alignment = object : Alignment {}
+                    val CenterEnd: Alignment = object : Alignment {}
+                    val BottomStart: Alignment = object : Alignment {}
+                    val BottomCenter: Alignment = object : Alignment {}
+                    val BottomEnd: Alignment = object : Alignment {}
+                }
+            }
         """.trimIndent(),
     ),
     SourceFile(
@@ -416,6 +447,7 @@ private fun composeStubs(): List<SourceFile> = listOf(
             package androidx.compose.foundation.layout
 
             import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Alignment
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.unit.Dp
 
@@ -429,23 +461,64 @@ private fun composeStubs(): List<SourceFile> = listOf(
 
             interface BoxScope
 
+            // Shaped like the real Arrangement: one object, members that
+            // implement one axis or both, a spacedBy with the overload that also
+            // takes an alignment, and the nested Absolute -- which is here
+            // precisely because it is a real arrangement Dootah does not bundle.
+            object Arrangement {
+
+                interface Horizontal
+
+                interface Vertical
+
+                val Top: Vertical = object : Vertical {}
+                val Bottom: Vertical = object : Vertical {}
+
+                val Start: Horizontal = object : Horizontal {}
+                val End: Horizontal = object : Horizontal {}
+
+                val Center: HorizontalOrVertical = object : HorizontalOrVertical {}
+                val SpaceBetween: HorizontalOrVertical = object : HorizontalOrVertical {}
+                val SpaceAround: HorizontalOrVertical = object : HorizontalOrVertical {}
+                val SpaceEvenly: HorizontalOrVertical = object : HorizontalOrVertical {}
+
+                interface HorizontalOrVertical : Horizontal, Vertical
+
+                fun spacedBy(space: Dp): HorizontalOrVertical =
+                    object : HorizontalOrVertical {}
+
+                fun spacedBy(space: Dp, alignment: Alignment.Horizontal): Horizontal =
+                    object : Horizontal {}
+
+                fun spacedBy(space: Dp, alignment: Alignment.Vertical): Vertical =
+                    object : Vertical {}
+
+                object Absolute {
+                    val Right: Horizontal = object : Horizontal {}
+                }
+            }
+
             @Composable
             fun Column(
                 modifier: Modifier = Modifier,
-                verticalArrangement: Int = 0,
+                verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+                horizontalAlignment: Alignment.Horizontal = Alignment.Start,
                 content: @Composable ColumnScope.() -> Unit,
             ) {}
 
             @Composable
             fun Row(
                 modifier: Modifier = Modifier,
-                verticalAlignment: Int = 0,
+                horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
+                verticalAlignment: Alignment.Vertical = Alignment.Top,
                 content: @Composable RowScope.() -> Unit,
             ) {}
 
             @Composable
             fun Box(
                 modifier: Modifier = Modifier,
+                contentAlignment: Alignment = Alignment.TopStart,
+                propagateMinConstraints: Boolean = false,
                 content: @Composable BoxScope.() -> Unit,
             ) {}
 

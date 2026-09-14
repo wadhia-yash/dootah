@@ -9,20 +9,47 @@ package ui
  */
 sealed interface BundleNode
 
+/**
+ * A column, and whichever of alignment and arrangement it was written with.
+ *
+ * An `Alignment` computes a position rather than holding one, so there is
+ * nothing in it a bundle could serialise. It names one of the values the
+ * installed app already has, and the app resolves it. Null means the layout was
+ * written without it: the app then leaves Compose's own default alone rather
+ * than being told what this bundle believed that default to be.
+ */
 data class ColumnNode(
     val modifiers: List<BundleModifier> = emptyList(),
+    val horizontalAlignment: String? = null,
+    val verticalArrangement: ArrangementNode? = null,
     val children: List<BundleNode> = emptyList(),
 ) : BundleNode
 
 data class RowNode(
     val modifiers: List<BundleModifier> = emptyList(),
+    val verticalAlignment: String? = null,
+    val horizontalArrangement: ArrangementNode? = null,
     val children: List<BundleNode> = emptyList(),
 ) : BundleNode
 
 data class BoxNode(
     val modifiers: List<BundleModifier> = emptyList(),
+    val contentAlignment: String? = null,
     val children: List<BundleNode> = emptyList(),
 ) : BundleNode
+
+/**
+ * One arrangement: a name, and for `spacedBy` alone the gap in dp.
+ *
+ * The JS mirror of the contract's `LayoutArrangement`. Two declarations rather
+ * than a shared one for the same reason the node models are duplicated: the two
+ * sides are versioned independently and the only contract between them is the
+ * JSON.
+ */
+data class ArrangementNode(
+    val token: String,
+    val spacing: Double? = null,
+)
 
 data class TextNode(
     val text: String,

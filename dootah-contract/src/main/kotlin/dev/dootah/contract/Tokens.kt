@@ -42,3 +42,93 @@ public object Shapes {
 
     public fun isKnown(token: String): Boolean = token in ALL
 }
+
+/**
+ * The `Alignment` values a bundle may name on a layout.
+ *
+ * Three closed sets rather than one, because Compose's type system already
+ * separates them and collapsing them here would let a bundle put
+ * `CenterVertically` on a `Column`, which has no such axis. A `Column` takes an
+ * `Alignment.Horizontal`, a `Row` an `Alignment.Vertical`, and a `Box` a
+ * two-axis `Alignment`; the names are Compose's own property names, so there is
+ * nothing to translate and nothing to keep in step but this list.
+ *
+ * Named, never serialised. An `Alignment` is an object with behaviour -- it
+ * computes a position -- so carrying one would mean carrying code. The bundle
+ * says which of these the app already has, and the app resolves it from an
+ * exhaustive `when`.
+ */
+public object Alignments {
+
+    /** `Column(horizontalAlignment = ...)`, an `Alignment.Horizontal`. */
+    public val HORIZONTAL: List<String> = listOf("Start", "CenterHorizontally", "End")
+
+    /** `Row(verticalAlignment = ...)`, an `Alignment.Vertical`. */
+    public val VERTICAL: List<String> = listOf("Top", "CenterVertically", "Bottom")
+
+    /** `Box(contentAlignment = ...)`, a two-axis `Alignment`. */
+    public val BOX: List<String> = listOf(
+        "TopStart", "TopCenter", "TopEnd",
+        "CenterStart", "Center", "CenterEnd",
+        "BottomStart", "BottomCenter", "BottomEnd",
+    )
+
+    public fun isKnownHorizontal(token: String): Boolean = token in HORIZONTAL
+
+    public fun isKnownVertical(token: String): Boolean = token in VERTICAL
+
+    public fun isKnownBox(token: String): Boolean = token in BOX
+}
+
+/**
+ * The `Arrangement` values a bundle may name on a layout.
+ *
+ * Split by axis for the same reason as [Alignments]: `Arrangement.Top` is a
+ * `Vertical` and means nothing on a `Row`. `Center`, `SpaceBetween`,
+ * `SpaceAround` and `SpaceEvenly` are in both sets because Compose declares one
+ * object implementing both interfaces.
+ *
+ * [SPACED_BY] is the one entry carrying a value rather than being a bare name --
+ * see [LayoutArrangement].
+ */
+public object Arrangements {
+
+    /** `Arrangement.spacedBy(16.dp)`, the only arrangement that takes a value. */
+    public const val SPACED_BY: String = "spacedBy"
+
+    /** `Column(verticalArrangement = ...)`, an `Arrangement.Vertical`. */
+    public val VERTICAL: List<String> = listOf(
+        "Top", "Bottom", "Center", "SpaceBetween", "SpaceAround", "SpaceEvenly", SPACED_BY,
+    )
+
+    /** `Row(horizontalArrangement = ...)`, an `Arrangement.Horizontal`. */
+    public val HORIZONTAL: List<String> = listOf(
+        "Start", "End", "Center", "SpaceBetween", "SpaceAround", "SpaceEvenly", SPACED_BY,
+    )
+
+    public fun isKnownVertical(token: String): Boolean = token in VERTICAL
+
+    public fun isKnownHorizontal(token: String): Boolean = token in HORIZONTAL
+}
+
+/**
+ * One arrangement, as a bundle carries it.
+ *
+ * A token and, for `spacedBy` alone, the gap in dp. Kept as one type with an
+ * optional value rather than two, because both ends have to decide "which
+ * arrangement" before they can ask "how much", and splitting them put that
+ * decision in two places.
+ *
+ * [spacing] is meaningless for every other token and is not read for them; a
+ * `spacedBy` that arrives without one is a malformed bundle, which the app's
+ * parser refuses rather than defaulting to zero and drawing a layout nobody
+ * described.
+ *
+ * Named `LayoutArrangement` rather than `Arrangement` on purpose: the renderer
+ * that resolves it imports Compose's `Arrangement` in the same file, and one of
+ * the two would have to be written out in full at every use.
+ */
+public data class LayoutArrangement(
+    public val token: String,
+    public val spacing: Double? = null,
+)

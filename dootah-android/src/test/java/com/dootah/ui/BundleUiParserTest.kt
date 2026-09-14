@@ -1,5 +1,6 @@
 package com.dootah.ui
 
+import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.PropValue
 
 import org.junit.Assert.assertEquals
@@ -233,4 +234,126 @@ class BundleUiParserTest {
             BundleUiParser.parseScreenIds("""["com.example.A","com.example.B"]"""),
         )
     }
+    // ---- alignment and arrangement ---------------------------------------
+
+    @Test
+    fun `reads alignment and arrangement on each layout`() {
+
+        val response = BundleUiParser.parse(
+            """
+            {"ui":{"type":"column",
+              "horizontalAlignment":"End",
+              "verticalArrangement":{"token":"SpaceBetween"},
+              "children":[
+                {"type":"row",
+                 "verticalAlignment":"CenterVertically",
+                 "horizontalArrangement":{"token":"spacedBy","space":8.0},
+                 "children":[]},
+                {"type":"box","contentAlignment":"Center","children":[]}
+              ]},
+             "commands":[]}
+            """.trimIndent()
+        )
+
+        val column = response.ui as BundleUiNode.Column
+
+        assertEquals("End", column.horizontalAlignment)
+        assertEquals(LayoutArrangement("SpaceBetween"), column.verticalArrangement)
+
+        val row = column.children[0] as BundleUiNode.Row
+
+        assertEquals("CenterVertically", row.verticalAlignment)
+        assertEquals(LayoutArrangement("spacedBy", 8.0), row.horizontalArrangement)
+
+        assertEquals("Center", (column.children[1] as BundleUiNode.Box).contentAlignment)
+    }
+
+    /**
+     * Saying nothing is not the same as saying the default.
+     *
+     * The renderer leaves Compose's own default in place for a null, so a bundle
+     * that never mentioned alignment must arrive with nulls rather than with
+     * whatever the compiling machine's Compose considered default.
+     */
+    @Test
+    fun `leaves alignment unset when the bundle did not send it`() {
+
+        val response = BundleUiParser.parse(
+            """{"ui":{"type":"row","children":[]},"commands":[]}"""
+        )
+
+        val row = response.ui as BundleUiNode.Row
+
+        assertEquals(null, row.verticalAlignment)
+        assertEquals(null, row.horizontalArrangement)
+    }
+
+    @Test
+    fun `refuses an alignment outside the vocabulary`() {
+
+        val failure = assertThrows(BundleProtocolException::class.java) {
+            BundleUiParser.parse(
+                """{"ui":{"type":"row","verticalAlignment":"Sideways","children":[]},"commands":[]}"""
+            )
+        }
+
+        assertTrue(failure.message, failure.message!!.contains("Sideways"))
+    }
+
+    /**
+     * A real `Alignment`, on the wrong axis, is still refused.
+     *
+     * `CenterHorizontally` exists and is meaningless as a `Row`'s vertical
+     * alignment. Checking the name against the set for its own axis is what
+     * stops the renderer being handed a token it has no value for.
+     */
+    @Test
+    fun `refuses an alignment from the wrong axis`() {
+
+        val failure = assertThrows(BundleProtocolException::class.java) {
+            BundleUiParser.parse(
+                """
+                {"ui":{"type":"row","verticalAlignment":"CenterHorizontally","children":[]},
+                 "commands":[]}
+                """.trimIndent()
+            )
+        }
+
+        assertTrue(failure.message, failure.message!!.contains("CenterHorizontally"))
+    }
+
+    @Test
+    fun `refuses an arrangement from the wrong axis`() {
+
+        val failure = assertThrows(BundleProtocolException::class.java) {
+            BundleUiParser.parse(
+                """
+                {"ui":{"type":"column","verticalArrangement":{"token":"Start"},"children":[]},
+                 "commands":[]}
+                """.trimIndent()
+            )
+        }
+
+        assertTrue(failure.message, failure.message!!.contains("Start"))
+    }
+
+    /**
+     * A `spacedBy` with no gap is malformed, and refusing is the safe answer.
+     *
+     * Defaulting it to zero would draw a layout nobody described, which is the
+     * one outcome worse than falling back to the native implementation.
+     */
+    @Test
+    fun `refuses a spacedBy that arrives without its gap`() {
+
+        assertThrows(BundleProtocolException::class.java) {
+            BundleUiParser.parse(
+                """
+                {"ui":{"type":"row","horizontalArrangement":{"token":"spacedBy"},"children":[]},
+                 "commands":[]}
+                """.trimIndent()
+            )
+        }
+    }
+
 }

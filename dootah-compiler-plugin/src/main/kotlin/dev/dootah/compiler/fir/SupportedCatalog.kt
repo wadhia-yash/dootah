@@ -48,6 +48,19 @@ internal object SupportedCatalog {
     val MATERIAL_THEME: FqName = FqName("$MATERIAL.MaterialTheme")
     val COLOR_SCHEME_PROPERTY: FqName = FqName("$MATERIAL.MaterialTheme.colorScheme")
 
+    /**
+     * `Alignment.CenterVertically` and its siblings, all declared on
+     * `Alignment`'s companion. Which of the three closed sets a name belongs to
+     * is decided by the parameter it is going into, not by the name.
+     */
+    val ALIGNMENT_COMPANION: FqName = FqName("androidx.compose.ui.Alignment.Companion")
+
+    /** `Arrangement.SpaceBetween` and its siblings; `Arrangement` is an object. */
+    val ARRANGEMENT: FqName = FqName("$LAYOUT.Arrangement")
+
+    /** `Arrangement.spacedBy(16.dp)`, the one arrangement that takes a value. */
+    val ARRANGEMENT_SPACED_BY: FqName = FqName("$LAYOUT.Arrangement.spacedBy")
+
     val CIRCLE_SHAPE: FqName = FqName("androidx.compose.foundation.shape.CircleShape")
     val RECTANGLE_SHAPE: FqName = FqName("androidx.compose.ui.graphics.RectangleShape")
 

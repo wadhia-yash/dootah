@@ -12,9 +12,22 @@ import json.escapeJson
  */
 fun BundleNode.toJson(): String = when (this) {
 
-    is ColumnNode -> container("column", modifiers, children)
-    is RowNode -> container("row", modifiers, children)
-    is BoxNode -> container("box", modifiers, children)
+    is ColumnNode -> container(
+        "column", modifiers, children,
+        alignmentField("horizontalAlignment", horizontalAlignment) +
+            arrangementField("verticalArrangement", verticalArrangement),
+    )
+
+    is RowNode -> container(
+        "row", modifiers, children,
+        alignmentField("verticalAlignment", verticalAlignment) +
+            arrangementField("horizontalArrangement", horizontalArrangement),
+    )
+
+    is BoxNode -> container(
+        "box", modifiers, children,
+        alignmentField("contentAlignment", contentAlignment),
+    )
 
     is TextNode ->
         "{\"type\":\"text\",\"text\":\"${text.escapeJson()}\"" +
@@ -97,10 +110,31 @@ private fun container(
     type: String,
     modifiers: List<BundleModifier>,
     children: List<BundleNode>,
+    layout: String = "",
 ): String =
     "{\"type\":\"$type\"" +
         modifiersField(modifiers) +
+        layout +
         ",\"children\":[" + children.joinToString(",") { it.toJson() } + "]}"
+
+/**
+ * Written only when the layout had one.
+ *
+ * An absent field and a field naming Compose's default are different things: the
+ * first leaves the app's own default in place, and the second asserts what the
+ * default is from the other side of a version boundary.
+ */
+private fun alignmentField(name: String, token: String?): String =
+    if (token == null) "" else ",\"$name\":\"${token.escapeJson()}\""
+
+private fun arrangementField(name: String, arrangement: ArrangementNode?): String {
+
+    if (arrangement == null) return ""
+
+    val spacing = arrangement.spacing?.let { ",\"space\":$it" } ?: ""
+
+    return ",\"$name\":{\"token\":\"${arrangement.token.escapeJson()}\"$spacing}"
+}
 
 /**
  * Emitted only when there is something to emit, so an unmodified node produces

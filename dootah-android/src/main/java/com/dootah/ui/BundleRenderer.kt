@@ -9,6 +9,7 @@ package com.dootah.ui
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -34,6 +36,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.dootah.DOOTAH_LOG_TAG
+import dev.dootah.contract.Arrangements
+import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.ModifierOps
 import dev.dootah.contract.PropValue
 import dev.dootah.contract.Shapes
@@ -92,21 +96,40 @@ private fun RenderNode(
 
     when (node) {
 
-        is BundleUiNode.Column -> Column(modifier = modifier) {
+        // Compose's own defaults are named here rather than sent, so a bundle
+        // that says nothing about alignment gets whatever this build of Compose
+        // considers default -- not whatever the compiling machine's did.
+        is BundleUiNode.Column -> Column(
+            modifier = modifier,
+            horizontalAlignment = node.horizontalAlignment
+                ?.let { horizontalAlignment(it) } ?: Alignment.Start,
+            verticalArrangement = node.verticalArrangement
+                ?.let { verticalArrangement(it) } ?: Arrangement.Top,
+        ) {
             val applier = WeightApplier { child, weight -> child.weight(weight) }
             node.children.forEach { child ->
                 RenderNode(child, bindings, inherited, onAction, applier)
             }
         }
 
-        is BundleUiNode.Row -> Row(modifier = modifier) {
+        is BundleUiNode.Row -> Row(
+            modifier = modifier,
+            verticalAlignment = node.verticalAlignment
+                ?.let { verticalAlignment(it) } ?: Alignment.Top,
+            horizontalArrangement = node.horizontalArrangement
+                ?.let { horizontalArrangement(it) } ?: Arrangement.Start,
+        ) {
             val applier = WeightApplier { child, weight -> child.weight(weight) }
             node.children.forEach { child ->
                 RenderNode(child, bindings, inherited, onAction, applier)
             }
         }
 
-        is BundleUiNode.Box -> Box(modifier = modifier) {
+        is BundleUiNode.Box -> Box(
+            modifier = modifier,
+            contentAlignment = node.contentAlignment
+                ?.let { boxAlignment(it) } ?: Alignment.TopStart,
+        ) {
             node.children.forEach { child ->
                 RenderNode(child, bindings, inherited, onAction, IgnoreWeight)
             }
@@ -352,6 +375,87 @@ private fun Map<String, Any?>.dp(name: String): androidx.compose.ui.unit.Dp =
 
 private fun Map<String, Any?>.fraction(): Float =
     (this["fraction"] ?: this["value"]) as? Float ?: 1f
+
+/**
+ * Resolves an alignment or arrangement name to the value this build has.
+ *
+ * Exhaustive lists rather than a lookup by name, for the same reason
+ * [themeColor] is one: the bundle names a token from a closed vocabulary and
+ * what that token means is decided entirely here. There is no reflection, no
+ * `valueOf`, and nothing a bundle can name that this file does not spell out.
+ *
+ * A name outside the vocabulary never reaches these -- the parser refuses the
+ * whole response first -- so the `else` branches exist to satisfy the compiler
+ * and to fail loudly if that ever stops being true, rather than to guess.
+ *
+ * Each axis is separate because Compose's types are: `Alignment.Start` is a
+ * `Horizontal` and cannot be a `Row`'s `verticalAlignment`, and the compiler
+ * enforces here what the vocabulary asserts in the contract.
+ */
+private fun horizontalAlignment(token: String): Alignment.Horizontal = when (token) {
+    "Start" -> Alignment.Start
+    "CenterHorizontally" -> Alignment.CenterHorizontally
+    "End" -> Alignment.End
+    else -> unknownLayoutToken("horizontal alignment", token, Alignment.Start)
+}
+
+private fun verticalAlignment(token: String): Alignment.Vertical = when (token) {
+    "Top" -> Alignment.Top
+    "CenterVertically" -> Alignment.CenterVertically
+    "Bottom" -> Alignment.Bottom
+    else -> unknownLayoutToken("vertical alignment", token, Alignment.Top)
+}
+
+private fun boxAlignment(token: String): Alignment = when (token) {
+    "TopStart" -> Alignment.TopStart
+    "TopCenter" -> Alignment.TopCenter
+    "TopEnd" -> Alignment.TopEnd
+    "CenterStart" -> Alignment.CenterStart
+    "Center" -> Alignment.Center
+    "CenterEnd" -> Alignment.CenterEnd
+    "BottomStart" -> Alignment.BottomStart
+    "BottomCenter" -> Alignment.BottomCenter
+    "BottomEnd" -> Alignment.BottomEnd
+    else -> unknownLayoutToken("alignment", token, Alignment.TopStart)
+}
+
+private fun verticalArrangement(value: LayoutArrangement): Arrangement.Vertical =
+    when (value.token) {
+        "Top" -> Arrangement.Top
+        "Bottom" -> Arrangement.Bottom
+        "Center" -> Arrangement.Center
+        "SpaceBetween" -> Arrangement.SpaceBetween
+        "SpaceAround" -> Arrangement.SpaceAround
+        "SpaceEvenly" -> Arrangement.SpaceEvenly
+        Arrangements.SPACED_BY -> Arrangement.spacedBy(value.spacing().dp)
+        else -> unknownLayoutToken("vertical arrangement", value.token, Arrangement.Top)
+    }
+
+private fun horizontalArrangement(value: LayoutArrangement): Arrangement.Horizontal =
+    when (value.token) {
+        "Start" -> Arrangement.Start
+        "End" -> Arrangement.End
+        "Center" -> Arrangement.Center
+        "SpaceBetween" -> Arrangement.SpaceBetween
+        "SpaceAround" -> Arrangement.SpaceAround
+        "SpaceEvenly" -> Arrangement.SpaceEvenly
+        Arrangements.SPACED_BY -> Arrangement.spacedBy(value.spacing().dp)
+        else -> unknownLayoutToken("horizontal arrangement", value.token, Arrangement.Start)
+    }
+
+/**
+ * The gap a `spacedBy` carries.
+ *
+ * The parser refuses a `spacedBy` that arrives without one, so this is reached
+ * only when the wire said so; zero is the value that changes the layout least if
+ * that ever stops holding.
+ */
+private fun LayoutArrangement.spacing(): Float = spacing?.toFloat() ?: 0f
+
+private fun <T> unknownLayoutToken(kind: String, token: String, fallback: T): T {
+    Log.w(DOOTAH_LOG_TAG, "unknown $kind '$token'")
+    return fallback
+}
 
 private fun shapeOf(token: String): Shape? = when (token) {
     Shapes.CIRCLE -> CircleShape

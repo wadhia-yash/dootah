@@ -11,6 +11,9 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.doubleOrNull
+import dev.dootah.contract.Alignments
+import dev.dootah.contract.Arrangements
+import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.ModifierOp
 import dev.dootah.contract.PropValue
 
@@ -70,9 +73,33 @@ object BundleUiParser {
 
         return when (val type = node.string("type")) {
 
-            "column" -> BundleUiNode.Column(modifiers, node.children())
-            "row" -> BundleUiNode.Row(modifiers, node.children())
-            "box" -> BundleUiNode.Box(modifiers, node.children())
+            "column" -> BundleUiNode.Column(
+                modifiers = modifiers,
+                children = node.children(),
+                horizontalAlignment = node.alignment(
+                    "horizontalAlignment", Alignments::isKnownHorizontal,
+                ),
+                verticalArrangement = node.arrangement(
+                    "verticalArrangement", Arrangements::isKnownVertical,
+                ),
+            )
+
+            "row" -> BundleUiNode.Row(
+                modifiers = modifiers,
+                children = node.children(),
+                verticalAlignment = node.alignment(
+                    "verticalAlignment", Alignments::isKnownVertical,
+                ),
+                horizontalArrangement = node.arrangement(
+                    "horizontalArrangement", Arrangements::isKnownHorizontal,
+                ),
+            )
+
+            "box" -> BundleUiNode.Box(
+                modifiers = modifiers,
+                children = node.children(),
+                contentAlignment = node.alignment("contentAlignment", Alignments::isKnownBox),
+            )
 
             "text" -> BundleUiNode.Text(text = node.string("text"), modifiers = modifiers)
 
@@ -155,6 +182,52 @@ object BundleUiParser {
 
     private fun JsonObject.children(): List<BundleUiNode> =
         this["children"]?.jsonArray?.map { parseNode(it.jsonObject) }.orEmpty()
+
+    /**
+     * Reads one alignment name, checked against the set for this axis.
+     *
+     * Checked here rather than at the renderer so that an unknown name fails the
+     * whole response, like every other unknown the parser meets. The renderer's
+     * `when` would have to do something with a name it did not recognise, and
+     * every available something -- a default, the nearest match, nothing at all
+     * -- draws a layout the bundle did not describe.
+     *
+     * The axis matters as much as the name: `CenterVertically` is a real
+     * `Alignment` and still nonsense on a `Column`, so each call passes the set
+     * its own parameter accepts.
+     */
+    private fun JsonObject.alignment(field: String, isKnown: (String) -> Boolean): String? {
+
+        val token = (this[field] as? JsonPrimitive)?.content ?: return null
+
+        if (!isKnown(token)) {
+            throw BundleProtocolException("Unknown $field '$token'")
+        }
+
+        return token
+    }
+
+    /** Reads one arrangement: a name, and for `spacedBy` the gap it must carry. */
+    private fun JsonObject.arrangement(
+        field: String,
+        isKnown: (String) -> Boolean,
+    ): LayoutArrangement? {
+
+        val value = this[field]?.jsonObject ?: return null
+        val token = value.string("token")
+
+        if (!isKnown(token)) {
+            throw BundleProtocolException("Unknown $field '$token'")
+        }
+
+        // A spacedBy without its gap is a malformed bundle. Defaulting it to
+        // zero would draw a layout nobody wrote, which is worse than refusing.
+        if (token == Arrangements.SPACED_BY) {
+            return LayoutArrangement(token, value.double("space"))
+        }
+
+        return LayoutArrangement(token)
+    }
 
     private fun parseModifier(modifier: JsonObject): BundleUiModifier =
         when (val type = modifier.string("type")) {

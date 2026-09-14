@@ -1,5 +1,7 @@
 package dev.dootah.compiler.model
 
+import dev.dootah.contract.LayoutArrangement
+
 /**
  * The UI a bundle can describe.
  *
@@ -8,19 +10,31 @@ package dev.dootah.compiler.model
  */
 internal sealed interface BundleUi {
 
+    /**
+     * Alignment and arrangement travel as names from a closed vocabulary, never
+     * as the Compose objects: an `Alignment` computes a position rather than
+     * holding one, so there is nothing in it to serialise. Null means the layout
+     * was written without it, and the app leaves Compose's own default in place
+     * rather than sending what it guessed the default was.
+     */
     data class ColumnUi(
         val modifiers: List<BundleModifier>,
         val children: List<BundleUi>,
+        val horizontalAlignment: String? = null,
+        val verticalArrangement: LayoutArrangement? = null,
     ) : BundleUi
 
     data class RowUi(
         val modifiers: List<BundleModifier>,
         val children: List<BundleUi>,
+        val verticalAlignment: String? = null,
+        val horizontalArrangement: LayoutArrangement? = null,
     ) : BundleUi
 
     data class BoxUi(
         val modifiers: List<BundleModifier>,
         val children: List<BundleUi>,
+        val contentAlignment: String? = null,
     ) : BundleUi
 
     data class TextUi(
