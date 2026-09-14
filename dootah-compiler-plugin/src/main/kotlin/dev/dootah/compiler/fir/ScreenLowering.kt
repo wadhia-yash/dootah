@@ -175,12 +175,14 @@ internal class ScreenLowering(
             reject(offset, found, code, detail, remedy)
         },
         modifierParameterName = modifierParameter,
+        onAnchor = { anchor -> components.requirements.anchors += anchor },
     )
 
     private val layouts = LayoutLowering(
         rejector = { offset, found, remedy, code, detail ->
             reject(offset, found, code, detail, remedy)
         },
+        onAnchor = { anchor -> components.requirements.anchors += anchor },
     )
 
     /**
@@ -288,6 +290,7 @@ internal class ScreenLowering(
                 capabilities = components.requirements.capabilities.toList(),
                 handles = components.requirements.handles.toList(),
                 resources = components.requirements.resources.toList(),
+                anchors = components.requirements.anchors.toList(),
             ),
         )
 

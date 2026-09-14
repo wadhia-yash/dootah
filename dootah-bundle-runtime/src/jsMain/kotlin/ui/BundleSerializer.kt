@@ -124,6 +124,17 @@ private fun container(
  * first leaves the app's own default in place, and the second asserts what the
  * default is from the other side of a version boundary.
  */
+/**
+ * A length, as a number or as the name of one the app owns.
+ *
+ * Two shapes on the wire rather than one object with an empty half, because the
+ * number case is every length written as a literal and it is worth keeping it
+ * as small as it has always been. The parser tells them apart by their JSON
+ * type, which cannot be ambiguous.
+ */
+private fun DimensionNode.toJson(): String =
+    if (anchor != null) "{\"anchor\":\"${anchor.escapeJson()}\"}" else "$value"
+
 private fun alignmentField(name: String, token: String?): String =
     if (token == null) "" else ",\"$name\":\"${token.escapeJson()}\""
 
@@ -131,7 +142,7 @@ private fun arrangementField(name: String, arrangement: ArrangementNode?): Strin
 
     if (arrangement == null) return ""
 
-    val spacing = arrangement.spacing?.let { ",\"space\":$it" } ?: ""
+    val spacing = arrangement.spacing?.let { ",\"space\":${it.toJson()}" } ?: ""
 
     return ",\"$name\":{\"token\":\"${arrangement.token.escapeJson()}\"$spacing}"
 }
@@ -149,16 +160,17 @@ private fun BundleModifier.toJson(): String = when (this) {
     is BundleModifier.Inherited -> "{\"type\":\"inherited\"}"
 
     is BundleModifier.Padding ->
-        "{\"type\":\"padding\",\"start\":$start,\"top\":$top," +
-            "\"end\":$end,\"bottom\":$bottom}"
+        "{\"type\":\"padding\",\"start\":${start.toJson()},\"top\":${top.toJson()}," +
+            "\"end\":${end.toJson()},\"bottom\":${bottom.toJson()}}"
 
     is BundleModifier.FillMaxWidth -> "{\"type\":\"fillMaxWidth\",\"fraction\":$fraction}"
     is BundleModifier.FillMaxHeight -> "{\"type\":\"fillMaxHeight\",\"fraction\":$fraction}"
     is BundleModifier.FillMaxSize -> "{\"type\":\"fillMaxSize\",\"fraction\":$fraction}"
 
-    is BundleModifier.Size -> "{\"type\":\"size\",\"width\":$width,\"height\":$height}"
-    is BundleModifier.Width -> "{\"type\":\"width\",\"value\":$value}"
-    is BundleModifier.Height -> "{\"type\":\"height\",\"value\":$value}"
+    is BundleModifier.Size ->
+        "{\"type\":\"size\",\"width\":${width.toJson()},\"height\":${height.toJson()}}"
+    is BundleModifier.Width -> "{\"type\":\"width\",\"value\":${value.toJson()}}"
+    is BundleModifier.Height -> "{\"type\":\"height\",\"value\":${value.toJson()}}"
     is BundleModifier.Weight -> "{\"type\":\"weight\",\"value\":$value}"
 
     is BundleModifier.Background -> "{\"type\":\"background\",\"color\":$color}"

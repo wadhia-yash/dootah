@@ -51,6 +51,9 @@ internal class ComponentRequirements {
     /** Every screen parameter routed into a component untouched. */
     val handles = linkedSetOf<String>()
 
+    /** Every app-owned value named rather than computed -- see `AnchorId`. */
+    val anchors = linkedSetOf<String>()
+
     /**
      * What this had collected at some earlier point, and how to go back to it.
      *
@@ -65,6 +68,7 @@ internal class ComponentRequirements {
         capabilities = capabilities.toList(),
         resources = resources.toList(),
         handles = handles.toList(),
+        anchors = anchors.toList(),
     )
 
     fun restore(snapshot: Snapshot) {
@@ -72,6 +76,7 @@ internal class ComponentRequirements {
         capabilities.clear(); capabilities += snapshot.capabilities
         resources.clear(); resources += snapshot.resources
         handles.clear(); handles += snapshot.handles
+        anchors.clear(); anchors += snapshot.anchors
     }
 
     class Snapshot(
@@ -79,6 +84,7 @@ internal class ComponentRequirements {
         val capabilities: List<BundleCapability>,
         val resources: List<String>,
         val handles: List<String>,
+        val anchors: List<String>,
     )
 }
 

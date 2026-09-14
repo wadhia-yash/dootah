@@ -1,6 +1,7 @@
 package dev.dootah.compiler.fir
 
 import dev.dootah.compiler.model.BundleModifier
+import dev.dootah.contract.Dimension
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.FirLiteralExpression
@@ -38,6 +39,7 @@ internal fun interface Rejector {
 internal class ModifierLowering(
     private val rejector: Rejector,
     private val modifierParameterName: String?,
+    private val onAnchor: (String) -> Unit = {},
 ) {
 
     /** Null when the chain contains something Dootah cannot carry. */
@@ -163,10 +165,10 @@ internal class ModifierLowering(
             return null
         }
 
-        var start = 0.0
-        var top = 0.0
-        var end = 0.0
-        var bottom = 0.0
+        var start = Dimension.ZERO
+        var top = Dimension.ZERO
+        var end = Dimension.ZERO
+        var bottom = Dimension.ZERO
 
         for ((expression, parameter) in mapping) {
 
@@ -307,7 +309,7 @@ internal class ModifierLowering(
         return numberOf(weight)
     }
 
-    private fun FirFunctionCall.singleDimension(parameterName: String): Double? {
+    private fun FirFunctionCall.singleDimension(parameterName: String): Dimension? {
 
         val mapping = resolvedArgumentMapping ?: return null
 
@@ -329,24 +331,32 @@ internal class ModifierLowering(
         return dimensionOf(argument)
     }
 
-    /** Reads `16.dp`, and nothing else. */
-    private fun dimensionOf(expression: FirExpression): Double? {
+    /**
+     * Reads `16.dp`, or a length the app owns and the bundle names.
+     *
+     * The second is the commonest real shape -- `MaterialTheme.padding.small` --
+     * and naming it rather than reading its value is what keeps a bundled screen
+     * following the app's spacing when a later release retunes it.
+     */
+    private fun dimensionOf(expression: FirExpression): Dimension? {
 
-        val value = DpLiteral.read(expression)
+        DpLiteral.read(expression)?.let { return Dimension.of(it) }
 
-        if (value == null) {
-            reject(
-                expression,
-                "a size Dootah could not read",
-                code = RejectionCode.UNSUPPORTED_MODIFIER_ARGUMENT,
-                detail = "dp",
-                remedy = "Write sizes as literals, like 16.dp. A computed size is " +
-                    "not bundled.",
-            )
-            return null
+        AnchorLowering.dimension(expression)?.let { anchored ->
+            onAnchor(anchored.anchor!!)
+            return anchored
         }
 
-        return value
+        reject(
+            expression,
+            "a size Dootah could not read",
+            code = RejectionCode.UNSUPPORTED_MODIFIER_ARGUMENT,
+            detail = "dp",
+            remedy = "Write a size as a literal like 16.dp, or as a property the app " +
+                "owns like MaterialTheme.padding.small. A computed size is not bundled.",
+        )
+
+        return null
     }
 
     private fun numberOf(expression: FirExpression): Double? {

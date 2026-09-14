@@ -12,6 +12,10 @@ package ui
  * before a background paints differently from a padding after it. The list is
  * kept in source order end to end -- lowering, JSON, renderer -- rather than
  * normalised into a set of properties, which would silently change layouts.
+ *
+ * Lengths are a [DimensionNode] rather than a number, because a length may be
+ * the app's rather than this bundle's. A fraction and a weight stay numbers:
+ * both are ratios the bundle decides, and neither has an app-owned form.
  */
 sealed interface BundleModifier {
 
@@ -25,10 +29,10 @@ sealed interface BundleModifier {
     data object Inherited : BundleModifier
 
     data class Padding(
-        val start: Double,
-        val top: Double,
-        val end: Double,
-        val bottom: Double,
+        val start: DimensionNode,
+        val top: DimensionNode,
+        val end: DimensionNode,
+        val bottom: DimensionNode,
     ) : BundleModifier
 
     data class FillMaxWidth(val fraction: Double) : BundleModifier
@@ -37,11 +41,11 @@ sealed interface BundleModifier {
 
     data class FillMaxSize(val fraction: Double) : BundleModifier
 
-    data class Size(val width: Double, val height: Double) : BundleModifier
+    data class Size(val width: DimensionNode, val height: DimensionNode) : BundleModifier
 
-    data class Width(val value: Double) : BundleModifier
+    data class Width(val value: DimensionNode) : BundleModifier
 
-    data class Height(val value: Double) : BundleModifier
+    data class Height(val value: DimensionNode) : BundleModifier
 
     /** Only meaningful inside a Column or Row, which is checked when lowering. */
     data class Weight(val value: Double) : BundleModifier

@@ -176,6 +176,38 @@ class DootahResources internal constructor(
 }
 
 /**
+ * The app's own values a bundle may name on this screen.
+ *
+ * `MaterialTheme.padding.small` is the app's spacing scale, not a number a
+ * bundle can be trusted to carry: read it at build time and ship the number and
+ * the screen silently stops following the scale the day someone retunes it.
+ * This is the table that keeps the number here -- the bundle names an entry, and
+ * what it resolves to is whatever the screen's own source reads today.
+ *
+ * Built at the screen's call site on every composition, so a value that depends
+ * on the theme, the configuration or the window follows all three.
+ *
+ * A bundle can name any entry, repeat one, and stop naming one. It cannot add an
+ * entry: a name with no row here is a missing requirement, reported when the
+ * bundle is published rather than found as a collapsed layout on a device.
+ */
+class DootahAnchors internal constructor(
+    private val byName: Map<String, Dp>,
+) {
+
+    internal fun names(): Set<String> = byName.keys
+
+    internal fun missingFrom(requested: List<String>): List<String> =
+        requested.filterNot { name -> byName.containsKey(name) }.distinct().sorted()
+
+    internal operator fun get(name: String): Dp? = byName[name]
+
+    companion object {
+        internal val EMPTY = DootahAnchors(emptyMap())
+    }
+}
+
+/**
  * One adapter's arguments, already resolved to the objects Compose wants.
  *
  * The renderer does the resolving, inside the composition, because that is where
@@ -327,12 +359,21 @@ fun dootahResources(vararg resources: Pair<String, Int>): DootahResources =
 fun dootahResource(key: String, id: Int): Pair<String, Int> = key to id
 
 @DootahGeneratedApi
+fun dootahAnchors(vararg anchors: Pair<String, Dp>): DootahAnchors =
+    DootahAnchors(anchors.toMap())
+
+@DootahGeneratedApi
+fun dootahAnchor(name: String, value: Dp): Pair<String, Dp> = name to value
+
+@DootahGeneratedApi
 fun dootahBindings(
     adapters: DootahAdapters,
     capabilities: DootahCapabilities,
     handles: DootahHandles,
     resources: DootahResources,
-): DootahNativeBindings = DootahNativeBindings(adapters, capabilities, handles, resources)
+    anchors: DootahAnchors,
+): DootahNativeBindings =
+    DootahNativeBindings(adapters, capabilities, handles, resources, anchors)
 
 /**
  * Everything a screen lets a bundle reach, in one place.
@@ -347,6 +388,7 @@ class DootahNativeBindings internal constructor(
     internal val capabilities: DootahCapabilities,
     internal val handles: DootahHandles,
     internal val resources: DootahResources,
+    internal val anchors: DootahAnchors,
 ) {
 
     /** What this build cannot supply, out of what a bundle asked for. */
@@ -356,7 +398,8 @@ class DootahNativeBindings internal constructor(
                 .map { "argument ${it.name} on component ${it.adapter}" } +
             capabilities.missingFrom(required.capabilities).map { "action $it" } +
             handles.missingFrom(required.handles).map { "value $it" } +
-            resources.missingFrom(required.resources).map { "resource $it" }
+            resources.missingFrom(required.resources).map { "resource $it" } +
+            anchors.missingFrom(required.anchors).map { "value $it" }
 
     companion object {
         internal val EMPTY = DootahNativeBindings(
@@ -364,6 +407,7 @@ class DootahNativeBindings internal constructor(
             capabilities = DootahCapabilities.EMPTY,
             handles = DootahHandles.EMPTY,
             resources = DootahResources.EMPTY,
+            anchors = DootahAnchors.EMPTY,
         )
     }
 }

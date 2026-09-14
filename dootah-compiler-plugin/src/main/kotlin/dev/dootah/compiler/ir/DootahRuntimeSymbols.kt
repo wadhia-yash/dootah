@@ -38,6 +38,8 @@ internal class DootahRuntimeSymbols private constructor(
     val handles: IrSimpleFunctionSymbol,
     val resource: IrSimpleFunctionSymbol,
     val resources: IrSimpleFunctionSymbol,
+    val anchor: IrSimpleFunctionSymbol,
+    val anchors: IrSimpleFunctionSymbol,
 
     /** `DootahProps`, and the accessors an adapter reads its arguments with. */
     val props: IrClassSymbol,
@@ -88,6 +90,8 @@ internal class DootahRuntimeSymbols private constructor(
                 handles = finder.singleFunction("dootahHandles") ?: return null,
                 resource = finder.singleFunction("dootahResource") ?: return null,
                 resources = finder.singleFunction("dootahResources") ?: return null,
+                anchor = finder.singleFunction("dootahAnchor") ?: return null,
+                anchors = finder.singleFunction("dootahAnchors") ?: return null,
                 props = propsClass,
                 accessors = propsClass.functions
                     .filter { accessor -> accessor.owner.parameters.size == 2 }

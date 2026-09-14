@@ -84,7 +84,13 @@ class ScreenLoweringTest {
             screen("""Text("x", modifier = Modifier.padding(top = 16.dp, bottom = 4.dp))""")
         )
 
-        assertTrue(generated, generated.contains("BundleModifier.Padding(0.0, 16.0, 0.0, 4.0)"))
+        assertTrue(
+            generated,
+            generated.contains(
+                "BundleModifier.Padding(DimensionNode(0.0), DimensionNode(16.0), " +
+                    "DimensionNode(0.0), DimensionNode(4.0))"
+            ),
+        )
     }
 
     @Test
@@ -116,7 +122,7 @@ class ScreenLoweringTest {
 
         // Both reasons are reported, and the one naming what the developer
         // wrote comes first.
-        assertTrue(rejection, rejection.contains("Write sizes as literals"))
+        assertTrue(rejection, rejection.contains("Write a size as a literal"))
     }
 
     // ---- values and logic ----------------------------------------------

@@ -84,6 +84,20 @@ class CompilationResult(
             .single { it.key.startsWith("DootahScreen_") }
             .value
 
+    /**
+     * What the published bundle declares it needs the installed app to have.
+     *
+     * The file the publish check reads. Asserting on it rather than on the
+     * generated source is what makes a test about requirements a test of the
+     * thing the build actually compares.
+     */
+    fun requirementsFragment(): String =
+        File(reportDirectory, "requirements")
+            .takeIf { it.isDirectory }
+            ?.listFiles()
+            ?.joinToString("\n") { it.readText() }
+            .orEmpty()
+
     /** Why the compiler refused to bundle a screen, as the build would report it. */
     fun rejectionReport(): String? =
         File(reportDirectory, "unsupported")
@@ -363,7 +377,12 @@ private fun composeStubs(): List<SourceFile> = listOf(
         contents = """
             package androidx.compose.ui.unit
 
-            class Dp(val value: Float)
+            // Real `Dp` is arithmetic, and a test that a computed length is
+            // refused needs a length that can actually be computed.
+            class Dp(val value: Float) {
+                operator fun plus(other: Dp): Dp = Dp(value + other.value)
+                operator fun times(factor: Float): Dp = Dp(value * factor)
+            }
 
             val Int.dp: Dp get() = Dp(toFloat())
             val Float.dp: Dp get() = Dp(this)
@@ -714,6 +733,7 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
             class DootahCapabilities
             class DootahHandles
             class DootahResources
+            class DootahAnchors
             class DootahNativeBindings
 
             // The adapter surface. An adapter is given its arguments rather than
@@ -780,11 +800,16 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
             fun dootahResources(vararg resources: Pair<String, Int>): DootahResources =
                 DootahResources()
 
+            fun dootahAnchor(name: String, value: Dp): Pair<String, Dp> = name to value
+
+            fun dootahAnchors(vararg anchors: Pair<String, Dp>): DootahAnchors = DootahAnchors()
+
             fun dootahBindings(
                 adapters: DootahAdapters,
                 capabilities: DootahCapabilities,
                 handles: DootahHandles,
                 resources: DootahResources,
+                anchors: DootahAnchors,
             ): DootahNativeBindings = DootahNativeBindings()
 
             @Composable

@@ -1,5 +1,6 @@
 package dev.dootah.compiler.model
 
+import dev.dootah.contract.Dimension
 import dev.dootah.contract.LayoutArrangement
 
 /**
@@ -103,11 +104,17 @@ internal sealed interface BundleModifier {
     /** The `Modifier` the screen's caller passed in. */
     data object Inherited : BundleModifier
 
+    /**
+     * Lengths are [Dimension], not numbers, because a length may be the app's
+     * rather than the bundle's -- `MaterialTheme.padding.small` names a value
+     * the APK computes. A fraction and a weight stay plain: both are ratios the
+     * bundle decides for itself, and neither has an app-owned form.
+     */
     data class Padding(
-        val start: Double,
-        val top: Double,
-        val end: Double,
-        val bottom: Double,
+        val start: Dimension,
+        val top: Dimension,
+        val end: Dimension,
+        val bottom: Dimension,
     ) : BundleModifier
 
     data class FillMaxWidth(val fraction: Double) : BundleModifier
@@ -116,11 +123,11 @@ internal sealed interface BundleModifier {
 
     data class FillMaxSize(val fraction: Double) : BundleModifier
 
-    data class Size(val width: Double, val height: Double) : BundleModifier
+    data class Size(val width: Dimension, val height: Dimension) : BundleModifier
 
-    data class Width(val value: Double) : BundleModifier
+    data class Width(val value: Dimension) : BundleModifier
 
-    data class Height(val value: Double) : BundleModifier
+    data class Height(val value: Dimension) : BundleModifier
 
     data class Weight(val value: Double) : BundleModifier
 

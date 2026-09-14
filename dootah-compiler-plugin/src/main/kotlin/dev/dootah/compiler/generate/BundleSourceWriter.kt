@@ -10,6 +10,7 @@ import dev.dootah.compiler.model.BundleProp
 import dev.dootah.compiler.model.BundleScreen
 import dev.dootah.compiler.model.BundleStatement
 import dev.dootah.compiler.model.BundleUi
+import dev.dootah.contract.Dimension
 import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.PropValue
 
@@ -44,6 +45,7 @@ internal object BundleSourceWriter {
         appendLine("import ui.BundleNode")
         appendLine("import ui.ButtonNode")
         appendLine("import ui.ColumnNode")
+        appendLine("import ui.DimensionNode")
         appendLine("import ui.FragmentNode")
         appendLine("import ui.BoolProp")
         appendLine("import ui.CallbackProp")
@@ -565,7 +567,7 @@ internal object BundleSourceWriter {
 
     private fun renderArrangement(value: LayoutArrangement): String {
 
-        val spacing = value.spacing?.let { ", $it" } ?: ""
+        val spacing = value.spacing?.let { ", ${renderDimension(it)}" } ?: ""
 
         return "ArrangementNode(${kotlinStringLiteral(value.token)}$spacing)"
     }
@@ -601,22 +603,37 @@ internal object BundleSourceWriter {
         is BundleModifier.Inherited -> "BundleModifier.Inherited"
 
         is BundleModifier.Padding ->
-            "BundleModifier.Padding(${modifier.start}, ${modifier.top}, " +
-                "${modifier.end}, ${modifier.bottom})"
+            "BundleModifier.Padding(${renderDimension(modifier.start)}, " +
+                "${renderDimension(modifier.top)}, ${renderDimension(modifier.end)}, " +
+                "${renderDimension(modifier.bottom)})"
 
         is BundleModifier.FillMaxWidth -> "BundleModifier.FillMaxWidth(${modifier.fraction})"
         is BundleModifier.FillMaxHeight -> "BundleModifier.FillMaxHeight(${modifier.fraction})"
         is BundleModifier.FillMaxSize -> "BundleModifier.FillMaxSize(${modifier.fraction})"
 
         is BundleModifier.Size ->
-            "BundleModifier.Size(${modifier.width}, ${modifier.height})"
+            "BundleModifier.Size(${renderDimension(modifier.width)}, " +
+                "${renderDimension(modifier.height)})"
 
-        is BundleModifier.Width -> "BundleModifier.Width(${modifier.value})"
-        is BundleModifier.Height -> "BundleModifier.Height(${modifier.value})"
+        is BundleModifier.Width -> "BundleModifier.Width(${renderDimension(modifier.value)})"
+        is BundleModifier.Height -> "BundleModifier.Height(${renderDimension(modifier.value)})"
         is BundleModifier.Weight -> "BundleModifier.Weight(${modifier.value})"
 
         is BundleModifier.Background -> "BundleModifier.Background(${modifier.color}L)"
     }
+
+    /**
+     * A length the bundle decided, or one it names for the app to supply.
+     *
+     * Rendered as a call rather than a bare number so the two cases cannot be
+     * confused by anything downstream: an anchored length has no number at all
+     * on this side, and a shape that let one default to zero would draw a layout
+     * nobody wrote.
+     */
+    private fun renderDimension(dimension: Dimension): String =
+        dimension.anchor
+            ?.let { anchor -> "DimensionNode(anchor = ${kotlinStringLiteral(anchor)})" }
+            ?: "DimensionNode(${dimension.value})"
 
     // ---- expressions ----------------------------------------------------
 

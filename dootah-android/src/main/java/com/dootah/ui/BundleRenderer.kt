@@ -34,9 +34,11 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dootah.DOOTAH_LOG_TAG
 import dev.dootah.contract.Arrangements
+import dev.dootah.contract.Dimension
 import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.ModifierOps
 import dev.dootah.contract.PropValue
@@ -104,7 +106,7 @@ private fun RenderNode(
             horizontalAlignment = node.horizontalAlignment
                 ?.let { horizontalAlignment(it) } ?: Alignment.Start,
             verticalArrangement = node.verticalArrangement
-                ?.let { verticalArrangement(it) } ?: Arrangement.Top,
+                ?.let { verticalArrangement(it, bindings) } ?: Arrangement.Top,
         ) {
             val applier = WeightApplier { child, weight -> child.weight(weight) }
             node.children.forEach { child ->
@@ -117,7 +119,7 @@ private fun RenderNode(
             verticalAlignment = node.verticalAlignment
                 ?.let { verticalAlignment(it) } ?: Alignment.Top,
             horizontalArrangement = node.horizontalArrangement
-                ?.let { horizontalArrangement(it) } ?: Arrangement.Start,
+                ?.let { horizontalArrangement(it, bindings) } ?: Arrangement.Start,
         ) {
             val applier = WeightApplier { child, weight -> child.weight(weight) }
             node.children.forEach { child ->
@@ -280,10 +282,10 @@ private fun List<BundleUiModifier>.toModifier(
 
         is BundleUiModifier.Padding -> modifier.padding(
             PaddingValues(
-                start = entry.start.dp,
-                top = entry.top.dp,
-                end = entry.end.dp,
-                bottom = entry.bottom.dp,
+                start = entry.start.resolve(bindings),
+                top = entry.top.resolve(bindings),
+                end = entry.end.resolve(bindings),
+                bottom = entry.bottom.resolve(bindings),
             )
         )
 
@@ -291,9 +293,12 @@ private fun List<BundleUiModifier>.toModifier(
         is BundleUiModifier.FillMaxHeight -> modifier.fillMaxHeight(entry.fraction)
         is BundleUiModifier.FillMaxSize -> modifier.fillMaxSize(entry.fraction)
 
-        is BundleUiModifier.Size -> modifier.size(width = entry.width.dp, height = entry.height.dp)
-        is BundleUiModifier.Width -> modifier.width(entry.value.dp)
-        is BundleUiModifier.Height -> modifier.height(entry.value.dp)
+        is BundleUiModifier.Size -> modifier.size(
+            width = entry.width.resolve(bindings),
+            height = entry.height.resolve(bindings),
+        )
+        is BundleUiModifier.Width -> modifier.width(entry.value.resolve(bindings))
+        is BundleUiModifier.Height -> modifier.height(entry.value.resolve(bindings))
 
         is BundleUiModifier.Weight -> weightApplier.apply(modifier, entry.value)
 
@@ -419,7 +424,10 @@ private fun boxAlignment(token: String): Alignment = when (token) {
     else -> unknownLayoutToken("alignment", token, Alignment.TopStart)
 }
 
-private fun verticalArrangement(value: LayoutArrangement): Arrangement.Vertical =
+private fun verticalArrangement(
+    value: LayoutArrangement,
+    bindings: DootahNativeBindings,
+): Arrangement.Vertical =
     when (value.token) {
         "Top" -> Arrangement.Top
         "Bottom" -> Arrangement.Bottom
@@ -427,11 +435,14 @@ private fun verticalArrangement(value: LayoutArrangement): Arrangement.Vertical 
         "SpaceBetween" -> Arrangement.SpaceBetween
         "SpaceAround" -> Arrangement.SpaceAround
         "SpaceEvenly" -> Arrangement.SpaceEvenly
-        Arrangements.SPACED_BY -> Arrangement.spacedBy(value.spacing().dp)
+        Arrangements.SPACED_BY -> Arrangement.spacedBy(value.gap(bindings))
         else -> unknownLayoutToken("vertical arrangement", value.token, Arrangement.Top)
     }
 
-private fun horizontalArrangement(value: LayoutArrangement): Arrangement.Horizontal =
+private fun horizontalArrangement(
+    value: LayoutArrangement,
+    bindings: DootahNativeBindings,
+): Arrangement.Horizontal =
     when (value.token) {
         "Start" -> Arrangement.Start
         "End" -> Arrangement.End
@@ -439,7 +450,7 @@ private fun horizontalArrangement(value: LayoutArrangement): Arrangement.Horizon
         "SpaceBetween" -> Arrangement.SpaceBetween
         "SpaceAround" -> Arrangement.SpaceAround
         "SpaceEvenly" -> Arrangement.SpaceEvenly
-        Arrangements.SPACED_BY -> Arrangement.spacedBy(value.spacing().dp)
+        Arrangements.SPACED_BY -> Arrangement.spacedBy(value.gap(bindings))
         else -> unknownLayoutToken("horizontal arrangement", value.token, Arrangement.Start)
     }
 
@@ -450,7 +461,33 @@ private fun horizontalArrangement(value: LayoutArrangement): Arrangement.Horizon
  * only when the wire said so; zero is the value that changes the layout least if
  * that ever stops holding.
  */
-private fun LayoutArrangement.spacing(): Float = spacing?.toFloat() ?: 0f
+private fun LayoutArrangement.gap(bindings: DootahNativeBindings): Dp =
+    spacing?.resolve(bindings) ?: 0.dp
+
+/**
+ * A length, as the number to draw with.
+ *
+ * A number the bundle carried is used as it stands. A name is looked up in the
+ * table this screen registered, which is what keeps the app's own spacing scale
+ * in the app: the bundle said which value, and the APK says what it is today.
+ *
+ * A name with no row cannot normally arrive -- it is a missing requirement, and
+ * a bundle carrying one is refused when it is published and again when it is
+ * loaded. Reaching here means the two sides disagree anyway, so it is reported
+ * and drawn at zero rather than throwing: one collapsed gap on a screen that
+ * otherwise works beats no screen at all.
+ */
+private fun Dimension.resolve(bindings: DootahNativeBindings): Dp {
+
+    value?.let { return it.toFloat().dp }
+
+    val name = anchor ?: return 0.dp
+
+    return bindings.anchors[name] ?: run {
+        Log.w(DOOTAH_LOG_TAG, "no value named '$name' on this screen")
+        0.dp
+    }
+}
 
 private fun <T> unknownLayoutToken(kind: String, token: String, fallback: T): T {
     Log.w(DOOTAH_LOG_TAG, "unknown $kind '$token'")

@@ -2,6 +2,7 @@ package dev.dootah.compiler.ir
 
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import dev.dootah.contract.AdapterId
+import dev.dootah.contract.AnchorId
 import dev.dootah.contract.CapabilityId
 import dev.dootah.contract.ResourceKey
 import org.jetbrains.kotlin.ir.IrElement
@@ -130,10 +131,23 @@ internal data class NativeResource(
     val id: IrExpression,
 )
 
+/**
+ * A length the screen's own source reads, which a bundle may name.
+ *
+ * [value] is the app's own expression, copied. Nothing about the number is
+ * recorded here, and that is the point: the bundle names the row, and what the
+ * row evaluates to is whatever this build of the app says today.
+ */
+internal data class NativeAnchor(
+    val name: String,
+    val value: IrExpression,
+)
+
 internal class NativeBindings(
     val adapters: List<NativeAdapter>,
     val capabilities: List<NativeCapability>,
     val resources: List<NativeResource>,
+    val anchors: List<NativeAnchor>,
 )
 
 /**
@@ -164,6 +178,7 @@ internal fun IrBody.nativeBindings(
     val adapters = LinkedHashMap<String, NativeAdapter>()
     val capabilities = LinkedHashMap<String, NativeCapability>()
     val resources = LinkedHashMap<String, NativeResource>()
+    val anchors = LinkedHashMap<String, NativeAnchor>()
 
     val declaredInBody = declaredHere()
 
@@ -194,6 +209,13 @@ internal fun IrBody.nativeBindings(
 
             if (element is IrCall) element.recordResource(resources)
 
+            // Registered wherever it is read, not only where the extraction
+            // pass would have used one. The two passes see two versions of the
+            // source: registering a length nothing names costs one entry in a
+            // table, and missing one the bundle went on to name is a gap in a
+            // shipped screen.
+            if (element is IrCall) element.recordAnchor(anchors)
+
             element.acceptChildrenVoid(this)
         }
     })
@@ -202,8 +224,74 @@ internal fun IrBody.nativeBindings(
         adapters = adapters.values.toList(),
         capabilities = capabilities.values.toList(),
         resources = resources.values.toList(),
+        anchors = anchors.values.toList(),
     )
 }
+
+/**
+ * Registers a length the app owns, under the name both passes derive for it.
+ *
+ * The name is the chain as written, rooted at the object it hangs off:
+ * `androidx.compose.material3.MaterialTheme.padding.small`. It has to match what
+ * the extraction pass computes from its own view of the code, which is why it is
+ * built from resolved symbols on both sides rather than from source text -- the
+ * APK and the bundle are compiled from two versions of the file, and a name that
+ * drifted between them would point at the wrong number rather than at nothing.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrCall.recordAnchor(anchors: MutableMap<String, NativeAnchor>) {
+
+    if (!type.isDpType()) return
+
+    val name = anchorName() ?: return
+
+    anchors[name] = NativeAnchor(name, this)
+}
+
+/**
+ * The anchor name for a chain of property reads, or null when it is not one.
+ *
+ * Walks receivers outward and reverses, the mirror of the extraction pass. A
+ * call with arguments, a local, or anything that is not a plain read stops the
+ * walk: the other compilation could not have named it either.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrCall.anchorName(): String? {
+
+    val path = mutableListOf<String>()
+    var current: IrExpression? = this
+
+    while (true) {
+
+        when (val node = current) {
+
+            // The root of the chain: the object the first read hangs off.
+            is IrGetObjectValue ->
+                return node.symbol.owner.fqNameWhenAvailable
+                    ?.asString()
+                    ?.takeIf { path.isNotEmpty() }
+                    ?.let { root -> AnchorId.of(root, path.asReversed().toList()) }
+
+            is IrCall -> {
+                val owner = node.symbol.owner
+                val property = owner.correspondingPropertySymbol?.owner?.name?.asString()
+                    ?: return null
+
+                // A getter takes no arguments. Anything that does is a call, and
+                // a call is not a name.
+                if (node.arguments.filterNotNull().size > 1) return null
+
+                path += property
+                current = node.arguments.filterNotNull().firstOrNull() ?: return null
+            }
+
+            else -> return null
+        }
+    }
+}
+
+private fun IrType.isDpType(): Boolean =
+    classFqName?.asString() == "androidx.compose.ui.unit.Dp"
 
 /**
  * Registers this call as a region the app can draw exactly as written.

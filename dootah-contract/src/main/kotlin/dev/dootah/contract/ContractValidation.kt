@@ -103,6 +103,13 @@ public object ContractValidation {
         resources.filterNot { resource -> resource in installed.resources }
             .forEach { resource -> findings += Finding(Code.MISSING_RESOURCE, id, resource) }
 
+        // An anchor is the app's own number, so the check is whether this build
+        // still reads that property in this screen. Deleting the line that read
+        // it is exactly the edit that has to be caught: the bundle would go on
+        // naming a value the APK no longer computes.
+        anchors.filterNot { anchor -> anchor in installed.anchors }
+            .forEach { anchor -> findings += Finding(Code.MISSING_ANCHOR, id, anchor) }
+
         return findings
     }
 
@@ -128,6 +135,7 @@ public object ContractValidation {
         CAPABILITY_ARITY_CHANGED(true),
         MISSING_HANDLE(true),
         MISSING_RESOURCE(true),
+        MISSING_ANCHOR(true),
 
         /** The installed app has no such screen, and keeps its native one. */
         SCREEN_NOT_INSTALLED(false),
@@ -151,6 +159,10 @@ public object ContractValidation {
             MISSING_RESOURCE ->
                 "the installed app does not contain the resource '$detail'. A bundle " +
                     "may choose among the resources already shipped, but cannot add one."
+            MISSING_ANCHOR ->
+                "the installed app does not read '$detail' on this screen, so it has " +
+                    "no such value to supply. A bundle may name any value the screen's " +
+                    "own source reads, and cannot introduce one."
             SCREEN_NOT_INSTALLED ->
                 "the installed app has no screen '$detail', so it keeps its own."
         }

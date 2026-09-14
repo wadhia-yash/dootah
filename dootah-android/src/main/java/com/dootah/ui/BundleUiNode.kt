@@ -1,5 +1,6 @@
 package com.dootah.ui
 
+import dev.dootah.contract.Dimension
 import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.PropValue
 
@@ -103,11 +104,17 @@ sealed interface BundleUiModifier {
     /** Splices in the `Modifier` the native caller passed to the screen. */
     data object Inherited : BundleUiModifier
 
+    /**
+     * Lengths are a [Dimension] rather than a number, because a length may be
+     * the app's own: `MaterialTheme.padding.small` arrives as a name this build
+     * resolves against the value the screen itself reads. A fraction and a
+     * weight stay numbers -- both are ratios the bundle decides.
+     */
     data class Padding(
-        val start: Float,
-        val top: Float,
-        val end: Float,
-        val bottom: Float,
+        val start: Dimension,
+        val top: Dimension,
+        val end: Dimension,
+        val bottom: Dimension,
     ) : BundleUiModifier
 
     data class FillMaxWidth(val fraction: Float) : BundleUiModifier
@@ -116,11 +123,11 @@ sealed interface BundleUiModifier {
 
     data class FillMaxSize(val fraction: Float) : BundleUiModifier
 
-    data class Size(val width: Float, val height: Float) : BundleUiModifier
+    data class Size(val width: Dimension, val height: Dimension) : BundleUiModifier
 
-    data class Width(val value: Float) : BundleUiModifier
+    data class Width(val value: Dimension) : BundleUiModifier
 
-    data class Height(val value: Float) : BundleUiModifier
+    data class Height(val value: Dimension) : BundleUiModifier
 
     /** Ignored outside a Column or Row, where Compose has no weight to give. */
     data class Weight(val value: Float) : BundleUiModifier
@@ -144,7 +151,11 @@ sealed interface BundleUiModifier {
  */
 fun BundleUiNode.requirements(): BundleRequirements = when (this) {
 
-    is BundleUiNode.Container -> children.requirements()
+    // A container's own modifiers and arrangement are collected too. Before a
+    // length could be anchored they held only numbers and there was nothing in
+    // them to require; now one can name a value the APK has to have, and a name
+    // that went uncollected here would reach a device unchecked.
+    is BundleUiNode.Container -> layoutRequirements() + children.requirements()
 
     is BundleUiNode.Fragment -> children.requirements()
 
@@ -156,10 +167,48 @@ fun BundleUiNode.requirements(): BundleRequirements = when (this) {
             props.values.map { value -> value.requirements() }.merge() +
             children.values.flatten().requirements()
 
-    is BundleUiNode.Text -> BundleRequirements()
+    is BundleUiNode.Text -> modifiers.requirements()
 
-    is BundleUiNode.Button -> BundleRequirements()
+    is BundleUiNode.Button -> modifiers.requirements()
 }
+
+/** What a container needs beyond its children: its modifiers and arrangement. */
+private fun BundleUiNode.Container.layoutRequirements(): BundleRequirements {
+
+    val arrangement = when (this) {
+        is BundleUiNode.Column -> verticalArrangement
+        is BundleUiNode.Row -> horizontalArrangement
+        is BundleUiNode.Box -> null
+    }
+
+    return modifiers.requirements() + (arrangement?.spacing?.requirements() ?: BundleRequirements())
+}
+
+@JvmName("modifierRequirements")
+private fun List<BundleUiModifier>.requirements(): BundleRequirements =
+    map { modifier -> modifier.requirements() }.merge()
+
+/** Every length one modifier holds, and what naming it asks of the app. */
+private fun BundleUiModifier.requirements(): BundleRequirements = when (this) {
+
+    is BundleUiModifier.Padding ->
+        start.requirements() + top.requirements() + end.requirements() + bottom.requirements()
+
+    is BundleUiModifier.Size -> width.requirements() + height.requirements()
+    is BundleUiModifier.Width -> value.requirements()
+    is BundleUiModifier.Height -> value.requirements()
+
+    is BundleUiModifier.Inherited,
+    is BundleUiModifier.FillMaxWidth,
+    is BundleUiModifier.FillMaxHeight,
+    is BundleUiModifier.FillMaxSize,
+    is BundleUiModifier.Weight,
+    is BundleUiModifier.Background,
+    -> BundleRequirements()
+}
+
+private fun Dimension.requirements(): BundleRequirements =
+    anchor?.let { name -> BundleRequirements(anchors = listOf(name)) } ?: BundleRequirements()
 
 /** What one prop needs to exist in the APK before it can be resolved. */
 private fun PropValue.requirements(): BundleRequirements = when (this) {
@@ -207,6 +256,7 @@ data class BundleRequirements(
     val capabilities: List<String> = emptyList(),
     val handles: List<String> = emptyList(),
     val resources: List<String> = emptyList(),
+    val anchors: List<String> = emptyList(),
     val arguments: List<AdapterArgument> = emptyList(),
 ) {
     operator fun plus(other: BundleRequirements): BundleRequirements = BundleRequirements(
@@ -214,6 +264,7 @@ data class BundleRequirements(
         capabilities = capabilities + other.capabilities,
         handles = handles + other.handles,
         resources = resources + other.resources,
+        anchors = anchors + other.anchors,
         arguments = arguments + other.arguments,
     )
 }

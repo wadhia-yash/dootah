@@ -254,6 +254,136 @@ class LayoutVocabularyGoldenTest {
             Alignments.HORIZONTAL.none { "Alignment.$it" in vertical },
         )
     }
+    // ---- a length that names the app's own value --------------------------
+
+    /**
+     * A length is two shapes, and every layer has to know both.
+     *
+     * The same argument as the vocabulary above, for a different reason: a
+     * length may be a number the bundle chose or a name the app resolves, and a
+     * layer that handled only the first would not fail loudly. It would read the
+     * number half of an anchored length, find nothing, and lay out at zero --
+     * which looks like a design decision rather than a bug.
+     *
+     * So each layer is held to carrying both halves, and the two ends that
+     * actually resolve one -- the FIR pass that names it and the renderer that
+     * looks it up -- are held to doing so through the contract rather than by
+     * spelling a name of their own.
+     */
+    @Test
+    fun `every layer carries both halves of a length`() {
+
+        // A model layer proves it by holding the type that has both halves; a
+        // layer that reads or writes one proves it by handling the named half,
+        // which is the half a number-only implementation would silently drop.
+        val carriesTheType = mapOf(
+            "the compiler's model" to
+                ("dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/model/BundleUi.kt"
+                    to "Dimension"),
+            "the JS modifier model" to
+                ("dootah-bundle-runtime/src/jsMain/kotlin/ui/BundleModifier.kt"
+                    to "DimensionNode"),
+            "the JS node model" to
+                ("dootah-bundle-runtime/src/jsMain/kotlin/ui/BundleNode.kt" to "DimensionNode"),
+            "the Android model" to
+                ("dootah-android/src/main/java/com/dootah/ui/BundleUiNode.kt" to "Dimension"),
+        )
+
+        val handlesTheName = mapOf(
+            "the generator" to
+                "dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/generate/BundleSourceWriter.kt",
+            "the JS serializer" to
+                "dootah-bundle-runtime/src/jsMain/kotlin/ui/BundleSerializer.kt",
+            "the Android parser" to
+                "dootah-android/src/main/java/com/dootah/ui/BundleUiParser.kt",
+            "the renderer" to
+                "dootah-android/src/main/java/com/dootah/ui/BundleRenderer.kt",
+        )
+
+        carriesTheType.forEach { (layer, spec) ->
+            val (path, type) = spec
+            assertTrue("$layer does not carry lengths as $type", type in source(path))
+        }
+
+        handlesTheName.forEach { (layer, path) ->
+            assertTrue(
+                "$layer handles only the number half of a length",
+                "anchor" in source(path),
+            )
+        }
+    }
+
+    /**
+     * The name is built in one place, and read in one place.
+     *
+     * Both compilations have to arrive at the same name from two versions of the
+     * source, so neither may assemble one of its own: the extraction pass and
+     * the app's own build both go through [AnchorId]. This is the check that
+     * they do.
+     */
+    @Test
+    fun `both compilations build an anchor name through the contract`() {
+
+        listOf(
+            "dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/fir/AnchorLowering.kt",
+            "dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/ir/NativeAdapters.kt",
+        ).forEach { path ->
+            assertTrue(
+                "$path does not name anchors through AnchorId",
+                "AnchorId.of(" in source(path),
+            )
+        }
+    }
+
+    /** The app checks a name against its own table, never against a list here. */
+    @Test
+    fun `the device resolves a named length through the screen's own table`() {
+
+        val renderer = source("dootah-android/src/main/java/com/dootah/ui/BundleRenderer.kt")
+
+        assertTrue(
+            "the renderer does not resolve a named length against the screen's table",
+            "bindings.anchors[" in renderer,
+        )
+    }
+
+    /**
+     * A named length is a requirement, and requirements are collected.
+     *
+     * The walk that collects them is exhaustive with no `else` for exactly this
+     * reason -- a shape that held a name and was not listed would report nothing
+     * and be checked against nothing.
+     */
+    @Test
+    fun `a named length is collected as a requirement`() {
+
+        val model = source("dootah-android/src/main/java/com/dootah/ui/BundleUiNode.kt")
+
+        assertTrue(
+            "the requirements walk does not collect anchors",
+            "anchors = listOf(name)" in model,
+        )
+
+        // The call, not the declaration. A helper that exists and is never
+        // reached from the Container branch collects nothing, and that is
+        // exactly the shape this started as.
+        assertTrue(
+            "a container's own modifiers are not walked, so a name on one is never checked",
+            "is BundleUiNode.Container -> layoutRequirements()" in model,
+        )
+    }
+
+    /** Publishing checks it, so a name the app lost is a build failure. */
+    @Test
+    fun `the publish check knows about named lengths`() {
+
+        val validation = source("dootah-contract/src/main/kotlin/dev/dootah/contract/ContractValidation.kt")
+        val json = source("dootah-contract/src/main/kotlin/dev/dootah/contract/ContractJson.kt")
+
+        assertTrue("publishing does not check named lengths", "MISSING_ANCHOR" in validation)
+        assertTrue("the contract file does not record them", "\"anchors\"" in json)
+    }
+
 
     // ---- helpers ----------------------------------------------------------
 

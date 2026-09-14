@@ -124,11 +124,15 @@ public object Arrangements {
  * parser refuses rather than defaulting to zero and drawing a layout nobody
  * described.
  *
+ * It is a [Dimension] rather than a number because `Arrangement.spacedBy(
+ * MaterialTheme.padding.small)` is the commonest shape this takes in a real
+ * app, and the gap in it belongs to the app.
+ *
  * Named `LayoutArrangement` rather than `Arrangement` on purpose: the renderer
  * that resolves it imports Compose's `Arrangement` in the same file, and one of
  * the two would have to be written out in full at every use.
  */
 public data class LayoutArrangement(
     public val token: String,
-    public val spacing: Double? = null,
+    public val spacing: Dimension? = null,
 )

@@ -102,6 +102,7 @@ class DootahScreenStateTest {
             callbacks = dootahCallbacks(""),
             bindings = dootahBindings(
                 dootahAdapters(), dootahCapabilities(), dootahHandles(), dootahResources(),
+                dootahAnchors(),
             ),
             scope = CoroutineScope(Dispatchers.Unconfined),
         )
@@ -113,6 +114,7 @@ class DootahScreenStateTest {
             callbacks = dootahCallbacks(""),
             bindings = dootahBindings(
                 dootahAdapters(), dootahCapabilities(), dootahHandles(), dootahResources(),
+                dootahAnchors(),
             ),
         )
 

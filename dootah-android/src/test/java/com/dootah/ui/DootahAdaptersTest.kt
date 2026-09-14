@@ -1,5 +1,7 @@
 package com.dootah.ui
 
+import androidx.compose.ui.unit.dp
+
 import dev.dootah.contract.PropValue
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -34,6 +36,7 @@ class DootahAdaptersTest {
         capabilities: List<String> = emptyList(),
         handles: List<String> = emptyList(),
         resources: List<String> = emptyList(),
+        anchors: List<String> = emptyList(),
     ) = DootahNativeBindings(
         adapters = dootahAdapters(
             *adapters.map { (id, parameters) -> dootahAdapter(id, parameters) {} }.toTypedArray()
@@ -43,6 +46,7 @@ class DootahAdaptersTest {
         ),
         handles = dootahHandles(*handles.map { name -> dootahHandle(name, Any()) }.toTypedArray()),
         resources = dootahResources(*resources.map { key -> dootahResource(key, 1) }.toTypedArray()),
+        anchors = dootahAnchors(*anchors.map { name -> dootahAnchor(name, 0.dp) }.toTypedArray()),
     )
 
     private fun button(onClick: String) = BundleUiNode.Component(

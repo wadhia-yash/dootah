@@ -131,7 +131,8 @@ internal class InterceptionTransformer(
         // composable, and an adapter that is not composable cannot draw
         // anything. The screen is still intercepted; it simply offers no native
         // components.
-        val native = if (composable.isEmpty()) NativeBindings(emptyList(), emptyList(), emptyList())
+        val native = if (composable.isEmpty())
+            NativeBindings(emptyList(), emptyList(), emptyList(), emptyList())
         else originalBody.nativeBindings(LAYOUT_COMPOSABLES, sourceText)
 
         // Recorded here rather than worked out again later, because this is the
@@ -151,6 +152,7 @@ internal class InterceptionTransformer(
             },
             handles = binding.natives.map { native -> native.name.asString() }.sorted(),
             resources = native.resources.map { resource -> resource.key }.sorted(),
+            anchors = native.anchors.map { anchor -> anchor.name }.sorted(),
         )
 
         val builder = DeclarationIrBuilder(pluginContext, function.symbol)
@@ -255,6 +257,7 @@ internal class InterceptionTransformer(
         arguments[1] = buildCapabilities(function, native.capabilities)
         arguments[2] = buildHandles(binding)
         arguments[3] = buildResources(native.resources)
+        arguments[4] = buildAnchors(native.anchors)
     }
 
     private fun IrBuilderWithScope.buildAdapters(
@@ -693,6 +696,41 @@ internal class InterceptionTransformer(
                         arguments[0] = irString(native.name.asString())
                         arguments[1] = irGet(native)
                     }
+                },
+            )
+        }
+    }
+
+    /**
+     * The lengths the screen reads, under the names a bundle may call them by.
+     *
+     * The app's own expression, copied, and evaluated here on every composition
+     * -- so a value that follows the theme or the window keeps following it. The
+     * number is never read at build time and never travels.
+     *
+     * Guarded against capturing a body local for the same reason the adapters
+     * are: this whole argument list is built above the body, so a local declared
+     * inside it does not exist yet. A chain rooted at an object cannot capture
+     * one, and the guard is here so that stays true if the rule widens.
+     */
+    private fun IrBuilderWithScope.buildAnchors(
+        anchors: List<NativeAnchor>,
+    ): IrExpression {
+
+        val parameter = symbols.anchors.owner.parameters[0]
+
+        return irCall(symbols.anchors).apply {
+            arguments[0] = varargOf(
+                parameter = parameter,
+                elements = anchors.mapNotNull { anchor ->
+                    anchor.value.deepCopyWithSymbols()
+                        .takeIf { value -> !value.capturesBodyLocal() }
+                        ?.let { value ->
+                            irCall(symbols.anchor).apply {
+                                arguments[0] = irString(anchor.name)
+                                arguments[1] = value
+                            }
+                        }
                 },
             )
         }

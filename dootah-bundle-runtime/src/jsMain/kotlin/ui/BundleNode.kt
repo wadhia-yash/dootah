@@ -48,7 +48,21 @@ data class BoxNode(
  */
 data class ArrangementNode(
     val token: String,
-    val spacing: Double? = null,
+    val spacing: DimensionNode? = null,
+)
+
+/**
+ * A length: a number this bundle chose, or a name the installed app resolves.
+ *
+ * The anchored case is how a bundle uses the app's own spacing scale --
+ * `MaterialTheme.padding.small` -- without carrying its value. The number stays
+ * in the APK, so a screen described here keeps following the app's spacing when
+ * a later release retunes it, instead of freezing whatever it was on the day
+ * the bundle was built.
+ */
+data class DimensionNode(
+    val value: Double? = null,
+    val anchor: String? = null,
 )
 
 data class TextNode(

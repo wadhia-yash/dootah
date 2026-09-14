@@ -12,7 +12,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.doubleOrNull
 import dev.dootah.contract.Alignments
+import dev.dootah.contract.AnchorId
 import dev.dootah.contract.Arrangements
+import dev.dootah.contract.Dimension
 import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.ModifierOp
 import dev.dootah.contract.PropValue
@@ -223,7 +225,7 @@ object BundleUiParser {
         // A spacedBy without its gap is a malformed bundle. Defaulting it to
         // zero would draw a layout nobody wrote, which is worse than refusing.
         if (token == Arrangements.SPACED_BY) {
-            return LayoutArrangement(token, value.double("space"))
+            return LayoutArrangement(token, value.dimension("space"))
         }
 
         return LayoutArrangement(token)
@@ -235,10 +237,10 @@ object BundleUiParser {
             "inherited" -> BundleUiModifier.Inherited
 
             "padding" -> BundleUiModifier.Padding(
-                start = modifier.float("start"),
-                top = modifier.float("top"),
-                end = modifier.float("end"),
-                bottom = modifier.float("bottom"),
+                start = modifier.dimension("start"),
+                top = modifier.dimension("top"),
+                end = modifier.dimension("end"),
+                bottom = modifier.dimension("bottom"),
             )
 
             "fillMaxWidth" -> BundleUiModifier.FillMaxWidth(modifier.float("fraction"))
@@ -246,12 +248,12 @@ object BundleUiParser {
             "fillMaxSize" -> BundleUiModifier.FillMaxSize(modifier.float("fraction"))
 
             "size" -> BundleUiModifier.Size(
-                width = modifier.float("width"),
-                height = modifier.float("height"),
+                width = modifier.dimension("width"),
+                height = modifier.dimension("height"),
             )
 
-            "width" -> BundleUiModifier.Width(modifier.float("value"))
-            "height" -> BundleUiModifier.Height(modifier.float("value"))
+            "width" -> BundleUiModifier.Width(modifier.dimension("value"))
+            "height" -> BundleUiModifier.Height(modifier.dimension("value"))
             "weight" -> BundleUiModifier.Weight(modifier.float("value"))
 
             "background" -> BundleUiModifier.Background(modifier.long("color"))
@@ -268,6 +270,31 @@ object BundleUiParser {
 
             else -> throw BundleProtocolException("Unknown command '$type'")
         }
+
+    /**
+     * Reads one length: a number, or an object naming a value the app owns.
+     *
+     * Told apart by JSON type rather than by a discriminator, because there are
+     * only two shapes and neither can be mistaken for the other. An anchor whose
+     * name is not shaped like one is refused here, so that a malformed name is
+     * reported as malformed rather than reaching the renderer and resolving to
+     * nothing.
+     */
+    private fun JsonObject.dimension(field: String): Dimension {
+
+        val element = this[field] ?: throw BundleProtocolException("Missing '$field'")
+
+        (element as? JsonPrimitive)?.doubleOrNull?.let { return Dimension.of(it) }
+
+        val anchor = (element as? JsonObject)?.get("anchor")?.jsonPrimitive?.content
+            ?: throw BundleProtocolException("'$field' is not a length")
+
+        if (!AnchorId.isWellFormed(anchor)) {
+            throw BundleProtocolException("Malformed anchored value '$anchor' on '$field'")
+        }
+
+        return Dimension.anchored(anchor)
+    }
 
     private fun JsonObject.string(field: String): String =
         (this[field] as? JsonPrimitive)?.content

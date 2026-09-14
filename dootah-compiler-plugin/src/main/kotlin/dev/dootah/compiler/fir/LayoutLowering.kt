@@ -2,6 +2,7 @@ package dev.dootah.compiler.fir
 
 import dev.dootah.contract.Alignments
 import dev.dootah.contract.Arrangements
+import dev.dootah.contract.Dimension
 import dev.dootah.contract.LayoutArrangement
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
@@ -31,7 +32,10 @@ import org.jetbrains.kotlin.name.FqName
  * it costs the layout its remote description and the enclosing screen walks the
  * degradation ladder, exactly as an unsupported modifier does.
  */
-internal class LayoutLowering(private val rejector: Rejector) {
+internal class LayoutLowering(
+    private val rejector: Rejector,
+    private val onAnchor: (String) -> Unit = {},
+) {
 
     /** `Column(horizontalAlignment = Alignment.CenterHorizontally)`. */
     fun horizontalAlignment(expression: FirExpression, layout: String): String? =
@@ -144,20 +148,28 @@ internal class LayoutLowering(private val rejector: Rejector) {
             return null
         }
 
-        var space: Double? = null
+        var space: Dimension? = null
 
         for ((argument, argumentParameter) in mapping) {
             when (argumentParameter.name.asString()) {
 
+                // A literal, or a length the app owns and the bundle names.
+                // The second is what nearly every real `spacedBy` in the corpus
+                // turned out to be: the app's own spacing scale, not a number.
                 "space" -> {
-                    space = DpLiteral.read(argument)
+                    space = DpLiteral.read(argument)?.let { Dimension.of(it) }
+                        ?: AnchorLowering.dimension(argument)?.also { anchored ->
+                            onAnchor(anchored.anchor!!)
+                        }
+
                     if (space == null) {
                         reject(
                             argument, layout, parameter,
-                            found = "a spacedBy gap that is not a dp literal",
+                            found = "a spacedBy gap Dootah could not read",
                             detail = "$layout.$parameter.spacedBy",
-                            remedy = "Write the gap as a literal, like " +
-                                "Arrangement.spacedBy(8.dp). A computed gap is not bundled.",
+                            remedy = "Write the gap as a literal like 8.dp, or as a " +
+                                "property the app owns like MaterialTheme.padding.small. " +
+                                "A computed gap is not bundled.",
                         )
                         return null
                     }

@@ -412,8 +412,89 @@ class NativeAdapterAgreementTest {
             Regex("""StateProp\("([^"]+)""""),
             Regex("""PainterResourceProp\("([^"]+)""""),
             Regex("""StringResourceProp\("([^"]+)""""),
+            Regex("""DimensionNode\(anchor = "([^"]+)""""),
         )
     }
+
+    /**
+     * The app's own spacing scale, named by a bundle and supplied by the APK.
+     *
+     * The shape this was built for, taken from a real app: a `Padding` class
+     * hung off `MaterialTheme` by an extension property, read as
+     * `MaterialTheme.padding.small`. Nothing about the chain is written down --
+     * both passes have to arrive at the same name from the resolved symbols, and
+     * this is the test that says they do.
+     */
+    @Test
+    fun `a spacing scale the app owns is named the same by both passes`() {
+
+        assertAgreement(
+            installed = screenWithAppSpacing(),
+            published = screenWithAppSpacing(),
+            expect = "androidx.compose.material3.MaterialTheme.padding.small",
+        )
+    }
+
+    /**
+     * The same, across the edit an update exists to make.
+     *
+     * The published source has moved the spacing off the modifier and onto the
+     * arrangement. The name has to be unchanged, because it names the property
+     * rather than the argument it was read into.
+     */
+    @Test
+    fun `a spacing name survives the layout around it changing`() {
+
+        assertAgreement(
+            installed = screenWithAppSpacing(),
+            published = screenWithAppSpacing(edited = true),
+            expect = "androidx.compose.material3.MaterialTheme.padding.small",
+        )
+    }
+
+    /**
+     * A screen using the app's own spacing scale, the way a real one does.
+     *
+     * [edited] is the published version, with the spacing moved from the
+     * padding onto the arrangement -- the kind of edit a bundle exists to make,
+     * and one that may not rename anything.
+     */
+    private fun screenWithAppSpacing(edited: Boolean = false): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Arrangement
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.foundation.layout.padding
+            import androidx.compose.material3.Icon
+            import androidx.compose.material3.MaterialTheme
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import androidx.compose.ui.unit.dp
+            import dev.dootah.Bundlable
+
+            class Padding {
+                val small = 8.dp
+                val medium = 16.dp
+            }
+
+            val MaterialTheme.padding: Padding get() = Padding()
+
+            @Bundlable
+            @Composable
+            fun Screen(title: String, modifier: Modifier = Modifier) {
+                Column(
+                    modifier = modifier${if (edited) "" else ".padding(MaterialTheme.padding.small)"},
+                    ${if (edited) "verticalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)," else ""}
+                ) {
+                    Icon(title)
+                    Text(title)
+                }
+            }
+        """.trimIndent(),
+    )
 
     private fun screenWithNativeComponents(): SourceFile = SourceFile(
         name = "Screen.kt",

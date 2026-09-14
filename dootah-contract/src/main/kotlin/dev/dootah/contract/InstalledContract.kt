@@ -31,6 +31,15 @@ public data class ScreenContract(
     public val capabilities: List<CapabilityContract>,
     public val handles: List<String>,
     public val resources: List<String>,
+
+    /**
+     * The app's own values this screen lets a bundle name -- see [AnchorId].
+     *
+     * Recorded like resources and for the same reason: the number lives in the
+     * APK and only the name travels, so what has to be checked is whether this
+     * build still reads that property in that screen.
+     */
+    public val anchors: List<String> = emptyList(),
 )
 
 /**
@@ -72,6 +81,7 @@ public data class ScreenRequirements(
     public val capabilities: List<CapabilityContract>,
     public val handles: List<String>,
     public val resources: List<String>,
+    public val anchors: List<String> = emptyList(),
 )
 
 public data class AdapterUse(

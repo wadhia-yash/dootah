@@ -1,5 +1,6 @@
 package com.dootah.ui
 
+import dev.dootah.contract.Dimension
 import dev.dootah.contract.LayoutArrangement
 import dev.dootah.contract.PropValue
 
@@ -42,7 +43,10 @@ class BundleUiParserTest {
         assertEquals(
             listOf(
                 BundleUiModifier.Inherited,
-                BundleUiModifier.Padding(start = 1f, top = 2f, end = 3f, bottom = 4f),
+                BundleUiModifier.Padding(
+                    start = Dimension.of(1.0), top = Dimension.of(2.0),
+                    end = Dimension.of(3.0), bottom = Dimension.of(4.0),
+                ),
             ),
             column.modifiers,
         )
@@ -263,7 +267,7 @@ class BundleUiParserTest {
         val row = column.children[0] as BundleUiNode.Row
 
         assertEquals("CenterVertically", row.verticalAlignment)
-        assertEquals(LayoutArrangement("spacedBy", 8.0), row.horizontalArrangement)
+        assertEquals(LayoutArrangement("spacedBy", Dimension.of(8.0)), row.horizontalArrangement)
 
         assertEquals("Center", (column.children[1] as BundleUiNode.Box).contentAlignment)
     }
@@ -350,6 +354,103 @@ class BundleUiParserTest {
             BundleUiParser.parse(
                 """
                 {"ui":{"type":"row","horizontalArrangement":{"token":"spacedBy"},"children":[]},
+                 "commands":[]}
+                """.trimIndent()
+            )
+        }
+    }
+
+    // ---- lengths the app owns --------------------------------------------
+
+    @Test
+    fun `reads a length the bundle named rather than carried`() {
+
+        val response = BundleUiParser.parse(
+            """
+            {"ui":{"type":"row",
+              "horizontalArrangement":{"token":"spacedBy",
+                "space":{"anchor":"androidx.compose.material3.MaterialTheme.padding.small"}},
+              "modifiers":[{"type":"padding","start":1.0,"top":2.0,
+                "end":{"anchor":"com.example.Spacing.gutter"},"bottom":4.0}],
+              "children":[]},
+             "commands":[]}
+            """.trimIndent()
+        )
+
+        val row = response.ui as BundleUiNode.Row
+
+        assertEquals(
+            LayoutArrangement(
+                "spacedBy",
+                Dimension.anchored("androidx.compose.material3.MaterialTheme.padding.small"),
+            ),
+            row.horizontalArrangement,
+        )
+
+        assertEquals(
+            BundleUiModifier.Padding(
+                start = Dimension.of(1.0),
+                top = Dimension.of(2.0),
+                end = Dimension.anchored("com.example.Spacing.gutter"),
+                bottom = Dimension.of(4.0),
+            ),
+            row.modifiers.single(),
+        )
+    }
+
+    /**
+     * A named length is something the app has to have, so it is collected.
+     *
+     * Before a length could be named there was nothing in a layout's own
+     * modifiers to require, and the walk skipped them. A name that went
+     * uncollected here would reach a device without ever being checked.
+     */
+    @Test
+    fun `a named length is reported as something the app must supply`() {
+
+        val response = BundleUiParser.parse(
+            """
+            {"ui":{"type":"column",
+              "verticalArrangement":{"token":"spacedBy",
+                "space":{"anchor":"com.example.Spacing.small"}},
+              "children":[
+                {"type":"text","text":"x",
+                 "modifiers":[{"type":"width","value":{"anchor":"com.example.Spacing.wide"}}]}
+              ]},
+             "commands":[]}
+            """.trimIndent()
+        )
+
+        assertEquals(
+            listOf("com.example.Spacing.small", "com.example.Spacing.wide"),
+            response.ui.requirements().anchors.sorted(),
+        )
+    }
+
+    @Test
+    fun `refuses a malformed name for a length`() {
+
+        val failure = assertThrows(BundleProtocolException::class.java) {
+            BundleUiParser.parse(
+                """
+                {"ui":{"type":"text","text":"x",
+                  "modifiers":[{"type":"width","value":{"anchor":"nodots"}}]},
+                 "commands":[]}
+                """.trimIndent()
+            )
+        }
+
+        assertTrue(failure.message, failure.message!!.contains("nodots"))
+    }
+
+    @Test
+    fun `refuses a length that is neither a number nor a name`() {
+
+        assertThrows(BundleProtocolException::class.java) {
+            BundleUiParser.parse(
+                """
+                {"ui":{"type":"text","text":"x",
+                  "modifiers":[{"type":"width","value":{"nonsense":1}}]},
                  "commands":[]}
                 """.trimIndent()
             )

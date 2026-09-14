@@ -32,7 +32,7 @@ internal data class BundleScreen(
     /**
      * What this screen needs the installed app to have.
      *
-     * The four together are the whole contract between a published bundle and
+     * Together they are the whole contract between a published bundle and
      * an installed binary. The app generates them; a bundle may use any of them
      * and nothing else; and a bundle that names one the binary has not got is
      * refused when it is published rather than discovered as a gap on a device.
@@ -45,6 +45,9 @@ internal data class BundleScreen(
     val capabilities: List<BundleCapability>,
     val handles: List<String>,
     val resources: List<String>,
+
+    /** The app's own values this screen names rather than computes. */
+    val anchors: List<String> = emptyList(),
 )
 
 internal data class BundleParameter(

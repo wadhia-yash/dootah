@@ -121,6 +121,7 @@ private fun writeRequirementsFragment(reportDirectory: File, screen: BundleScree
                 },
                 handles = screen.handles.sorted(),
                 resources = screen.resources.sorted(),
+                anchors = screen.anchors.sorted(),
             )
         ),
     )

@@ -33,6 +33,10 @@ class ContractValidationTest {
                 ),
                 handles = listOf("customBrushes", "menu"),
                 resources = listOf("drawable:brush", "drawable:eraser", "string:brush"),
+                anchors = listOf(
+                    "androidx.compose.material3.MaterialTheme.padding.small",
+                    "androidx.compose.material3.MaterialTheme.padding.medium",
+                ),
             )
         ),
     )
@@ -42,11 +46,12 @@ class ContractValidationTest {
         capabilities: List<CapabilityContract> = emptyList(),
         handles: List<String> = emptyList(),
         resources: List<String> = emptyList(),
+        anchors: List<String> = emptyList(),
         runtimeVersion: String = "3",
     ) = BundleRequirements(
         runtimeVersion = runtimeVersion,
         screens = listOf(
-            ScreenRequirements("app.Toolbox", adapters, capabilities, handles, resources)
+            ScreenRequirements("app.Toolbox", adapters, capabilities, handles, resources, anchors)
         ),
     )
 
@@ -196,4 +201,57 @@ class ContractValidationTest {
         assertEquals(listOf(ContractValidation.Code.SCREEN_NOT_INSTALLED), all.map { it.code })
         assertEquals(emptyList<ContractValidation.Finding>(), all.filter { it.isFatal })
     }
+    // ---- lengths the app owns --------------------------------------------
+
+    /**
+     * Naming a value the screen reads is an ordinary update.
+     *
+     * Including naming one the source never used *here* -- the app registers
+     * every such value the screen reads, so moving one from a padding to an
+     * arrangement, or using it twice, needs no new binary.
+     */
+    @Test
+    fun `naming a value the screen reads is allowed`() {
+
+        val required = requires(
+            anchors = listOf(
+                "androidx.compose.material3.MaterialTheme.padding.small",
+                "androidx.compose.material3.MaterialTheme.padding.small",
+                "androidx.compose.material3.MaterialTheme.padding.medium",
+            )
+        )
+
+        assertEquals(emptyList<ContractValidation.Finding>(), findings(required))
+    }
+
+    /**
+     * And naming one it does not read is refused.
+     *
+     * This is the edit that has to be caught: someone deletes the line that read
+     * the app's spacing, the APK stops computing it, and a bundle still naming
+     * it would lay out against nothing.
+     */
+    @Test
+    fun `naming a value the screen does not read is refused`() {
+
+        val required = requires(anchors = listOf("com.example.Spacing.gutter"))
+
+        assertEquals(
+            listOf(ContractValidation.Code.MISSING_ANCHOR),
+            findings(required).map { it.code },
+        )
+
+        assertTrue(
+            findings(required).single().render(),
+            findings(required).single().render().contains("com.example.Spacing.gutter"),
+        )
+    }
+
+    /** Using fewer of them, or none, is an ordinary update too. */
+    @Test
+    fun `naming fewer values than the app reads is allowed`() {
+
+        assertEquals(emptyList<ContractValidation.Finding>(), findings(requires()))
+    }
+
 }

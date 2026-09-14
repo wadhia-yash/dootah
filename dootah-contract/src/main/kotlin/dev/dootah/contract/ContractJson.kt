@@ -42,6 +42,7 @@ public object ContractJson {
                                 ),
                                 "handles" to screen.handles.sorted().strings(),
                                 "resources" to screen.resources.sorted().strings(),
+                                "anchors" to screen.anchors.sorted().strings(),
                             )
                         )
                     }
@@ -76,6 +77,12 @@ public object ContractJson {
                     },
                     handles = fields.strings("handles"),
                     resources = fields.strings("resources"),
+                    // Optional on read so a contract file committed before
+                    // anchors existed still parses. A build that genuinely has
+                    // no anchors and one that predates them are the same thing
+                    // to check against: neither can satisfy a bundle that names
+                    // one, and both say so.
+                    anchors = fields.optionalStrings("anchors"),
                 )
             },
         )
@@ -113,6 +120,7 @@ public object ContractJson {
                                 ),
                                 "handles" to screen.handles.sorted().strings(),
                                 "resources" to screen.resources.sorted().strings(),
+                                "anchors" to screen.anchors.sorted().strings(),
                             )
                         )
                     }
@@ -143,6 +151,12 @@ public object ContractJson {
                     },
                     handles = fields.strings("handles"),
                     resources = fields.strings("resources"),
+                    // Optional on read so a contract file committed before
+                    // anchors existed still parses. A build that genuinely has
+                    // no anchors and one that predates them are the same thing
+                    // to check against: neither can satisfy a bundle that names
+                    // one, and both say so.
+                    anchors = fields.optionalStrings("anchors"),
                 )
             },
         )
@@ -164,6 +178,9 @@ public object ContractJson {
 
     private fun Json.Obj.array(name: String): List<Json> =
         (field(name) as? Json.Arr)?.items ?: throw JsonException("'$name' is not a list")
+
+    private fun Json.Obj.optionalStrings(name: String): List<String> =
+        if (fields[name] == null) emptyList() else strings(name)
 
     private fun Json.Obj.strings(name: String): List<String> =
         array(name).map { item ->

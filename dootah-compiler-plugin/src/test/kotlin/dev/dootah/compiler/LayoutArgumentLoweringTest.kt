@@ -143,7 +143,7 @@ class LayoutArgumentLoweringTest {
 
         assertTrue(
             generated,
-            generated.contains("""horizontalArrangement = ArrangementNode("spacedBy", 8.0)"""),
+            generated.contains("""horizontalArrangement = ArrangementNode("spacedBy", DimensionNode(8.0))"""),
         )
     }
 
@@ -162,7 +162,7 @@ class LayoutArgumentLoweringTest {
 
         assertTrue(
             generated,
-            generated.contains("""verticalArrangement = ArrangementNode("spacedBy", 12.5)"""),
+            generated.contains("""verticalArrangement = ArrangementNode("spacedBy", DimensionNode(12.5))"""),
         )
     }
 
@@ -380,4 +380,190 @@ class LayoutArgumentLoweringTest {
             }
         """.trimIndent(),
     )
+    // ---- lengths the app owns --------------------------------------------
+
+    /**
+     * The shape this milestone was built for, from a real app.
+     *
+     * `MaterialTheme.padding.small` is the app's spacing scale. Reading its
+     * value at build time and shipping `8.dp` would work today and be wrong the
+     * first time anyone retunes the scale, so what travels is the name.
+     */
+    @Test
+    fun `lowers a spacedBy gap the app owns as a name`() {
+
+        val generated = lower(
+            spacingScreen(
+                """
+                Row(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
+                    Text("x")
+                }
+                """
+            )
+        )
+
+        assertTrue(
+            generated,
+            generated.contains(
+                """ArrangementNode("spacedBy", DimensionNode(anchor = """" +
+                    """androidx.compose.material3.MaterialTheme.padding.small"))"""
+            ),
+        )
+    }
+
+    @Test
+    fun `lowers a padding the app owns as a name`() {
+
+        val generated = lower(
+            spacingScreen(
+                """Text("x", modifier = Modifier.padding(MaterialTheme.padding.medium))"""
+            )
+        )
+
+        assertTrue(
+            generated,
+            generated.contains(
+                """DimensionNode(anchor = "androidx.compose.material3.MaterialTheme.padding.medium")"""
+            ),
+        )
+    }
+
+    /** A literal and a named length side by side in one padding. */
+    @Test
+    fun `mixes a literal and an app-owned length in one modifier`() {
+
+        val generated = lower(
+            spacingScreen(
+                """Text("x", modifier = Modifier.padding(top = 4.dp, bottom = MaterialTheme.padding.small))"""
+            )
+        )
+
+        assertTrue(generated, generated.contains("DimensionNode(4.0)"))
+        assertTrue(
+            generated,
+            generated.contains(
+                """DimensionNode(anchor = "androidx.compose.material3.MaterialTheme.padding.small")"""
+            ),
+        )
+    }
+
+    /**
+     * A screen that names one records it, so the app is asked for it.
+     *
+     * The other half of what makes this safe: the bundle declares the value it
+     * needs, and a build whose app no longer reads that property is a refused
+     * publish rather than a collapsed layout on a device.
+     */
+    @Test
+    fun `records an app-owned length as something the app must supply`() {
+
+        val result = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(
+                spacingScreen(
+                    """
+                    Row(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.padding.small)) {
+                        Text("x")
+                    }
+                    """
+                )
+            ),
+            mode = "extract",
+        )
+
+        assertTrue("compilation failed: ${result.messages}", result.succeeded)
+
+        val requirements = result.requirementsFragment()
+
+        assertTrue(
+            requirements,
+            requirements.contains("androidx.compose.material3.MaterialTheme.padding.small"),
+        )
+    }
+
+    /** A number is still a number: nothing is anchored that need not be. */
+    @Test
+    fun `leaves a literal length as a number`() {
+
+        val generated = lower(spacingScreen("""Text("x", modifier = Modifier.padding(8.dp))"""))
+
+        assertTrue(generated, generated.contains("DimensionNode(8.0)"))
+        assertFalse(generated, generated.contains("anchor ="))
+    }
+
+    /**
+     * A computed length is still refused.
+     *
+     * The line is not difficulty, it is whether both compilations can arrive at
+     * the same name. Arithmetic has no name, so this stays where it was.
+     */
+    @Test
+    fun `refuses a length that is computed rather than named`() {
+
+        val report = keptNativeOrRefused(
+            spacingScreen(
+                """Text("x", modifier = Modifier.padding(MaterialTheme.padding.small + 4.dp))"""
+            )
+        )
+
+        assertTrue(report, report.contains("dp"))
+    }
+
+    /** A local holding a length has no name the other compilation could use. */
+    @Test
+    fun `refuses a length held in a local`() {
+
+        val report = keptNativeOrRefused(
+            spacingScreen(
+                """Text("x", modifier = Modifier.padding(gap))""",
+                prelude = "val gap = MaterialTheme.padding.small",
+            )
+        )
+
+        assertTrue(report, report.contains("dp"))
+    }
+
+    /**
+     * A screen whose app owns a spacing scale, shaped like the real ones.
+     *
+     * A `Padding` class hung off `MaterialTheme` by an extension property, which
+     * is how every app in the corpus that has a spacing scale writes one.
+     */
+    private fun spacingScreen(
+        body: String,
+        prelude: String = "",
+    ): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Arrangement
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.foundation.layout.Row
+            import androidx.compose.foundation.layout.padding
+            import androidx.compose.material3.MaterialTheme
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import androidx.compose.ui.unit.dp
+            import dev.dootah.Bundlable
+
+            class Padding {
+                val small = 8.dp
+                val medium = 16.dp
+            }
+
+            val MaterialTheme.padding: Padding get() = Padding()
+
+            @Bundlable
+            @Composable
+            fun Screen() {
+                ${prelude.trimIndent().replace("\n", "\n    ")}
+                Column {
+                    ${body.trimIndent().replace("\n", "\n        ")}
+                }
+            }
+        """.trimIndent(),
+    )
+
 }
