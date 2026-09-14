@@ -541,9 +541,11 @@ private fun composeStubs(): List<SourceFile> = listOf(
                 content: @Composable BoxScope.() -> Unit,
             ) {}
 
+            class PaddingValues(val all: Dp)
+
             fun Modifier.padding(all: Dp): Modifier = this
 
-            fun Modifier.padding(horizontal: Dp, vertical: Dp): Modifier = this
+            fun Modifier.padding(horizontal: Dp = Dp(0f), vertical: Dp = Dp(0f)): Modifier = this
 
             fun Modifier.padding(
                 start: Dp = Dp(0f),
@@ -580,6 +582,42 @@ private fun composeStubs(): List<SourceFile> = listOf(
             // Takes a shape like the real one, because an icon drawn on a
             // coloured circle is how a selected tool is usually shown.
             fun Modifier.background(color: Color, shape: Shape = RectangleShape): Modifier = this
+        """.trimIndent(),
+    ),
+    // A lazy list, shaped like the real one: a scope that is not a composable
+    // receiver, items declared on it, and a content lambda that is not
+    // `@Composable`. A screen whose native part is a `LazyColumn` almost always
+    // reads that scope -- through `item`, or through an extension the app wrote
+    // on it -- so this is the shape that decides whether such a screen can be
+    // kept native at all.
+    SourceFile(
+        name = "ComposeLazyStubs.kt",
+        contents = """
+            package androidx.compose.foundation.lazy
+
+            import androidx.compose.foundation.layout.PaddingValues
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import androidx.compose.ui.unit.Dp
+
+            interface LazyItemScope
+
+            interface LazyListScope {
+                fun item(content: @Composable LazyItemScope.() -> Unit)
+            }
+
+            class LazyListState
+
+            @Composable
+            fun rememberLazyListState(): LazyListState = LazyListState()
+
+            @Composable
+            fun LazyColumn(
+                modifier: Modifier = Modifier,
+                state: LazyListState = LazyListState(),
+                contentPadding: PaddingValues = PaddingValues(Dp(0f)),
+                content: LazyListScope.() -> Unit,
+            ) {}
         """.trimIndent(),
     ),
     SourceFile(
@@ -716,6 +754,7 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
         contents = """
             package com.dootah.ui
 
+            import androidx.compose.foundation.lazy.LazyListScope
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
 
@@ -734,6 +773,8 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
             class DootahHandles
             class DootahResources
             class DootahAnchors
+            class DootahBuilders
+            class DootahBuilder(val id: String)
             class DootahNativeBindings
 
             // The adapter surface. An adapter is given its arguments rather than
@@ -756,6 +797,7 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
                 fun callback(name: String): () -> Unit = {}
                 fun callback1(name: String): (Any?) -> Unit = {}
                 @Composable fun children(name: String) {}
+                fun entries(name: String): LazyListScope.() -> Unit = {}
             }
 
             class DootahScreenState(val screenId: String)
@@ -804,12 +846,18 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
 
             fun dootahAnchors(vararg anchors: Pair<String, Dp>): DootahAnchors = DootahAnchors()
 
+            fun dootahBuilder(id: String, entries: LazyListScope.() -> Unit): DootahBuilder =
+                DootahBuilder(id)
+
+            fun dootahBuilders(vararg builders: DootahBuilder): DootahBuilders = DootahBuilders()
+
             fun dootahBindings(
                 adapters: DootahAdapters,
                 capabilities: DootahCapabilities,
                 handles: DootahHandles,
                 resources: DootahResources,
                 anchors: DootahAnchors,
+                builders: DootahBuilders,
             ): DootahNativeBindings = DootahNativeBindings()
 
             @Composable

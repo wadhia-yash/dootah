@@ -37,6 +37,7 @@ class DootahAdaptersTest {
         handles: List<String> = emptyList(),
         resources: List<String> = emptyList(),
         anchors: List<String> = emptyList(),
+        builders: List<String> = emptyList(),
     ) = DootahNativeBindings(
         adapters = dootahAdapters(
             *adapters.map { (id, parameters) -> dootahAdapter(id, parameters) {} }.toTypedArray()
@@ -47,6 +48,7 @@ class DootahAdaptersTest {
         handles = dootahHandles(*handles.map { name -> dootahHandle(name, Any()) }.toTypedArray()),
         resources = dootahResources(*resources.map { key -> dootahResource(key, 1) }.toTypedArray()),
         anchors = dootahAnchors(*anchors.map { name -> dootahAnchor(name, 0.dp) }.toTypedArray()),
+        builders = dootahBuilders(*builders.map { id -> dootahBuilder(id) {} }.toTypedArray()),
     )
 
     private fun button(onClick: String) = BundleUiNode.Component(

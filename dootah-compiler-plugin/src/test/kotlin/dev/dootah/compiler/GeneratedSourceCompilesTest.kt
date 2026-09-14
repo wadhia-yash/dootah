@@ -102,6 +102,56 @@ class GeneratedSourceCompilesTest {
         )
     }
 
+    /**
+     * A lazy list: a component with a builder slot rather than children.
+     *
+     * The generated source has to name `EntryNode` and its two kinds, and the
+     * JS runtime has to declare them, or a screen whose whole content is a list
+     * fails to compile at publish time rather than at a keyboard.
+     */
+    @Test
+    fun `a list built from entries compiles`() {
+
+        val generated = generate(
+            """
+                package com.example
+
+                import androidx.compose.foundation.lazy.LazyColumn
+                import androidx.compose.foundation.lazy.LazyListScope
+                import androidx.compose.material3.Text
+                import androidx.compose.runtime.Composable
+                import dev.dootah.Bundlable
+
+                fun LazyListScope.articleItems(title: String) {
+                    item { Text(title) }
+                }
+
+                @Bundlable
+                @Composable
+                fun ArticleScreen(title: String) {
+                    LazyColumn {
+                        item { Text(title) }
+                        articleItems(title)
+                    }
+                }
+            """.trimIndent()
+        )
+
+        val source = generated.walkTopDown().filter { it.extension == "kt" }
+            .joinToString("\n") { it.readText() }
+
+        assertTrue("no item entry was generated:\n$source", "EntryNode.Item(" in source)
+        assertTrue("no region entry was generated:\n$source", "EntryNode.Region(" in source)
+
+        val outcome = compileForJs(generated)
+
+        assertEquals(
+            "generated bundle source did not compile:\n${outcome.output}",
+            ExitCode.OK,
+            outcome.exitCode,
+        )
+    }
+
     private fun generate(screenSource: String): File {
 
         val result = compileWithDootah(

@@ -26,7 +26,12 @@ import org.junit.Test
 class DootahPropsTest {
 
     private fun props(values: Map<String, Any?>) =
-        DootahProps(values = values, childContent = emptyMap(), invoker = { _, _ -> })
+        DootahProps(
+            values = values,
+            childContent = emptyMap(),
+            entryContent = emptyMap(),
+            invoker = { _, _ -> },
+        )
 
     /**
      * `Modifier` as a value is `Modifier.Companion`, which is a narrower type
@@ -102,7 +107,7 @@ class DootahScreenStateTest {
             callbacks = dootahCallbacks(""),
             bindings = dootahBindings(
                 dootahAdapters(), dootahCapabilities(), dootahHandles(), dootahResources(),
-                dootahAnchors(),
+                dootahAnchors(), dootahBuilders(),
             ),
             scope = CoroutineScope(Dispatchers.Unconfined),
         )
@@ -114,7 +119,7 @@ class DootahScreenStateTest {
             callbacks = dootahCallbacks(""),
             bindings = dootahBindings(
                 dootahAdapters(), dootahCapabilities(), dootahHandles(), dootahResources(),
-                dootahAnchors(),
+                dootahAnchors(), dootahBuilders(),
             ),
         )
 

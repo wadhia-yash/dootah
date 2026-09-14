@@ -123,6 +123,61 @@ class BundleUiParserTest {
     }
 
     /**
+     * A list, as the entries the app is asked to declare.
+     *
+     * The scope is conspicuously absent, and has to be: what arrives is which
+     * entries there are, and the app makes the scope and performs them.
+     */
+    @Test
+    fun `reads a list's entries and what the app must build for them`() {
+
+        val response = BundleUiParser.parse(
+            """{"ui":{"type":"component","adapter":"lazy.LazyColumn(content|modifier)",
+                 "builders":{"content":[
+                   {"kind":"item","children":[{"type":"text","text":"Latest"}]},
+                   {"kind":"region","adapter":"!com.example.articleItems@abc"}]}},
+               "commands":[]}"""
+        )
+
+        assertEquals(
+            BundleUiNode.Component(
+                adapterId = "lazy.LazyColumn(content|modifier)",
+                entries = mapOf(
+                    "content" to listOf(
+                        BundleUiEntry.Item(
+                            children = listOf(BundleUiNode.Text(text = "Latest", modifiers = emptyList())),
+                        ),
+                        BundleUiEntry.Region(adapterId = "!com.example.articleItems@abc"),
+                    )
+                ),
+            ),
+            response.ui,
+        )
+
+        // The walk that decides whether this build can draw the screen has to
+        // reach inside a builder slot. While an entry held only a name this was
+        // invisible; a region the app has not got is a list with a hole in it.
+        assertEquals(
+            listOf("!com.example.articleItems@abc"),
+            response.ui.requirements().builders,
+        )
+    }
+
+    @Test
+    fun `refuses an entry kind it cannot build`() {
+
+        val failure = assertThrows(BundleProtocolException::class.java) {
+            BundleUiParser.parse(
+                """{"ui":{"type":"component","adapter":"lazy.LazyColumn(content)",
+                     "builders":{"content":[{"kind":"itemsIndexed","children":[]}]}},
+                   "commands":[]}"""
+            )
+        }
+
+        assertTrue(failure.message.orEmpty(), "itemsIndexed" in failure.message.orEmpty())
+    }
+
+    /**
      * A Long is carried as text.
      *
      * A bundle's numbers are JavaScript numbers, which are doubles: past 2^53 a

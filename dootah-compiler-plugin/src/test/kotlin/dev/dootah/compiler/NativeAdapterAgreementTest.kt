@@ -109,9 +109,14 @@ class NativeAdapterAgreementTest {
      * `No mapping for symbol: ${'$'}this${'$'}Column`. Both passes have to refuse it: the
      * app must not register what it cannot build, and the bundle must not name
      * what the app did not register.
+     *
+     * What the screen does instead is keep the layout holding it whole, which is
+     * the remedy the refusal already named. So the thing to assert is that the
+     * component was not placed -- not that the screen was refused, which was the
+     * old answer to a question about one component in it.
      */
     @Test
-    fun `neither pass accepts a component that reads the layout's scope`() {
+    fun `neither pass places a component that reads the layout's scope`() {
 
         listOf(
             "a component declared on ColumnScope" to screenWithScopedComponent(),
@@ -127,10 +132,46 @@ class NativeAdapterAgreementTest {
             )
 
             assertTrue(
-                "$description was not reported as unsupported",
-                extracted.rejectionReport().orEmpty().contains("scope"),
+                "$description was placed rather than kept inside a native region",
+                extracted.generatedSources().values.none { generated ->
+                    "ComponentNode" in generated
+                },
             )
         }
+    }
+
+    /**
+     * The same scope, read by the layout that introduced it.
+     *
+     * `Row { Text(modifier = Modifier.weight(1f)) }` kept native reads a
+     * `RowScope` throughout, and every bit of it belongs to the `Row` being
+     * lifted, so the app builds it without complaint and registers it. Refusing
+     * it here on the grounds that a `this` appeared cost the screen for nothing
+     * -- and cost most screens, because a `LazyColumn`, a `Scaffold` or a `Card`
+     * kept native reads its own scope somewhere inside almost every time.
+     */
+    @Test
+    fun `a region that reads only the scope it introduced is placed`() {
+
+        val source = screenWithSelfScopedRegion()
+        val extracted = extract(source)
+
+        assertEquals(
+            "the bundle names something the app did not register",
+            emptyList<String>(),
+            extracted.namesUsed().filterNot { name -> intercept(source).registers(name) },
+        )
+
+        assertEquals(
+            "the screen was refused over a scope that travels with the region",
+            mapOf("com.example.Screen" to "LOWERED"),
+            extracted.discoveryOutcomes(),
+        )
+
+        assertTrue(
+            "the region was not placed",
+            extracted.namesUsed().any { name -> name.startsWith("androidx.compose.material3.Chip") },
+        )
     }
 
     /**
@@ -767,6 +808,227 @@ class NativeAdapterAgreementTest {
             ) {
                 Column(modifier = modifier) {
                     Badge(label = title)
+                    Text(title)
+                }
+            }
+        """.trimIndent(),
+    )
+
+    /**
+     * The shape that drove all of this: a screen whose native part is a lazy list.
+     *
+     * `LazyColumn { postContentItems(post) }` -- an app's own extension on
+     * `LazyListScope`, which is how every long screen in the corpus is written.
+     * The scope belongs to the `LazyColumn` being kept native, so the app builds
+     * it and registers it, and a bundle may name it. Refusing it cost 132 of the
+     * corpus's 172 screens that stopped here, none of them for a reason that
+     * survived being looked at.
+     *
+     * Asserted through agreement rather than through an outcome, because what
+     * matters is not that this screen lowers but that the two passes say the
+     * same thing about it.
+     */
+    @Test
+    fun `a lazy list that reads its own scope agrees across an edit`() {
+
+        // The list itself is placed, so a bundle decides its modifiers and which
+        // entries it holds; the app's own `articleItems` travels as a region the
+        // app performs against the real scope. Both names have to be the app's.
+        assertAgreement(
+            installed = screenWithLazyList(extraItem = false),
+            published = screenWithLazyList(extraItem = true),
+            expect = "androidx.compose.foundation.lazy.LazyColumn(",
+        )
+
+        assertTrue(
+            "the app's own list-building did not travel as a region it performs",
+            extract(screenWithLazyList(extraItem = true)).namesUsed()
+                .any { name -> name.startsWith("!com.example.articleItems@") },
+        )
+    }
+
+
+    /**
+     * A screen whose native part is a lazy list reading its own scope.
+     *
+     * [extraItem] adds a row to the part that stays remote, which is the
+     * ordinary edit a bundle ships: the frozen list is untouched, so both passes
+     * have to name it identically across the two compilations.
+     */
+    private fun screenWithLazyList(extraItem: Boolean): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.foundation.lazy.LazyColumn
+            import androidx.compose.foundation.lazy.LazyListScope
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import dev.dootah.Bundlable
+
+            fun LazyListScope.articleItems(title: String) {
+                item { Text(title) }
+            }
+
+            @Bundlable
+            @Composable
+            fun Screen(
+                title: String,
+                modifier: Modifier = Modifier,
+            ) {
+                Column(modifier = modifier) {
+                    Text(title)
+            ${if (extraItem) "        Text(title)" else ""}
+                    LazyColumn { articleItems(title) }
+                }
+            }
+        """.trimIndent(),
+    )
+
+    /**
+     * The shape of a real article screen, whole.
+     *
+     * A list the app owns, given the app's own padding by name, building its
+     * entries from the app's own extension on the scope -- and an entry the
+     * bundle describes, added above them. Every kind of name this milestone
+     * introduced is in it at once, which is the point: the two passes see two
+     * versions of this file and have to agree on all of them.
+     *
+     * Published from a version with a banner the installed build never had,
+     * because adding an entry is the update this is for.
+     */
+    @Test
+    fun `an article list agrees across an entry being added to it`() {
+
+        val installed = articleScreen(banner = false)
+        val published = articleScreen(banner = true)
+
+        assertAgreement(
+            installed = installed,
+            published = published,
+            expect = "androidx.compose.foundation.lazy.LazyColumn(",
+        )
+
+        val extracted = extract(published)
+
+        assertTrue(
+            "the app's own list-building did not travel as a region it performs",
+            extracted.namesUsed().any { it.startsWith("!com.example.postContentItems@") },
+        )
+
+        // The whole reason the screen is worth shipping: the padding stays the
+        // app's, by name, while the entries around it become the bundle's.
+        assertTrue(
+            "the app's own spacing did not travel as a name",
+            "com.example.defaultSpacerSize" in extracted.requirementsFragment(),
+        )
+
+        assertEquals(
+            mapOf("com.example.PostContent" to "LOWERED"),
+            extracted.discoveryOutcomes(),
+        )
+
+        // As the four edges the renderer reads, not as the word Compose's
+        // overload happened to use. Sent as `horizontal` it arrived under a name
+        // nothing looked up, the padding resolved to zero, and the article drew
+        // hard against both edges of the screen -- on a device, having passed
+        // every check up to that point.
+        val generated = extracted.generatedSources().values.joinToString("\n")
+
+        assertTrue(
+            "the padding did not travel as the edges the renderer reads:\n$generated",
+            Regex("""ModifierOpNode\("padding", mapOf\(.*"start" to AnchorProp\("com\.example\.defaultSpacerSize"\)""")
+                .containsMatchIn(generated),
+        )
+        assertTrue(
+            "the padding named an argument the renderer does not read:\n$generated",
+            "\"horizontal\" to" !in generated,
+        )
+    }
+
+
+    /**
+     * An article screen shaped like JetNews's, to the argument.
+     *
+     * [banner] adds an entry the bundle describes above the app's own ones,
+     * which is the ordinary edit an update ships and the one that must not
+     * disturb any of the names around it.
+     */
+    private fun articleScreen(banner: Boolean): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.PaddingValues
+            import androidx.compose.foundation.layout.padding
+            import androidx.compose.foundation.lazy.LazyColumn
+            import androidx.compose.foundation.lazy.LazyListScope
+            import androidx.compose.foundation.lazy.LazyListState
+            import androidx.compose.foundation.lazy.rememberLazyListState
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import androidx.compose.ui.unit.Dp
+            import dev.dootah.Bundlable
+
+            val defaultSpacerSize = Dp(16f)
+
+            class Post(val title: String)
+
+            fun LazyListScope.postContentItems(post: Post) {
+                item { Text(post.title) }
+            }
+
+            @Bundlable
+            @Composable
+            fun PostContent(
+                post: Post,
+                modifier: Modifier = Modifier,
+                contentPadding: PaddingValues = PaddingValues(Dp(0f)),
+                state: LazyListState = rememberLazyListState(),
+            ) {
+                LazyColumn(
+                    contentPadding = contentPadding,
+                    modifier = modifier.padding(horizontal = defaultSpacerSize),
+                    state = state,
+                ) {
+            ${if (banner) "            item { Text(\"Editor's pick\") }" else ""}
+                    postContentItems(post)
+                }
+            }
+        """.trimIndent(),
+    )
+
+    /**
+     * A component whose own content lambda hands it the scope it reads.
+     *
+     * `Chip` takes `@Composable RowScope.() -> Unit`, so the `weight` inside it
+     * resolves against a receiver the `Chip` call introduces. Lifting the call
+     * takes that receiver with it, which is exactly the case the app's pass
+     * already registers.
+     */
+    private fun screenWithSelfScopedRegion(): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.Chip
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import androidx.compose.ui.Modifier
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen(
+                title: String,
+                modifier: Modifier = Modifier,
+            ) {
+                Column(modifier = modifier) {
+                    Chip(onClick = {}) { Text(title, modifier = Modifier.weight(1f)) }
                     Text(title)
                 }
             }
