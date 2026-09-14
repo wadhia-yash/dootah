@@ -48,6 +48,9 @@ internal data class BundleScreen(
 
     /** The app's own values this screen names rather than computes. */
     val anchors: List<String> = emptyList(),
+
+    /** Stretches of list-building this screen asks the app to perform. */
+    val builders: List<String> = emptyList(),
 )
 
 internal data class BundleParameter(

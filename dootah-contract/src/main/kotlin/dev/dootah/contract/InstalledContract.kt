@@ -40,6 +40,17 @@ public data class ScreenContract(
      * build still reads that property in that screen.
      */
     public val anchors: List<String> = emptyList(),
+
+    /**
+     * The builder regions this screen lets a bundle place -- see [BuilderEntries].
+     *
+     * Recorded apart from [adapters] because they are a different kind of thing
+     * in the binary: an adapter draws when the bundle places it, a builder
+     * region declares entries against a scope the app makes. A build that has
+     * the adapter and not the region would pass a check that counted them
+     * together and then show an empty list.
+     */
+    public val builders: List<String> = emptyList(),
 )
 
 /**
@@ -82,6 +93,7 @@ public data class ScreenRequirements(
     public val handles: List<String>,
     public val resources: List<String>,
     public val anchors: List<String> = emptyList(),
+    public val builders: List<String> = emptyList(),
 )
 
 public data class AdapterUse(

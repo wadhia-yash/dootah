@@ -60,6 +60,11 @@ dependencies {
     api(libs.androidx.compose.ui)
     api(libs.androidx.compose.runtime)
 
+    // `api` because a builder slot's type appears in this module's own
+    // signatures: a generated adapter is handed a `LazyListScope.() -> Unit`,
+    // and an app compiling against this has to be able to name it.
+    api(libs.androidx.compose.foundation)
+
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.javascriptengine)

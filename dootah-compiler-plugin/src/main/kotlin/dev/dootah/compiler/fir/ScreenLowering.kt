@@ -4,6 +4,7 @@ import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import dev.dootah.compiler.model.ArithmeticOperator
 import dev.dootah.compiler.model.BundleAction
 import dev.dootah.compiler.model.BundleCommandModel
+import dev.dootah.compiler.model.BundleEntry
 import dev.dootah.compiler.model.BundleExpression
 import dev.dootah.compiler.model.BundleFunction
 import dev.dootah.compiler.model.BundleModifier
@@ -36,6 +37,7 @@ import org.jetbrains.kotlin.fir.expressions.FirWhenExpression
 import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.expressions.resolvedArgumentMapping
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirReceiverParameterSymbol
 import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.classId
@@ -43,6 +45,7 @@ import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.contracts.description.LogicOperationKind
 import org.jetbrains.kotlin.types.ConstantValueKind
+import dev.dootah.contract.BuilderScopes
 import dev.dootah.contract.FrozenRegionId
 import dev.dootah.contract.LayoutArrangement
 import org.jetbrains.kotlin.name.FqName
@@ -291,6 +294,7 @@ internal class ScreenLowering(
                 handles = components.requirements.handles.toList(),
                 resources = components.requirements.resources.toList(),
                 anchors = components.requirements.anchors.toList(),
+                builders = components.requirements.builders.toList(),
             ),
         )
 
@@ -902,7 +906,128 @@ internal class ScreenLowering(
             return null
         }
 
-        return components.lower(call) { content -> lowerContent(content) }
+        return components.lower(
+            call,
+            lowerContent = { content -> lowerContent(content) },
+            lowerEntries = { builder -> lowerBuilderEntries(builder) },
+        )
+    }
+
+    /**
+     * Lowers the entries a native container's builder declares.
+     *
+     * The builder's body is a list of statements, each declaring entries against
+     * a scope. An `item { ... }` is described, so what it holds becomes remote
+     * and a bundle may change it; anything else is kept as the app's own code
+     * and performed against the real scope. That second case is the degradation
+     * ladder one level in: the price of an entry the bundle cannot describe is
+     * that entry, not the list, and not the screen.
+     *
+     * Nothing here composes, measures or orders anything. It decides which
+     * declarations exist and in what sequence, and Compose does the rest.
+     */
+    private fun lowerBuilderEntries(builder: FirAnonymousFunction): List<BundleEntry>? {
+
+        val mark = reasons.size
+
+        val entries = builder.body?.statements.orEmpty().flatMap { statement ->
+            lowerBuilderStatement(statement) ?: return null
+        }
+
+        return if (reasons.size > mark) null else entries
+    }
+
+    /** One statement of a builder: a described entry, or the app's own region. */
+    private fun lowerBuilderStatement(statement: FirElement): List<BundleEntry>? {
+
+        val call = statement.unwrapReturn() as? FirFunctionCall ?: return regionEntry(statement)
+
+        val callable = call.resolvedCallableName()?.asString()
+
+        if (callable != null && BuilderScopes.isItemCall(callable)) {
+            attempt { describedItem(call) }.value?.let { item -> return listOf(item) }
+        }
+
+        return regionEntry(statement)
+    }
+
+    /** `item { ... }`, with its content lowered as ordinary bundle UI. */
+    private fun describedItem(call: FirFunctionCall): BundleEntry? {
+
+        val content = call.arguments
+            .filterIsInstance<FirAnonymousFunctionExpression>()
+            .singleOrNull()
+            ?.anonymousFunction
+            ?: return null
+
+        // An `item` given a key is given something to compare across
+        // recompositions, which is Compose's business and not describable here.
+        // Refusing it keeps the region rather than silently dropping the key.
+        if (call.arguments.size > 1) return null
+
+        return BundleEntry.Item(children = lowerContent(content) ?: return null)
+    }
+
+    /**
+     * Entries the app declares for itself, kept exactly as written.
+     *
+     * Named the same way any other frozen region is -- by what it says -- so an
+     * edit to the app's own builder renames it and the bundle that named the old
+     * one is refused rather than drawing something that no longer exists.
+     */
+    private fun regionEntry(statement: FirElement): List<BundleEntry>? {
+
+        val call = statement.unwrapReturn() as? FirFunctionCall
+
+        val callable = call?.resolvedCallableName()
+
+        if (call == null || callable == null) {
+            reject(
+                statement.sourceOffset(),
+                "something in a list that is not a call",
+                code = RejectionCode.UNSUPPORTED_CALL_IN_LAYOUT,
+                detail = null,
+                remedy = "A list may declare entries. Move other work out of the " +
+                    "list, or keep this screen native.",
+            )
+            return null
+        }
+
+        // The same two conditions every frozen region has to meet: it is lifted
+        // out of the body, so it cannot read what the body declares, and it is
+        // named by its text, so the text has to be readable.
+        val readFromBody = call.declarationsReadFromBody()
+
+        if (readFromBody.isNotEmpty()) {
+            reject(
+                call.sourceOffset(),
+                "`${callable.shortName()}()`, which reads `${readFromBody.first()}` from this body",
+                code = RejectionCode.COMPONENT_READS_BODY,
+                detail = callable.asString(),
+                remedy = "A list's own entries are prepared before the screen's " +
+                    "body runs, so they cannot read something the body declares. " +
+                    "Move the declaration out of the screen, or keep it native.",
+            )
+            return null
+        }
+
+        val text = call.sourceText()
+
+        if (text == null) {
+            reject(
+                call.sourceOffset(),
+                "`${callable.shortName()}()`, whose source Dootah could not read",
+                code = RejectionCode.UNREADABLE_REGION_SOURCE,
+                detail = callable.asString(),
+                remedy = "Keep this screen native.",
+            )
+            return null
+        }
+
+        val id = FrozenRegionId.of(callable.asString(), text)
+        components.requirements.builders += id
+
+        return listOf(BundleEntry.Region(adapterId = id))
     }
 
     /**
@@ -918,8 +1043,24 @@ internal class ScreenLowering(
 
         val mark = reasons.size
 
-        val children = content.body?.statements.orEmpty()
-            .flatMap { statement -> lowerUiStatementPartially(statement) ?: return null }
+        // While lowering inside this lambda, the names it introduces are names
+        // the body declares. Anything lifted out of here -- a region kept as
+        // written, a component placed from an adapter -- runs where they do not
+        // exist, and the app's own pass refuses to register such a thing for
+        // exactly that reason. Leaving them out let the bundle name a region
+        // the app had not got: `PostList(hasPostsUiState.postsFeed, …)` inside
+        // a content lambda, caught by the publish check rather than by a device,
+        // but only because the check exists.
+        val outer = bodyDeclarations.toSet()
+        bodyDeclarations += content.valueParameters.map { it.name.asString() }
+
+        val children = try {
+            content.body?.statements.orEmpty()
+                .flatMap { statement -> lowerUiStatementPartially(statement) ?: return null }
+        } finally {
+            bodyDeclarations.clear()
+            bodyDeclarations += outer
+        }
 
         return if (reasons.size > mark) null else children
     }
@@ -935,6 +1076,19 @@ internal class ScreenLowering(
      * component the app never registered.
      *
      * A `this` introduced *inside* the call is fine: it is lifted along with it.
+     * Which is the whole of the question, and the reason this is about where a
+     * scope came from rather than about whether one was used. `Row { Text(...) }`
+     * kept native reads a `RowScope` throughout, all of it belonging to the
+     * `Row` being lifted, and builds; `Icon(Modifier.weight(1f))` kept native
+     * reads a `ColumnScope` belonging to the `Column` left behind, and does not.
+     * Asking only whether a `this` appeared refused both -- and with them every
+     * screen whose native part held a `LazyColumn`, a `Scaffold` or a `Card`,
+     * which is most screens.
+     *
+     * The app's pass draws the line by identity: it subtracts what the region
+     * declares, receiver parameters included, from what it may not read. This
+     * asks the same question of the same thing, so the two agree by
+     * construction rather than by both being cautious in the same places.
      */
     private fun FirFunctionCall.readsAnOuterReceiver(): Boolean {
 
@@ -954,9 +1108,10 @@ internal class ScreenLowering(
         accept(
             object : org.jetbrains.kotlin.fir.visitors.FirVisitorVoid() {
                 override fun visitElement(element: FirElement) {
-                    if (element is FirThisReceiverExpression) {
-                        val bound = element.calleeReference.boundSymbol
-                        if (bound == null || bound !in introducedHere) readsOuter = true
+                    if (element is FirThisReceiverExpression &&
+                        !element.introducedIn(introducedHere)
+                    ) {
+                        readsOuter = true
                     }
                     element.acceptChildren(this)
                 }
@@ -964,6 +1119,30 @@ internal class ScreenLowering(
         )
 
         return readsOuter
+    }
+
+    /**
+     * Whether the scope this `this` refers to is one of [introduced].
+     *
+     * A lambda's receiver is read through the receiver parameter the lambda
+     * declares, not through the lambda itself, so the symbol a `this` is bound
+     * to is one step away from the symbol collected above -- and asking it which
+     * declaration it belongs to closes that step exactly.
+     *
+     * An unresolved `this`, or one belonging to an enclosing class rather than
+     * to a lambda, is outside by default: there is nothing here that says it
+     * travels with the region, so it is refused rather than assumed.
+     */
+    private fun FirThisReceiverExpression.introducedIn(
+        introduced: Set<FirBasedSymbol<*>>,
+    ): Boolean {
+
+        val bound = calleeReference.boundSymbol ?: return false
+
+        if (bound in introduced) return true
+
+        return bound is FirReceiverParameterSymbol &&
+            bound.containingDeclarationSymbol in introduced
     }
 
     /** Names declared in this body that [this] reads, which a slot may not. */

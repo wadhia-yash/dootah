@@ -110,6 +110,13 @@ public object ContractValidation {
         anchors.filterNot { anchor -> anchor in installed.anchors }
             .forEach { anchor -> findings += Finding(Code.MISSING_ANCHOR, id, anchor) }
 
+        // A builder region is named by the text it was written as, so editing
+        // the app's own list-building code renames it. A bundle that named the
+        // old one has to be refused here, rather than publishing a list whose
+        // entries the installed app cannot perform.
+        builders.filterNot { builder -> builder in installed.builders }
+            .forEach { builder -> findings += Finding(Code.MISSING_BUILDER, id, builder) }
+
         return findings
     }
 
@@ -136,6 +143,7 @@ public object ContractValidation {
         MISSING_HANDLE(true),
         MISSING_RESOURCE(true),
         MISSING_ANCHOR(true),
+        MISSING_BUILDER(true),
 
         /** The installed app has no such screen, and keeps its native one. */
         SCREEN_NOT_INSTALLED(false),
@@ -156,6 +164,10 @@ public object ContractValidation {
             CAPABILITY_ARITY_CHANGED -> detail
             MISSING_HANDLE ->
                 "the installed app has no value named '$detail' on this screen."
+            MISSING_BUILDER ->
+                "the installed app does not build the list entries '$detail' on " +
+                    "this screen. A list's own entries are the app's code, and a " +
+                    "bundle can choose where they appear but not what they are."
             MISSING_RESOURCE ->
                 "the installed app does not contain the resource '$detail'. A bundle " +
                     "may choose among the resources already shipped, but cannot add one."

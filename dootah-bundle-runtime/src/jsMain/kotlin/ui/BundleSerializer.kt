@@ -40,11 +40,28 @@ fun BundleNode.toJson(): String = when (this) {
 
     is ComponentNode ->
         "{\"type\":\"component\",\"adapter\":\"${adapter.escapeJson()}\"" +
-            propsField(props) + slotsField(children) + "}"
+            propsField(props) + slotsField(children) + entriesField(entries) + "}"
 
     is FragmentNode ->
         "{\"type\":\"fragment\",\"children\":[" +
             children.joinToString(",") { it.toJson() } + "]}"
+}
+
+private fun entriesField(entries: Map<String, List<EntryNode>>): String =
+    if (entries.isEmpty()) ""
+    else ",\"builders\":{" + entries.entries.joinToString(",") { (name, list) ->
+        "\"${name.escapeJson()}\":[" + list.joinToString(",") { it.toJson() } + "]"
+    } + "}"
+
+/** Exhaustive with no `else`, like every other kind on this wire. */
+private fun EntryNode.toJson(): String = when (this) {
+
+    is EntryNode.Item ->
+        "{\"kind\":\"item\",\"children\":[" +
+            children.joinToString(",") { it.toJson() } + "]}"
+
+    is EntryNode.Region ->
+        "{\"kind\":\"region\",\"adapter\":\"${adapter.escapeJson()}\"}"
 }
 
 private fun propsField(props: Map<String, PropNode>): String =
@@ -77,6 +94,7 @@ private fun PropNode.toJson(): String = when (this) {
     is StringProp -> "{\"k\":\"string\",\"v\":\"${value.escapeJson()}\"}"
 
     is DpProp -> "{\"k\":\"dp\",\"v\":$value}"
+    is AnchorProp -> "{\"k\":\"anchor\",\"v\":\"${anchor.escapeJson()}\"}"
     is ColorProp -> "{\"k\":\"color\",\"v\":$argb}"
     is ThemeColorProp -> "{\"k\":\"themeColor\",\"token\":\"${token.escapeJson()}\"}"
     is ShapeProp -> "{\"k\":\"shape\",\"token\":\"${token.escapeJson()}\"}"

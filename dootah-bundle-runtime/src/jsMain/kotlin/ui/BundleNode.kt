@@ -105,4 +105,29 @@ data class ComponentNode(
     val adapter: String,
     val props: Map<String, PropNode> = emptyMap(),
     val children: Map<String, List<BundleNode>> = emptyMap(),
+
+    /**
+     * Slots this component builds rather than draws.
+     *
+     * A `LazyColumn` takes a scope, not children. The bundle never holds one --
+     * it is a Compose object, and this runs in a sandbox -- so what travels is
+     * the list of entries and the app performs them against the real scope.
+     */
+    val entries: Map<String, List<EntryNode>> = emptyMap(),
 ) : BundleNode
+
+/**
+ * One declaration in a native container's builder.
+ *
+ * Closed, and matched arm for arm by the app's parser and renderer. What a
+ * bundle decides is which entries there are and in what order; how many of them
+ * are composed, when, and in what order they are thrown away stays with Compose.
+ */
+sealed interface EntryNode {
+
+    /** `item { ... }`, holding UI this bundle describes. */
+    data class Item(val children: List<BundleNode>) : EntryNode
+
+    /** Entries the app declares for itself, performed against the real scope. */
+    data class Region(val adapter: String) : EntryNode
+}

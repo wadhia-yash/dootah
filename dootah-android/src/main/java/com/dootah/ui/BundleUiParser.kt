@@ -11,6 +11,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.doubleOrNull
+import dev.dootah.contract.BuilderEntries
 import dev.dootah.contract.Alignments
 import dev.dootah.contract.AnchorId
 import dev.dootah.contract.Arrangements
@@ -121,11 +122,35 @@ object BundleUiParser {
                 children = node["slots"]?.jsonObject
                     ?.mapValues { (_, nodes) -> nodes.jsonArray.map { parseNode(it.jsonObject) } }
                     .orEmpty(),
+                entries = node["builders"]?.jsonObject
+                    ?.mapValues { (_, list) -> list.jsonArray.map { parseEntry(it.jsonObject) } }
+                    .orEmpty(),
             )
 
             else -> throw BundleProtocolException("Unknown UI node type '$type'")
         }
     }
+
+    /**
+     * Reads one declaration in a builder slot.
+     *
+     * Strict like the rest: an entry kind this build does not know is a bundle
+     * describing a list this app cannot build, and the response is refused
+     * rather than the list being drawn with an entry quietly missing.
+     */
+    private fun parseEntry(entry: JsonObject): BundleUiEntry =
+        when (val kind = entry.string("kind")) {
+
+            BuilderEntries.ITEM -> BundleUiEntry.Item(
+                children = entry["children"]?.jsonArray
+                    ?.map { parseNode(it.jsonObject) }
+                    .orEmpty(),
+            )
+
+            BuilderEntries.REGION -> BundleUiEntry.Region(adapterId = entry.string("adapter"))
+
+            else -> throw BundleProtocolException("Unknown list entry '$kind'")
+        }
 
     /**
      * Reads one argument a bundle supplied to a native component.
@@ -149,6 +174,16 @@ object BundleUiParser {
             PropValue.Kind.STRING -> PropValue.StringValue(prop.string("v"))
 
             PropValue.Kind.DP -> PropValue.DpValue(prop.double("v"))
+
+            // Checked for shape here, so a name the app could never resolve is
+            // refused with the rest of the response rather than drawn as zero.
+            PropValue.Kind.ANCHOR -> PropValue.AnchorValue(
+                prop.string("v").also { anchor ->
+                    if (!AnchorId.isWellFormed(anchor)) {
+                        throw BundleProtocolException("'$anchor' is not a value name")
+                    }
+                }
+            )
             PropValue.Kind.COLOR -> PropValue.ColorValue(prop.long("v"))
             PropValue.Kind.THEME_COLOR -> PropValue.ThemeColorValue(prop.string("token"))
             PropValue.Kind.SHAPE -> PropValue.ShapeValue(prop.string("token"))

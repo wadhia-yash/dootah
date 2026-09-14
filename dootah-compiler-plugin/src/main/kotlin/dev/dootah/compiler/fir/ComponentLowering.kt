@@ -2,11 +2,13 @@ package dev.dootah.compiler.fir
 
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import dev.dootah.compiler.model.BundleCapability
+import dev.dootah.compiler.model.BundleEntry
 import dev.dootah.compiler.model.BundleExpression
 import dev.dootah.compiler.model.BundleModifierOp
 import dev.dootah.compiler.model.BundleProp
 import dev.dootah.compiler.model.BundleUi
 import dev.dootah.contract.AdapterId
+import dev.dootah.contract.BuilderScopes
 import dev.dootah.contract.CapabilityId
 import dev.dootah.contract.ComposeFunctionTypes
 import dev.dootah.contract.ModifierOps
@@ -33,6 +35,7 @@ import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
+import org.jetbrains.kotlin.fir.types.isExtensionFunctionType
 import org.jetbrains.kotlin.fir.types.customAnnotations
 import org.jetbrains.kotlin.name.FqName
 
@@ -55,6 +58,15 @@ internal class ComponentRequirements {
     val anchors = linkedSetOf<String>()
 
     /**
+     * Every builder region the screen asks the app to perform.
+     *
+     * Kept apart from [adapters] because the app registers them as a different
+     * kind of thing: an adapter draws, a builder region declares entries against
+     * a scope. A build that has the one and not the other has to say so.
+     */
+    val builders = linkedSetOf<String>()
+
+    /**
      * What this had collected at some earlier point, and how to go back to it.
      *
      * Lowering now tries things that are allowed to fail -- that is what lets one
@@ -69,6 +81,7 @@ internal class ComponentRequirements {
         resources = resources.toList(),
         handles = handles.toList(),
         anchors = anchors.toList(),
+        builders = builders.toList(),
     )
 
     fun restore(snapshot: Snapshot) {
@@ -77,6 +90,7 @@ internal class ComponentRequirements {
         resources.clear(); resources += snapshot.resources
         handles.clear(); handles += snapshot.handles
         anchors.clear(); anchors += snapshot.anchors
+        builders.clear(); builders += snapshot.builders
     }
 
     class Snapshot(
@@ -85,6 +99,7 @@ internal class ComponentRequirements {
         val resources: List<String>,
         val handles: List<String>,
         val anchors: List<String>,
+        val builders: List<String>,
     )
 }
 
@@ -132,6 +147,7 @@ internal class ComponentLowering(
     fun lower(
         call: FirFunctionCall,
         lowerContent: (FirAnonymousFunction) -> List<BundleUi>?,
+        lowerEntries: (FirAnonymousFunction) -> List<BundleEntry>?,
     ): BundleUi.ComponentUi? {
 
         val callee = call.calleeReference.toResolvedCallableSymbol()
@@ -173,6 +189,7 @@ internal class ComponentLowering(
 
         val props = LinkedHashMap<String, BundleProp>()
         val children = LinkedHashMap<String, List<BundleUi>>()
+        val entries = LinkedHashMap<String, List<BundleEntry>>()
 
         for ((expression, parameter) in mapping) {
 
@@ -197,6 +214,28 @@ internal class ComponentLowering(
                 continue
             }
 
+            // A slot the component builds rather than draws. The lambda is not
+            // content and is never lowered as UI: its statements declare
+            // entries, and what the bundle carries is which entries there are.
+            if (parameter.isDescribableBuilder()) {
+
+                val lambda = (expression as? FirAnonymousFunctionExpression)?.anonymousFunction
+
+                if (lambda == null) {
+                    reject(
+                        call.sourceOffset(),
+                        "`$shortName()`, whose `$name` is not written as a lambda",
+                        "Pass the entries as a lambda, or keep this screen native.",
+                        RejectionCode.CONTENT_NOT_A_LAMBDA,
+                        qualifiedName,
+                    )
+                    return null
+                }
+
+                entries[name] = lowerEntries(lambda) ?: return null
+                continue
+            }
+
             props[name] = lowerProp(expression, parameter, shortName) ?: return null
         }
 
@@ -206,6 +245,7 @@ internal class ComponentLowering(
             adapterId = adapterId,
             props = props,
             children = children,
+            entries = entries,
         )
     }
 
@@ -548,6 +588,20 @@ internal class ComponentLowering(
                 return BundleProp.Modifier(operations.reversed())
             }
 
+            // The screen's own `modifier` parameter, where a chain the caller
+            // started bottoms out. `modifier.padding(...)` on a component is as
+            // ordinary as it is on a layout, and a layout has always been able
+            // to say so; refusing it here refused the component, and with it any
+            // screen that passed its modifier down -- which is the convention
+            // every Compose style guide asks for.
+            if (access != null && access.explicitReceiver == null &&
+                access.calleeReference.toResolvedCallableSymbol()?.name?.asString()
+                    ?.let { name -> signature.any { it is ScreenParameter.LayoutModifier && it.name == name } } == true
+            ) {
+                operations += BundleModifierOp(ModifierOps.INHERITED, emptyMap())
+                return BundleProp.Modifier(operations.reversed())
+            }
+
             val call = current as? FirFunctionCall ?: return null
             val name = modifierOperation(call) ?: return null
             val arguments = modifierArguments(call, name) ?: return null
@@ -583,6 +637,11 @@ internal class ComponentLowering(
                 ?: (expression as? FirWhenExpression)?.let { conditional ->
                     conditionalProp(conditional, parameter, operation)
                 }
+                // A length the app owns rather than one this bundle chose.
+                // `modifier.padding(horizontal = defaultSpacerSize)` is how a
+                // screen spaces itself by the app's own scale, and refusing it
+                // refused the component it was on.
+                ?: anchorProp(expression)
                 ?: return null
             arguments[parameter.name.asString()] = value
         }
@@ -593,7 +652,55 @@ internal class ComponentLowering(
             return mapOf("width" to only, "height" to only)
         }
 
-        return arguments
+        if (operation == ModifierOps.PADDING) return arguments.asEdges()
+
+        // The names the app's renderer reads are the contract's, not the ones
+        // Compose happened to spell the overload with. An argument outside them
+        // is dropped on the way in and the operation is applied with nothing --
+        // a padding that became zero, on a screen that looked almost right.
+        // Refusing here keeps the component native instead.
+        val declared = ModifierOps.ARGUMENTS[operation] ?: return null
+
+        return arguments.takeIf { it.keys.all { name -> name in declared } }
+    }
+
+    /**
+     * Padding as the four edges the contract names.
+     *
+     * Compose writes the same padding four ways -- `all`, `horizontal`,
+     * `vertical`, or the edges -- and the renderer reads only the edges. The
+     * layout path has always normalised this; the component path passed the
+     * spelling straight through, so `padding(horizontal = defaultSpacerSize)`
+     * arrived as an argument called `horizontal` that nothing read.
+     */
+    private fun Map<String, BundleProp>.asEdges(): Map<String, BundleProp>? {
+
+        val zero: BundleProp = BundleProp.Constant(PropValue.DpValue(0.0))
+        val edges = linkedMapOf<String, BundleProp>(
+            "start" to zero, "top" to zero, "end" to zero, "bottom" to zero,
+        )
+
+        forEach { (name, value) ->
+            when (name) {
+                "all" -> edges.keys.forEach { edge -> edges[edge] = value }
+                "horizontal" -> { edges["start"] = value; edges["end"] = value }
+                "vertical" -> { edges["top"] = value; edges["bottom"] = value }
+                "start", "top", "end", "bottom" -> edges[name] = value
+                else -> return null
+            }
+        }
+
+        return edges
+    }
+
+    /** A length the app computes, named rather than read -- see `AnchorId`. */
+    private fun anchorProp(expression: FirExpression): BundleProp? {
+
+        val anchor = AnchorLowering.dimension(expression)?.anchor ?: return null
+
+        requirements.anchors += anchor
+
+        return BundleProp.Constant(PropValue.AnchorValue(anchor))
     }
 
     /**
@@ -609,6 +716,20 @@ internal class ComponentLowering(
     ): BundleProp? {
 
         val type = parameter.returnTypeRef.coneTypeSafe<ConeKotlinType>() ?: return null
+
+        // A lambda with a receiver is a builder, not a handler. `LazyColumn`'s
+        // content is `LazyListScope.() -> Unit`: its body is a list of things to
+        // declare on a scope only the app can make, and the statements inside it
+        // are not calls the app runs on a tap. Lowering one anyway named
+        // capabilities out of an app's own `LazyListScope` extensions, which the
+        // app's pass does not register and would not know how to call -- a
+        // screen that published and then had nothing in its list.
+        //
+        // Composable content with a receiver is a different thing and stays
+        // allowed: there the app calls the component and supplies the scope, and
+        // the bundle only says what goes inside.
+        if (type.isExtensionFunctionType) return null
+
         val arity = type.unitFunctionArity() ?: return null
 
         // A screen callback passed straight through is the same capability as
@@ -752,6 +873,31 @@ private fun org.jetbrains.kotlin.fir.expressions.FirBlock.onlyExpression(): FirE
  * Any arity, because the extra parameters are scopes a layout hands its
  * children -- `Button` takes `@Composable RowScope.() -> Unit`.
  */
+/**
+ * Whether this parameter is a builder slot a bundle may describe.
+ *
+ * A lambda on a receiver, returning Unit, not composable, whose receiver is a
+ * scope the installed runtime knows how to perform entries against. Everything
+ * about that sentence is load-bearing: composable content is drawn rather than
+ * built and is handled above; a receiver the runtime does not know is a scope
+ * nobody can perform `item` on; and a lambda with no receiver at all is an
+ * ordinary handler.
+ */
+private fun FirValueParameter.isDescribableBuilder(): Boolean {
+
+    val type = returnTypeRef.coneTypeSafe<ConeKotlinType>() ?: return false
+
+    if (!type.isExtensionFunctionType) return false
+    if (type.isComposableFunctionType()) return false
+    if (!type.returnsUnit()) return false
+
+    val receiver = (type.typeArguments.firstOrNull() as? ConeKotlinType)
+        ?.classId?.asSingleFqName()?.asString()
+        ?: return false
+
+    return BuilderScopes.isDescribable(receiver)
+}
+
 private fun FirValueParameter.isComposableContent(): Boolean {
 
     val type = returnTypeRef.coneTypeSafe<ConeKotlinType>() ?: return false

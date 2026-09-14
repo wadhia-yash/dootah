@@ -58,6 +58,9 @@ import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
+import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
+import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
 
 /**
@@ -132,7 +135,7 @@ internal class InterceptionTransformer(
         // anything. The screen is still intercepted; it simply offers no native
         // components.
         val native = if (composable.isEmpty())
-            NativeBindings(emptyList(), emptyList(), emptyList(), emptyList())
+            NativeBindings(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
         else originalBody.nativeBindings(LAYOUT_COMPOSABLES, sourceText)
 
         // Recorded here rather than worked out again later, because this is the
@@ -153,6 +156,7 @@ internal class InterceptionTransformer(
             handles = binding.natives.map { native -> native.name.asString() }.sorted(),
             resources = native.resources.map { resource -> resource.key }.sorted(),
             anchors = native.anchors.map { anchor -> anchor.name }.sorted(),
+            builders = native.builders.map { builder -> builder.id }.sorted(),
         )
 
         val builder = DeclarationIrBuilder(pluginContext, function.symbol)
@@ -258,6 +262,91 @@ internal class InterceptionTransformer(
         arguments[2] = buildHandles(binding)
         arguments[3] = buildResources(native.resources)
         arguments[4] = buildAnchors(native.anchors)
+        arguments[5] = buildBuilders(function, native.builders)
+    }
+
+    /**
+     * The stretches of list-building this screen lets a bundle place.
+     *
+     * Each is the app's own statement lifted into a lambda of its own, with the
+     * reads of the scope it was written against rebound to the scope the new
+     * lambda is given. The bundle names one and says where it goes; the code
+     * inside it is the app's, unchanged, and the scope it runs on is made by
+     * Compose on this side of the wire.
+     */
+    private fun IrBuilderWithScope.buildBuilders(
+        parent: IrSimpleFunction,
+        builders: List<NativeBuilder>,
+    ): IrExpression {
+
+        val parameter = symbols.builders.owner.parameters[0]
+
+        return irCall(symbols.builders).apply {
+            arguments[0] = varargOf(
+                parameter = parameter,
+                elements = builders.mapNotNull { builder ->
+                    builderLambda(parent, builder)?.let { entries ->
+                        irCall(symbols.builder).apply {
+                            arguments[0] = irString(builder.id)
+                            arguments[1] = entries
+                        }
+                    }
+                },
+            )
+        }
+    }
+
+    /** `{ <the app's own statement, on this lambda's scope> }`. */
+    private fun builderLambda(
+        parent: IrSimpleFunction,
+        builder: NativeBuilder,
+    ): IrExpression? {
+
+        val copied = builder.statement.deepCopyWithSymbols(parent)
+
+        // The type the runtime declares for a builder's entries, taken from the
+        // runtime rather than rebuilt here: it is the same `Scope.() -> Unit`
+        // either way, and constructing an extension function type by hand is a
+        // way to get a lambda the backend cannot pass to the function it is for.
+        val slot = symbols.builder.owner.parameters[1].type
+
+        val lambda = pluginContext.irFactory.buildFun {
+            this.name = Name.special("<anonymous>")
+            visibility = DescriptorVisibilities.LOCAL
+            returnType = pluginContext.irBuiltIns.unitType
+            origin = IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA
+        }.apply {
+
+            this.parent = parent
+
+            val scope = addValueParameter("\$this\$entries", builder.scope.type)
+                .also { it.kind = IrParameterKind.ExtensionReceiver }
+
+            // Every read of the scope the statement was written against, moved
+            // onto the one this lambda is handed. Without it the copy still
+            // points at a receiver belonging to a lambda that is not here, which
+            // the backend reports as a missing symbol long after Dootah has
+            // finished and names none of it.
+            copied.transformChildrenVoid(ScopeRebinder(builder.scope.symbol, scope.symbol))
+
+            body = DeclarationIrBuilder(pluginContext, symbol).irBlockBody { +copied }
+        }
+
+        // Asked after the rebinding, not before. The scope the statement was
+        // written against is a parameter of a lambda inside the screen's body,
+        // so it counts as one of the body's own locals -- and asking first
+        // refused every region there is, for reading the one thing it is here
+        // to read. What matters is whether anything is *left* that the body
+        // declares once the scope has been moved across.
+        if (lambda.capturesBodyLocal()) return null
+
+        return IrFunctionExpressionImpl(
+            startOffset = UNDEFINED_OFFSET,
+            endOffset = UNDEFINED_OFFSET,
+            type = slot,
+            function = lambda,
+            origin = IrStatementOrigin.LAMBDA,
+        )
     }
 
     private fun IrBuilderWithScope.buildAdapters(
@@ -411,6 +500,17 @@ internal class InterceptionTransformer(
             return contentLambda(lambda, props, name, type, composable)
         }
 
+        // A builder slot: the real container is handed the bundle's entries and
+        // makes the scope itself. Before this, the slot fell through to the
+        // handler case below, and the adapter Compose got called a bundle's
+        // action with a live `LazyListScope` as its argument -- a Compose object
+        // handed to code that is not allowed to hold one. Nothing named that
+        // adapter, so nothing ever ran it; it was still the wrong thing to have
+        // generated.
+        if (type.isDescribableBuilder()) {
+            return readProp(props, ENTRIES_ACCESSOR, name)
+        }
+
         type.unitFunctionArity()?.let { arity ->
 
             if (arity == 0) {
@@ -442,7 +542,7 @@ internal class InterceptionTransformer(
     }
 
     /** Whether something about to be lifted out reads one of the body's locals. */
-    private fun IrExpression.capturesBodyLocal(): Boolean {
+    private fun IrElement.capturesBodyLocal(): Boolean {
 
         if (bodyLocals.isEmpty()) return false
 
@@ -874,6 +974,7 @@ internal class InterceptionTransformer(
         const val CALLBACK_ACCESSOR = "callback"
         const val CALLBACK_ONE_ACCESSOR = "callback1"
         const val CHILDREN_ACCESSOR = "children"
+        const val ENTRIES_ACCESSOR = "entries"
         const val HANDLE_ACCESSOR = "handle"
 
         /**
@@ -924,3 +1025,22 @@ private fun IrBlockBody.asExpression(unitType: IrType): IrExpression =
         block.statements += statements
     }
 
+/**
+ * Moves reads of one receiver onto another.
+ *
+ * A statement lifted out of a lambda and into a lambda of its own still reads
+ * the receiver of the lambda it came from, which is not in scope where it now
+ * lives. There is nothing subtle here and there had better not be: exactly the
+ * reads of exactly that parameter are repointed, and everything else is left
+ * alone.
+ */
+private class ScopeRebinder(
+    private val from: IrValueParameterSymbol,
+    private val to: IrValueParameterSymbol,
+) : IrElementTransformerVoid() {
+
+    override fun visitGetValue(expression: IrGetValue): IrExpression {
+        if (expression.symbol != from) return super.visitGetValue(expression)
+        return IrGetValueImpl(expression.startOffset, expression.endOffset, to.owner.type, to)
+    }
+}

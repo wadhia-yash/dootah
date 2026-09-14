@@ -67,6 +67,16 @@ internal sealed interface BundleUi {
         val adapterId: String,
         val props: Map<String, BundleProp> = emptyMap(),
         val children: Map<String, List<BundleUi>> = emptyMap(),
+
+        /**
+         * Slots the component builds rather than draws -- see [BundleEntry].
+         *
+         * Separate from [children] because they are a different kind of thing at
+         * every layer: children are UI the app composes where it is told, and
+         * entries are declarations the app performs against a scope only it can
+         * make.
+         */
+        val entries: Map<String, List<BundleEntry>> = emptyMap(),
     ) : BundleUi
 
     /**
@@ -91,6 +101,28 @@ internal sealed interface BundleUi {
         val ifTrue: List<BundleUi>,
         val ifFalse: List<BundleUi>,
     ) : BundleUi
+}
+
+/**
+ * One declaration in a native container's builder.
+ *
+ * `LazyColumn`'s content is a sequence of these, and what a bundle controls is
+ * which of them there are and in what order -- never how they are measured,
+ * composed or recycled, which stays with Compose.
+ */
+internal sealed interface BundleEntry {
+
+    /** `item { ... }`, whose content is ordinary bundle UI. */
+    data class Item(val children: List<BundleUi>) : BundleEntry
+
+    /**
+     * Entries the app declares, kept exactly as written.
+     *
+     * `items(post.paragraphs) { Paragraph(it) }` and an app's own extension on
+     * the scope both land here. The bundle names the region; the app performs it
+     * against the real scope, so the objects it ranges over never leave the APK.
+     */
+    data class Region(val adapterId: String) : BundleEntry
 }
 
 /**

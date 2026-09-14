@@ -43,6 +43,7 @@ public object ContractJson {
                                 "handles" to screen.handles.sorted().strings(),
                                 "resources" to screen.resources.sorted().strings(),
                                 "anchors" to screen.anchors.sorted().strings(),
+                                "builders" to screen.builders.sorted().strings(),
                             )
                         )
                     }
@@ -83,6 +84,11 @@ public object ContractJson {
                     // to check against: neither can satisfy a bundle that names
                     // one, and both say so.
                     anchors = fields.optionalStrings("anchors"),
+                    // Optional for the same reason anchors are: a contract file
+                    // committed before builders existed still parses, and reads
+                    // as a build that has none -- which is the right answer to
+                    // check a bundle that names one against.
+                    builders = fields.optionalStrings("builders"),
                 )
             },
         )
@@ -121,6 +127,7 @@ public object ContractJson {
                                 "handles" to screen.handles.sorted().strings(),
                                 "resources" to screen.resources.sorted().strings(),
                                 "anchors" to screen.anchors.sorted().strings(),
+                                "builders" to screen.builders.sorted().strings(),
                             )
                         )
                     }
@@ -157,6 +164,11 @@ public object ContractJson {
                     // to check against: neither can satisfy a bundle that names
                     // one, and both say so.
                     anchors = fields.optionalStrings("anchors"),
+                    // Optional for the same reason anchors are: a contract file
+                    // committed before builders existed still parses, and reads
+                    // as a build that has none -- which is the right answer to
+                    // check a bundle that names one against.
+                    builders = fields.optionalStrings("builders"),
                 )
             },
         )

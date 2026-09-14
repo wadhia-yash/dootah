@@ -1,6 +1,7 @@
 package dev.dootah.compiler.ir
 
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
+import dev.dootah.contract.BuilderScopes
 import dev.dootah.contract.ComposeFunctionTypes
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
@@ -45,6 +46,24 @@ internal fun IrType.isComposableFunctionType(): Boolean {
  */
 internal fun IrType.isComposableContent(): Boolean =
     isComposableFunctionType() && returnsUnit()
+
+/**
+ * Whether this parameter is a builder slot rather than content or a handler.
+ *
+ * The mirror of the extraction pass's test, and it has to stay the mirror: a
+ * type this pass treats as a builder and that one treats as a callback would
+ * give the app an adapter that hands a Compose scope to a bundle's action.
+ */
+internal fun IrType.isDescribableBuilder(): Boolean {
+
+    if (isComposableFunctionType()) return false
+    if (!returnsUnit()) return false
+    if (!hasReceiverScope()) return false
+
+    val receiver = contentScopes().firstOrNull()?.classFqName?.asString() ?: return false
+
+    return BuilderScopes.isDescribable(receiver)
+}
 
 /**
  * The scopes this content is handed, if any.

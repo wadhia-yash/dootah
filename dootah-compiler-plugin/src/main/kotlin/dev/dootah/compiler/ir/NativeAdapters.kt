@@ -143,11 +143,27 @@ internal data class NativeAnchor(
     val value: IrExpression,
 )
 
+/**
+ * A stretch of a native container's builder, kept exactly as written.
+ *
+ * [statement] is the app's own code copied out of the lambda it was written in,
+ * and [scope] is the receiver parameter that lambda gave it. Both are needed:
+ * the code is lifted into a lambda of its own, so every read of the old scope
+ * has to be rebound to the new one, or the copy refers to a receiver that no
+ * longer exists anywhere.
+ */
+internal data class NativeBuilder(
+    val id: String,
+    val statement: IrCall,
+    val scope: IrValueParameter,
+)
+
 internal class NativeBindings(
     val adapters: List<NativeAdapter>,
     val capabilities: List<NativeCapability>,
     val resources: List<NativeResource>,
     val anchors: List<NativeAnchor>,
+    val builders: List<NativeBuilder>,
 )
 
 /**
@@ -179,6 +195,7 @@ internal fun IrBody.nativeBindings(
     val capabilities = LinkedHashMap<String, NativeCapability>()
     val resources = LinkedHashMap<String, NativeResource>()
     val anchors = LinkedHashMap<String, NativeAnchor>()
+    val builders = LinkedHashMap<String, NativeBuilder>()
 
     val declaredInBody = declaredHere()
 
@@ -216,6 +233,11 @@ internal fun IrBody.nativeBindings(
             // shipped screen.
             if (element is IrCall) element.recordAnchor(anchors)
 
+            // Every stretch of a list's own building, registered wherever one
+            // appears. A bundle may place the entries it can describe and ask
+            // the app for the rest, so the rest has to exist here first.
+            if (element is IrCall) element.recordBuilders(builders, declaredInBody, sourceText)
+
             element.acceptChildrenVoid(this)
         }
     })
@@ -225,7 +247,66 @@ internal fun IrBody.nativeBindings(
         capabilities = capabilities.values.toList(),
         resources = resources.values.toList(),
         anchors = anchors.values.toList(),
+        builders = builders.values.toList(),
     )
+}
+
+/**
+ * Registers each statement of this call's builder slots as a region.
+ *
+ * Deliberately a superset, like everything else here: a statement the
+ * extraction pass will go on to describe as an `item` is registered anyway,
+ * because the two passes read two versions of the source and the cost of an
+ * unused entry in a table is nothing next to the cost of a missing one.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrCall.recordBuilders(
+    builders: MutableMap<String, NativeBuilder>,
+    declaredInBody: BodyScope,
+    sourceText: String,
+) {
+
+    if (sourceText.isEmpty()) return
+
+    val callee = symbol.owner
+
+    callee.declaredParameters().forEach { parameter ->
+
+        if (!parameter.type.isDescribableBuilder()) return@forEach
+
+        val lambda = (arguments.getOrNull(parameter.indexInParameters) as? IrFunctionExpression)
+            ?.function
+            ?: return@forEach
+
+        val scope = lambda.parameters.firstOrNull { it.kind == IrParameterKind.ExtensionReceiver }
+            ?: return@forEach
+
+        // The scope is the one thing a builder region is *supposed* to read: it
+        // is handed a fresh one when it is lifted, and every read of the old one
+        // is repointed at it. Counting it as something the body declares refused
+        // every region there is, since reading the scope is what building a list
+        // consists of.
+        val outsideTheRegion = BodyScope(
+            values = declaredInBody.values - scope,
+            functions = declaredInBody.functions,
+        )
+
+        (lambda.body as? IrBlockBody)?.statements.orEmpty().forEach { statement ->
+
+            val call = statement as? IrCall ?: return@forEach
+
+            // The other condition every lifted region has to meet: it is
+            // prepared before the screen's body runs, so it cannot read what the
+            // body declares.
+            if (call.readsOutside(outsideTheRegion)) return@forEach
+
+            val name = call.symbol.owner.fqNameWhenAvailable?.asString() ?: return@forEach
+            val text = sourceText.textOf(call) ?: return@forEach
+            val id = FrozenRegionId.of(name, text)
+
+            builders[id] = NativeBuilder(id = id, statement = call, scope = scope)
+        }
+    }
 }
 
 /**

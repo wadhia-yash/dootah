@@ -90,7 +90,32 @@ sealed interface BundleUiNode {
         val adapterId: String,
         val props: Map<String, PropValue> = emptyMap(),
         val children: Map<String, List<BundleUiNode>> = emptyMap(),
+
+        /**
+         * Slots this component builds rather than draws.
+         *
+         * A `LazyColumn` is given a scope, not children, and the bundle has
+         * never held one. What arrives is the list of entries; the app runs the
+         * real container and declares each entry against the real scope.
+         */
+        val entries: Map<String, List<BundleUiEntry>> = emptyMap(),
     ) : BundleUiNode
+}
+
+/**
+ * One declaration in a native container's builder.
+ *
+ * Closed, and matched arm for arm by the renderer. Nothing here describes how
+ * many entries are composed, when, or in what order they are discarded -- that
+ * is Compose's, and stays Compose's.
+ */
+sealed interface BundleUiEntry {
+
+    /** `item { ... }`, holding UI the bundle describes. */
+    data class Item(val children: List<BundleUiNode>) : BundleUiEntry
+
+    /** Entries the app declares for itself, performed against the real scope. */
+    data class Region(val adapterId: String) : BundleUiEntry
 }
 
 /**
@@ -165,7 +190,8 @@ fun BundleUiNode.requirements(): BundleRequirements = when (this) {
             arguments = props.keys.map { name -> AdapterArgument(adapterId, name) },
         ) +
             props.values.map { value -> value.requirements() }.merge() +
-            children.values.flatten().requirements()
+            children.values.flatten().requirements() +
+            entries.values.flatten().map { entry -> entry.requirements() }.merge()
 
     is BundleUiNode.Text -> modifiers.requirements()
 
@@ -217,6 +243,8 @@ private fun PropValue.requirements(): BundleRequirements = when (this) {
     is PropValue.StateValue -> BundleRequirements(handles = listOf(name))
     is PropValue.CallbackValue -> BundleRequirements(capabilities = listOf(capability))
 
+    is PropValue.AnchorValue -> BundleRequirements(anchors = listOf(anchor))
+
     is PropValue.PainterResourceValue -> BundleRequirements(resources = listOf(key))
     is PropValue.StringResourceValue -> BundleRequirements(resources = listOf(key))
 
@@ -257,6 +285,7 @@ data class BundleRequirements(
     val handles: List<String> = emptyList(),
     val resources: List<String> = emptyList(),
     val anchors: List<String> = emptyList(),
+    val builders: List<String> = emptyList(),
     val arguments: List<AdapterArgument> = emptyList(),
 ) {
     operator fun plus(other: BundleRequirements): BundleRequirements = BundleRequirements(
@@ -265,6 +294,13 @@ data class BundleRequirements(
         handles = handles + other.handles,
         resources = resources + other.resources,
         anchors = anchors + other.anchors,
+        builders = builders + other.builders,
         arguments = arguments + other.arguments,
     )
+}
+
+/** What one builder entry needs the installed app to have. */
+private fun BundleUiEntry.requirements(): BundleRequirements = when (this) {
+    is BundleUiEntry.Item -> children.requirements()
+    is BundleUiEntry.Region -> BundleRequirements(builders = listOf(adapterId))
 }

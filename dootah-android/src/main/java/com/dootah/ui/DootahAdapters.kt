@@ -8,6 +8,7 @@
 package com.dootah.ui
 
 import android.util.Log
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -208,6 +209,40 @@ class DootahAnchors internal constructor(
 }
 
 /**
+ * A stretch of list-building the installed app performs for a bundle.
+ *
+ * The counterpart of a frozen region, one level in. `items(post.paragraphs) {
+ * Paragraph(it) }` ranges over objects the bundle has no business holding, and
+ * an app's own extension on the scope is the app's code by definition; both are
+ * registered here and performed against the real scope. The bundle names one
+ * and says where among the entries it goes -- it cannot write one, change what
+ * it declares, or reach the scope it runs on.
+ *
+ * That last part is the point. The scope is a Compose object with behaviour,
+ * and it stays on this side of the wire.
+ */
+class DootahBuilder internal constructor(
+    internal val id: String,
+    internal val entries: LazyListScope.() -> Unit,
+)
+
+class DootahBuilders internal constructor(
+    private val byId: Map<String, DootahBuilder>,
+) {
+
+    internal fun ids(): Set<String> = byId.keys
+
+    internal fun missingFrom(requested: List<String>): List<String> =
+        requested.filterNot { builder -> builder in byId }.distinct().sorted()
+
+    internal operator fun get(id: String): DootahBuilder? = byId[id]
+
+    companion object {
+        internal val EMPTY = DootahBuilders(emptyMap())
+    }
+}
+
+/**
  * One adapter's arguments, already resolved to the objects Compose wants.
  *
  * The renderer does the resolving, inside the composition, because that is where
@@ -224,6 +259,7 @@ class DootahAnchors internal constructor(
 class DootahProps internal constructor(
     private val values: Map<String, Any?>,
     private val childContent: Map<String, @Composable () -> Unit>,
+    private val entryContent: Map<String, LazyListScope.() -> Unit>,
     private val invoker: (String, List<Any?>) -> Unit,
 ) {
 
@@ -298,6 +334,17 @@ class DootahProps internal constructor(
         childContent[name]?.invoke()
     }
 
+    /**
+     * The entries the bundle put in this component's builder slot.
+     *
+     * Handed straight to the real container as the lambda it asked for, so the
+     * scope it creates is passed to Compose's own `item` and never anywhere
+     * else. A slot the bundle left empty builds an empty list rather than
+     * failing, for the same reason every accessor here has an answer.
+     */
+    fun entries(name: String): LazyListScope.() -> Unit =
+        entryContent[name] ?: {}
+
     private inline fun <reified T> of(name: String, fallback: T): T {
 
         val value = values[name] ?: return fallback
@@ -337,6 +384,14 @@ fun dootahAdapters(vararg adapters: DootahAdapter): DootahAdapters =
     DootahAdapters(adapters.associateBy { adapter -> adapter.id })
 
 @DootahGeneratedApi
+fun dootahBuilder(id: String, entries: LazyListScope.() -> Unit): DootahBuilder =
+    DootahBuilder(id, entries)
+
+@DootahGeneratedApi
+fun dootahBuilders(vararg builders: DootahBuilder): DootahBuilders =
+    DootahBuilders(builders.associateBy { builder -> builder.id })
+
+@DootahGeneratedApi
 fun dootahCapability(id: String, action: (List<Any?>) -> Unit): DootahCapability =
     DootahCapability(id, action)
 
@@ -372,8 +427,9 @@ fun dootahBindings(
     handles: DootahHandles,
     resources: DootahResources,
     anchors: DootahAnchors,
+    builders: DootahBuilders,
 ): DootahNativeBindings =
-    DootahNativeBindings(adapters, capabilities, handles, resources, anchors)
+    DootahNativeBindings(adapters, capabilities, handles, resources, anchors, builders)
 
 /**
  * Everything a screen lets a bundle reach, in one place.
@@ -389,6 +445,7 @@ class DootahNativeBindings internal constructor(
     internal val handles: DootahHandles,
     internal val resources: DootahResources,
     internal val anchors: DootahAnchors,
+    internal val builders: DootahBuilders,
 ) {
 
     /** What this build cannot supply, out of what a bundle asked for. */
@@ -399,7 +456,8 @@ class DootahNativeBindings internal constructor(
             capabilities.missingFrom(required.capabilities).map { "action $it" } +
             handles.missingFrom(required.handles).map { "value $it" } +
             resources.missingFrom(required.resources).map { "resource $it" } +
-            anchors.missingFrom(required.anchors).map { "value $it" }
+            anchors.missingFrom(required.anchors).map { "value $it" } +
+            builders.missingFrom(required.builders).map { "list entries $it" }
 
     companion object {
         internal val EMPTY = DootahNativeBindings(
@@ -408,6 +466,7 @@ class DootahNativeBindings internal constructor(
             handles = DootahHandles.EMPTY,
             resources = DootahResources.EMPTY,
             anchors = DootahAnchors.EMPTY,
+            builders = DootahBuilders.EMPTY,
         )
     }
 }

@@ -192,6 +192,7 @@ private fun List<ScreenContract>.mergedById(): List<ScreenContract> =
                 handles = duplicates.flatMap { it.handles }.distinct().sorted(),
                 resources = duplicates.flatMap { it.resources }.distinct().sorted(),
                 anchors = duplicates.flatMap { it.anchors }.distinct().sorted(),
+                builders = duplicates.flatMap { it.builders }.distinct().sorted(),
             )
         }
         .sortedBy { screen -> screen.id }

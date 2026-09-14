@@ -1,5 +1,6 @@
 package dev.dootah.compiler.fir
 
+import dev.dootah.compiler.model.BundleEntry
 import dev.dootah.compiler.model.BundleScreen
 import dev.dootah.compiler.model.BundleUi
 import dev.dootah.contract.FrozenRegionId
@@ -75,6 +76,18 @@ internal fun BundleScreen.remoteShape(): RemoteShape {
             is BundleUi.ComponentUi -> {
                 if (FrozenRegionId.isFrozen(node.adapterId)) frozen++ else placed++
                 node.children.values.flatten().forEach(::walk)
+
+                // A builder slot is a list the bundle owns. An `item` it
+                // describes is a decision of its own -- it says the entry
+                // exists and what is inside it -- and a region kept as written
+                // is the same kind of thing as a frozen component: the bundle
+                // chooses only whether and where.
+                node.entries.values.flatten().forEach { entry ->
+                    when (entry) {
+                        is BundleEntry.Item -> { described++; entry.children.forEach(::walk) }
+                        is BundleEntry.Region -> frozen++
+                    }
+                }
             }
 
             is BundleUi.ConditionalUi -> {

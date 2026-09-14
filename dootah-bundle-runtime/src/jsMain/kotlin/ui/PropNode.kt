@@ -38,6 +38,14 @@ data class StringProp(val value: String) : PropNode
 
 data class DpProp(val value: Double) : PropNode
 
+/**
+ * A length the app owns, named rather than carried.
+ *
+ * The bundle never learns the number: it names the property the app reads, and
+ * whatever this build of the app computes is what the component is given.
+ */
+data class AnchorProp(val anchor: String) : PropNode
+
 data class ColorProp(val argb: Long) : PropNode
 
 /** A colour read from the installed app's own Material theme. */

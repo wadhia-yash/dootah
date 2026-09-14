@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
@@ -200,13 +201,66 @@ private fun RenderComponent(
         }
     }
 
+    val entryContent = LinkedHashMap<String, LazyListScope.() -> Unit>(node.entries.size)
+
+    for ((name, entries) in node.entries) {
+        entryContent[name] = { declare(entries, bindings, onAction) }
+    }
+
     adapter.content(
         DootahProps(
             values = resolved,
             childContent = childContent,
+            entryContent = entryContent,
             invoker = bindings.capabilities::invoke,
         )
     )
+}
+
+/**
+ * Declares the bundle's entries against the list scope the app just made.
+ *
+ * This is the whole of Dootah's part in a lazy list: say which entries there
+ * are, in the order the bundle put them. Compose decides how many to compose,
+ * when to compose them, and when to discard them -- none of which is described
+ * here, sent over the wire, or reimplemented anywhere in this project.
+ *
+ * Not `@Composable`: a builder runs before composition to declare what exists.
+ * The content of an `item` is composable, and that is where the bundle's UI is
+ * drawn, one entry at a time, by the same renderer that draws everything else.
+ */
+private fun LazyListScope.declare(
+    entries: List<BundleUiEntry>,
+    bindings: DootahNativeBindings,
+    onAction: (String) -> Unit,
+) {
+
+    entries.forEach { entry ->
+
+        when (entry) {
+
+            is BundleUiEntry.Item -> item {
+                entry.children.forEach { child ->
+                    // Not the screen's inherited modifier: that belongs to the
+                    // list itself, and applying it again to every row would
+                    // pad, colour and size each of them as though it were the
+                    // whole list.
+                    RenderNode(child, bindings, Modifier, onAction, IgnoreWeight)
+                }
+            }
+
+            is BundleUiEntry.Region -> {
+                val region = bindings.builders[entry.adapterId]
+
+                if (region == null) {
+                    // Reported by the check that runs before anything is drawn.
+                    Log.w(DOOTAH_LOG_TAG, "no list entries for ${entry.adapterId}")
+                } else {
+                    region.entries(this)
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -228,6 +282,14 @@ private fun PropValue.resolve(bindings: DootahNativeBindings): Any? = when (this
     is PropValue.StringValue -> value
 
     is PropValue.DpValue -> value.toFloat().dp
+
+    // The app's own number, looked up by the name the bundle sent. Absent is
+    // reported and drawn as zero rather than thrown: the publish check catches
+    // this, and a length that cannot be found must not take a screen down.
+    is PropValue.AnchorValue -> bindings.anchors[anchor] ?: run {
+        Log.w(DOOTAH_LOG_TAG, "no value named '$anchor' on this screen")
+        0.dp
+    }
     is PropValue.ColorValue -> Color(argb)
     is PropValue.ThemeColorValue -> themeColor(token)
     is PropValue.ShapeValue -> shapeOf(token)

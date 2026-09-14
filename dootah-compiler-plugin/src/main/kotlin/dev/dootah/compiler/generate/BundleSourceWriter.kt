@@ -2,6 +2,7 @@ package dev.dootah.compiler.generate
 
 import dev.dootah.compiler.model.BundleAction
 import dev.dootah.compiler.model.BundleCommandModel
+import dev.dootah.compiler.model.BundleEntry
 import dev.dootah.compiler.model.BundleExpression
 import dev.dootah.compiler.model.BundleFunction
 import dev.dootah.compiler.model.BundleModifier
@@ -46,12 +47,14 @@ internal object BundleSourceWriter {
         appendLine("import ui.ButtonNode")
         appendLine("import ui.ColumnNode")
         appendLine("import ui.DimensionNode")
+        appendLine("import ui.EntryNode")
         appendLine("import ui.FragmentNode")
         appendLine("import ui.BoolProp")
         appendLine("import ui.CallbackProp")
         appendLine("import ui.ColorProp")
         appendLine("import ui.ComponentNode")
         appendLine("import ui.DoubleProp")
+        appendLine("import ui.AnchorProp")
         appendLine("import ui.DpProp")
         appendLine("import ui.FloatProp")
         appendLine("import ui.HandleProp")
@@ -382,7 +385,42 @@ internal object BundleSourceWriter {
                 appendLine("$pad    ),")
             }
 
+            if (ui.entries.isNotEmpty()) {
+                appendLine("$pad    entries = mapOf(")
+                ui.entries.forEach { (name, list) ->
+                    appendLine("$pad        ${kotlinStringLiteral(name)} to listOf(")
+                    list.forEach { entry -> append(renderEntry(entry, indent + 12)) }
+                    appendLine("$pad        ),")
+                }
+                appendLine("$pad    ),")
+            }
+
             appendLine("$pad)")
+        }
+    }
+
+    /**
+     * One declaration in a builder slot.
+     *
+     * An `item` carries the UI it holds; a region carries only a name, because
+     * the code behind it never left the app.
+     */
+    private fun renderEntry(entry: BundleEntry, indent: Int): String {
+
+        val pad = " ".repeat(indent)
+
+        return when (entry) {
+
+            is BundleEntry.Item -> buildString {
+                appendLine("$pad" + "EntryNode.Item(")
+                appendLine("$pad    children = buildList {")
+                entry.children.forEach { child -> append(addChild(child, indent + 8)) }
+                appendLine("$pad    },")
+                appendLine("$pad),")
+            }
+
+            is BundleEntry.Region ->
+                "$pad" + "EntryNode.Region(adapter = ${kotlinStringLiteral(entry.adapterId)}),\n"
         }
     }
 
@@ -441,6 +479,8 @@ internal object BundleSourceWriter {
         is PropValue.StringValue -> "StringProp(${kotlinStringLiteral(value.value)})"
 
         is PropValue.DpValue -> "DpProp(${value.value})"
+
+        is PropValue.AnchorValue -> "AnchorProp(${kotlinStringLiteral(value.anchor)})"
         is PropValue.ColorValue -> "ColorProp(${value.argb}L)"
         is PropValue.ThemeColorValue -> "ThemeColorProp(${kotlinStringLiteral(value.token)})"
         is PropValue.ShapeValue -> "ShapeProp(${kotlinStringLiteral(value.token)})"
