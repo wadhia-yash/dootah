@@ -1,5 +1,6 @@
 package dev.dootah.gradle
 
+import dev.dootah.contract.RuntimeVersion
 import dev.dootah.contract.ScreenFilter
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
@@ -30,12 +31,12 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         val extension = target.extensions
             .create("dootah", DootahExtension::class.java)
 
-        // Must match DOOTAH_RUNTIME_VERSION in dootah-android, which is the
-        // token an installed app compares a manifest against by exact equality.
-        // It defaulted to "1" long after the runtime had moved on, so a project
-        // that did not set this by hand published a manifest every installed app
-        // refused as incompatible.
-        extension.runtimeVersion.convention("3")
+        // Read from the contract rather than written out, which is what the
+        // other three holders of this value already do. It was a fourth copy,
+        // and it had already gone stale once: it said "1" long after the runtime
+        // had moved on, so a project that did not set this by hand published a
+        // manifest every installed app refused as incompatible.
+        extension.runtimeVersion.convention(RuntimeVersion.CURRENT)
         extension.bundleVersion.convention(1)
         extension.bundleUrl.convention("https://example.invalid/bundle.js")
 

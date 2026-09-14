@@ -9,6 +9,12 @@ package com.dootah.ota
  * break bundles built before it, and treat it as an opaque token rather than a
  * number to be compared numerically.
  *
+ * "4" lets a layout carry an alignment and an arrangement. This is the case the
+ * gate matters most for: the parser ignores keys it does not know, so a "3"
+ * renderer handed a "4" bundle would not fail -- it would quietly draw every
+ * layout with Compose's default alignment. A screen that is subtly not the one
+ * described is worse than one that does not render.
+ *
  * "3" adds the fragment node, so a screen can be several components with no
  * layout around them. A "2" renderer has no such node and would refuse the whole
  * response, which is exactly what the gate is for.
@@ -17,7 +23,7 @@ package com.dootah.ota
  * and `handleAction(id, action, args)`, returning a UI-and-commands envelope.
  * "1" was single-screen and took no arguments.
  */
-const val DOOTAH_RUNTIME_VERSION: String = "3"
+const val DOOTAH_RUNTIME_VERSION: String = "4"
 
 /**
  * True when [manifest] targets exactly the runtime named by [supportedVersion].

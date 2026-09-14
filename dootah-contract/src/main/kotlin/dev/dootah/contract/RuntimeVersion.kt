@@ -13,7 +13,12 @@ package dev.dootah.contract
  * it into a bundle, the Gradle plugin that writes it into a manifest, the app
  * that checks it, and the contract a bundle is validated against -- and every
  * time it lived in more than one of them they drifted.
+ *
+ * "4" lets a layout carry an alignment and an arrangement. A "3" renderer knows
+ * no such fields and, because unknown keys are ignored rather than refused,
+ * would draw the layout without them -- a screen that is subtly not the one the
+ * bundle described, which is exactly the outcome this gate exists to prevent.
  */
 public object RuntimeVersion {
-    public const val CURRENT: String = "3"
+    public const val CURRENT: String = "4"
 }

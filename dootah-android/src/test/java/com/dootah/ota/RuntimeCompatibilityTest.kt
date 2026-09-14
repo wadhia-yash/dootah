@@ -79,8 +79,8 @@ class RuntimeCompatibilityTest {
     }
 
     @Test
-    fun `declares runtime version 2`() {
-        assertEquals("3", DOOTAH_RUNTIME_VERSION)
+    fun `declares runtime version 4`() {
+        assertEquals("4", DOOTAH_RUNTIME_VERSION)
     }
 
     @Test
@@ -90,5 +90,45 @@ class RuntimeCompatibilityTest {
         // bundle -- single-screen, no arguments, no command envelope -- and an
         // app that would call it with three arguments and fail at render time.
         assertFalse(isRuntimeCompatible(testManifest(runtimeVersion = "1")))
+    }
+
+    /**
+     * The case runtime "4" was bumped for, from the installed app's side.
+     *
+     * A "3" app handed a "4" bundle is the dangerous direction: the parser
+     * ignores keys it does not know, so nothing would fail. Every layout would
+     * simply be drawn with Compose's default alignment and arrangement, and the
+     * screen would be subtly not the one the bundle described. The gate refuses
+     * it before the bundle is ever loaded.
+     */
+    @Test
+    fun `a runtime 3 app refuses a runtime 4 bundle`() {
+
+        assertFalse(
+            isRuntimeCompatible(
+                manifest = testManifest(runtimeVersion = "4"),
+                supportedVersion = "3",
+            )
+        )
+    }
+
+    /**
+     * And the other direction, which fails for the opposite reason.
+     *
+     * A "4" app is not entitled to assume a "3" bundle is merely a "4" bundle
+     * that mentions no alignment. The gate is equality, so this is refused
+     * without anyone having to reason about which fields happen to overlap.
+     */
+    @Test
+    fun `a runtime 4 app refuses a runtime 3 bundle`() {
+
+        assertFalse(
+            isRuntimeCompatible(
+                manifest = testManifest(runtimeVersion = "3"),
+                supportedVersion = "4",
+            )
+        )
+
+        assertFalse(isRuntimeCompatible(testManifest(runtimeVersion = "3")))
     }
 }
