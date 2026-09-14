@@ -9,6 +9,12 @@ package com.dootah.ota
  * break bundles built before it, and treat it as an opaque token rather than a
  * number to be compared numerically.
  *
+ * "6" lets a native container's content be a list of entries rather than
+ * children. A "5" renderer knows no `builders` field and, because unknown keys
+ * are ignored rather than refused, would draw the container with nothing in it
+ * -- an empty list where an article was, on a screen whose whole content is
+ * that list.
+ *
  * "5" lets a length be a name instead of a number, so a bundle can lay a screen
  * out with the app's own spacing scale rather than a copy of it. A "4" renderer
  * reads every length as a number; handed a name it would lay out at zero, and a
@@ -28,7 +34,7 @@ package com.dootah.ota
  * and `handleAction(id, action, args)`, returning a UI-and-commands envelope.
  * "1" was single-screen and took no arguments.
  */
-const val DOOTAH_RUNTIME_VERSION: String = "5"
+const val DOOTAH_RUNTIME_VERSION: String = "6"
 
 /**
  * True when [manifest] targets exactly the runtime named by [supportedVersion].
