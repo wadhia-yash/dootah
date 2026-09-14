@@ -9,6 +9,11 @@ package com.dootah.ota
  * break bundles built before it, and treat it as an opaque token rather than a
  * number to be compared numerically.
  *
+ * "5" lets a length be a name instead of a number, so a bundle can lay a screen
+ * out with the app's own spacing scale rather than a copy of it. A "4" renderer
+ * reads every length as a number; handed a name it would lay out at zero, and a
+ * collapsed screen reads as a design decision rather than as a fault.
+ *
  * "4" lets a layout carry an alignment and an arrangement. This is the case the
  * gate matters most for: the parser ignores keys it does not know, so a "3"
  * renderer handed a "4" bundle would not fail -- it would quietly draw every
@@ -23,7 +28,7 @@ package com.dootah.ota
  * and `handleAction(id, action, args)`, returning a UI-and-commands envelope.
  * "1" was single-screen and took no arguments.
  */
-const val DOOTAH_RUNTIME_VERSION: String = "4"
+const val DOOTAH_RUNTIME_VERSION: String = "5"
 
 /**
  * True when [manifest] targets exactly the runtime named by [supportedVersion].

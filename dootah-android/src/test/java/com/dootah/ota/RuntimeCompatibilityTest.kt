@@ -79,8 +79,8 @@ class RuntimeCompatibilityTest {
     }
 
     @Test
-    fun `declares runtime version 4`() {
-        assertEquals("4", DOOTAH_RUNTIME_VERSION)
+    fun `declares runtime version 5`() {
+        assertEquals("5", DOOTAH_RUNTIME_VERSION)
     }
 
     @Test
@@ -131,4 +131,52 @@ class RuntimeCompatibilityTest {
 
         assertFalse(isRuntimeCompatible(testManifest(runtimeVersion = "3")))
     }
+    /**
+     * The case runtime "5" was bumped for.
+     *
+     * A "4" renderer reads every length as a number. Handed a "5" bundle that
+     * names one instead, it has no table to look the name up in and nothing to
+     * lay out with -- so the screen would draw, at zero. A collapsed layout is
+     * the worst of the failures available here, because it looks deliberate.
+     */
+    @Test
+    fun `a runtime 4 app refuses a runtime 5 bundle`() {
+
+        assertFalse(
+            isRuntimeCompatible(
+                manifest = testManifest(runtimeVersion = "5"),
+                supportedVersion = "4",
+            )
+        )
+    }
+
+    @Test
+    fun `a runtime 5 app refuses a runtime 4 bundle`() {
+
+        assertFalse(
+            isRuntimeCompatible(
+                manifest = testManifest(runtimeVersion = "4"),
+                supportedVersion = "5",
+            )
+        )
+
+        assertFalse(isRuntimeCompatible(testManifest(runtimeVersion = "4")))
+    }
+
+    /**
+     * Every runtime this app has ever implemented is refused but its own.
+     *
+     * Written as a sweep rather than one case per version, so that a future
+     * bump cannot quietly leave a predecessor accepted.
+     */
+    @Test
+    fun `refuses every earlier runtime`() {
+
+        listOf("1", "2", "3", "4").forEach { version ->
+            assertFalse(version, isRuntimeCompatible(testManifest(runtimeVersion = version)))
+        }
+
+        assertTrue(isRuntimeCompatible(testManifest(runtimeVersion = DOOTAH_RUNTIME_VERSION)))
+    }
+
 }

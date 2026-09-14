@@ -14,11 +14,17 @@ package dev.dootah.contract
  * that checks it, and the contract a bundle is validated against -- and every
  * time it lived in more than one of them they drifted.
  *
+ * "5" lets a length be a name instead of a number, so a bundle can use the app's
+ * own spacing. A "4" renderer reads a length as a number and would find an
+ * object where it expected one -- and the failure is not the shape but what
+ * follows it: every anchored length would fall to zero, and the layout would
+ * collapse rather than refuse.
+ *
  * "4" lets a layout carry an alignment and an arrangement. A "3" renderer knows
  * no such fields and, because unknown keys are ignored rather than refused,
  * would draw the layout without them -- a screen that is subtly not the one the
  * bundle described, which is exactly the outcome this gate exists to prevent.
  */
 public object RuntimeVersion {
-    public const val CURRENT: String = "4"
+    public const val CURRENT: String = "5"
 }
