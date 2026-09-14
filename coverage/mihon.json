@@ -9,51 +9,51 @@
     "ineligible": 194,
     "ineligible:HAS_RECEIVER": 34,
     "eligible": 365,
-    "fallback": 228,
+    "fallback": 227,
     "ineligible:TAKES_COMPOSABLE_CONTENT": 55,
-    "not_worth": 76,
+    "not_worth": 74,
     "ineligible:RETURNS_A_VALUE": 99,
-    "shape:described": 21,
-    "shape:placed": 113,
-    "shape:frozen": 81,
+    "shape:described": 24,
+    "shape:placed": 115,
+    "shape:frozen": 87,
     "shape:conditionals": 6,
     "shape:actions": 0,
     "shape:states": 0,
-    "mixed": 58,
+    "mixed": 61,
     "ineligible:PREVIEW": 5,
     "remote": 3,
     "ineligible:NO_BODY": 1
   },
   "blocked_by": {
-    "Compose value type": 51,
-    "third-party composable": 95,
+    "name from outside the screen": 6,
+    "third-party composable": 96,
+    "Compose value type": 45,
     "unsupported Kotlin syntax": 15,
     "collections/data classes": 12,
-    "native local read remotely": 17,
+    "native local read remotely": 18,
     "native value read remotely": 10,
     "callback argument type": 6,
-    "native capability": 18,
-    "name from outside the screen": 4
+    "native capability": 19
   },
   "occurrences": {
-    "Compose value type": 58,
-    "third-party composable": 97,
+    "name from outside the screen": 6,
+    "third-party composable": 98,
+    "Compose value type": 50,
     "unsupported Kotlin syntax": 21,
     "collections/data classes": 16,
-    "native local read remotely": 17,
+    "native local read remotely": 18,
     "native value read remotely": 10,
     "callback argument type": 7,
-    "native capability": 25,
-    "name from outside the screen": 4
+    "native capability": 27
   },
   "details": {
-    "Compose value type": {
-      "dp": 9,
-      "Column.verticalArrangement.spacedBy": 4,
-      "Row.horizontalArrangement.spacedBy": 4,
-      "androidx.compose.foundation.clickable": 4,
-      "value:androidx.compose.ui.graphics.vector.ImageVector": 3,
-      "androidx.compose.ui.Modifier.then": 3
+    "name from outside the screen": {
+      "outside the screen:onboarding_storage_info": 1,
+      "outside the screen:dialog_with_checkbox_reset": 1,
+      "outside the screen:licenses": 1,
+      "outside the screen:label_stats": 1,
+      "outside the screen:label_upcoming": 1,
+      "outside the screen:also_set_chapter_settings_for_library": 1
     },
     "third-party composable": {
       "tachiyomi.presentation.core.components.material.Scaffold": 13,
@@ -62,6 +62,14 @@
       "androidx.compose.runtime.LaunchedEffect": 5,
       "androidx.compose.material3.AlertDialog": 4,
       "androidx.compose.foundation.lazy.LazyColumn": 4
+    },
+    "Compose value type": {
+      "androidx.compose.foundation.clickable": 6,
+      "androidx.compose.foundation.combinedClickable": 4,
+      "dp": 4,
+      "value:androidx.compose.ui.graphics.vector.ImageVector": 3,
+      "androidx.compose.ui.Modifier.then": 3,
+      "androidx.compose.foundation.verticalScroll": 2
     },
     "unsupported Kotlin syntax": {
       "FirPropertyImpl": 7,
@@ -102,26 +110,20 @@
       "lambda:kotlin.Function1": 1
     },
     "native capability": {
-      "call:tachiyomi.presentation.core.i18n.stringResource": 4,
+      "call:tachiyomi.presentation.core.i18n.stringResource": 5,
       "kotlin.text.isNotEmpty": 2,
       "kotlin.collections.map": 2,
       "call:androidx.compose.ui.res.painterResource": 1,
       "eu.kanade.tachiyomi.util.system.LocaleHelper.getSourceDisplayName": 1,
       "kotlin.collections.forEach": 1
-    },
-    "name from outside the screen": {
-      "outside the screen:licenses": 1,
-      "outside the screen:label_stats": 1,
-      "outside the screen:label_upcoming": 1,
-      "outside the screen:also_set_chapter_settings_for_library": 1
     }
   },
   "inside": {
-    "name from outside the screen": 54,
-    "Compose value type": 13,
-    "unsupported Kotlin syntax": 12,
-    "native value read remotely": 2,
-    "native capability": 17,
+    "name from outside the screen": 56,
+    "Compose value type": 15,
+    "unsupported Kotlin syntax": 13,
+    "native value read remotely": 3,
+    "native capability": 18,
     "collections/data classes": 1,
     "callback argument type": 1
   },
@@ -144,20 +146,22 @@
     },
     "native value read remotely": {
       "read through a native value:tachiyomi.domain.source.model.Source": 1,
+      "read through a native value:eu.kanade.tachiyomi.extension.model.Extension": 1,
       "read through a native value:tachiyomi.domain.source.model.StubSource": 1
     },
     "unsupported Kotlin syntax": {
       "expression:FirLiteralExpressionImpl": 5,
       "FirPropertyImpl": 1,
-      "conditional": 1
+      "conditional": 1,
+      "FirElvisExpressionImpl": 1
     },
     "native capability": {
       "call:eu.kanade.tachiyomi.ui.reader.model.ChapterTransition.Next.Next": 4,
       "call:tachiyomi.presentation.core.i18n.stringResource": 4,
+      "call:tachiyomi.presentation.core.util.secondaryItemAlpha": 1,
       "call:kotlin.collections.mapOf": 1,
       "call:eu.kanade.tachiyomi.ui.reader.model.ChapterTransition.Prev.Prev": 1,
-      "call:androidx.compose.material3.SnackbarHostState.SnackbarHostState": 1,
-      "call:androidx.compose.foundation.layout.imePadding": 1
+      "call:androidx.compose.material3.SnackbarHostState.SnackbarHostState": 1
     },
     "collections/data classes": {
       "kotlinx.datetime.LocalDate": 1
@@ -336,9 +340,9 @@
       "states": 0
     },
     {
-      "described": 0,
+      "described": 1,
       "placed": 0,
-      "frozen": 1,
+      "frozen": 2,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -633,6 +637,14 @@
     },
     {
       "described": 1,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,
@@ -904,9 +916,9 @@
       "states": 0
     },
     {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
+      "described": 1,
+      "placed": 1,
+      "frozen": 2,
       "conditionals": 0,
       "actions": 0,
       "states": 0
