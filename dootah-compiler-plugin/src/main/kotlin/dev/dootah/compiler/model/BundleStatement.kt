@@ -48,10 +48,33 @@ internal sealed interface BundleStatement {
 /** A capability a bundle may ask the app to exercise. */
 internal sealed interface BundleCommandModel {
 
-    /** Calls one of the screen's own callback parameters. */
-    data class InvokeCallback(val name: String) : BundleCommandModel
+    /**
+     * Calls one of the screen's own callback parameters.
+     *
+     * [arguments] are values the bundle computes for itself, one per declared
+     * parameter and already checked against its type. They are ordinary bundle
+     * expressions, so the bundle gains nothing it could not already work out --
+     * only somewhere to send it.
+     */
+    data class InvokeCallback(
+        val name: String,
+        val arguments: List<BundleCallbackArgument> = emptyList(),
+    ) : BundleCommandModel
 
     data class Log(val message: BundleExpression) : BundleCommandModel
 
     data class Toast(val message: BundleExpression) : BundleCommandModel
 }
+
+/**
+ * One value a bundle sends with a callback invocation.
+ *
+ * The type is the one the screen's own parameter declares, not one inferred from
+ * the expression: it is what decides how the value is written on the wire and
+ * what the installed app coerces it back to, and those two have to be the same
+ * decision.
+ */
+internal data class BundleCallbackArgument(
+    val type: BundleType,
+    val value: BundleExpression,
+)

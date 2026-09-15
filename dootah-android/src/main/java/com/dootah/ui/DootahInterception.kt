@@ -210,10 +210,11 @@ class DootahScreenState internal constructor(
         when (command) {
 
             is BundleCommand.InvokeCallback ->
-                if (!callbacks.invoke(command.name)) {
+                if (!callbacks.invoke(command.name, command.arguments)) {
                     Log.w(
                         DOOTAH_LOG_TAG,
-                        "bundle asked for callback '${command.name}' on $screenId, " +
+                        "bundle asked for callback '${command.name}' with " +
+                            "${command.arguments.size} value(s) on $screenId, " +
                             "which declares ${callbacks.names()}",
                     )
                 }

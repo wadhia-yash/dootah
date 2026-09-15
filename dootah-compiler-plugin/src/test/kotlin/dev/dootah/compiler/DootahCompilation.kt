@@ -813,7 +813,8 @@ private fun dootahRuntimeStubs(): List<SourceFile> = listOf(
 
             fun dootahCallbacks(
                 names: String,
-                vararg callbacks: () -> Unit,
+                signatures: String,
+                vararg callbacks: Any,
             ): DootahCallbacks = DootahCallbacks()
 
             fun dootahAdapter(

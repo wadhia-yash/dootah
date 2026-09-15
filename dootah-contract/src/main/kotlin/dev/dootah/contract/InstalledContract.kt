@@ -51,6 +51,16 @@ public data class ScreenContract(
      * together and then show an empty list.
      */
     public val builders: List<String> = emptyList(),
+
+    /**
+     * The screen's own callback parameters a bundle may invoke -- see [CallbackId].
+     *
+     * Recorded with their parameter types, not just their names, because the
+     * values a bundle sends are coerced to those types on arrival. A name alone
+     * would let a build that changed `(String) -> Unit` to `(Int) -> Unit` go on
+     * accepting a bundle that sends it text.
+     */
+    public val callbacks: List<String> = emptyList(),
 )
 
 /**
@@ -94,6 +104,7 @@ public data class ScreenRequirements(
     public val resources: List<String>,
     public val anchors: List<String> = emptyList(),
     public val builders: List<String> = emptyList(),
+    public val callbacks: List<String> = emptyList(),
 )
 
 public data class AdapterUse(

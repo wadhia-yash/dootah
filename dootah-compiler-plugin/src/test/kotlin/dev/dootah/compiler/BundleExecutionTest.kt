@@ -90,7 +90,32 @@ class BundleExecutionTest {
 
         assertTrue(
             response,
-            response.contains("""{"type":"invokeCallback","name":"onCheckout"}"""),
+            response.contains(
+                """{"type":"invokeCallback","name":"onCheckout","arguments":[]}"""
+            ),
+        )
+    }
+
+    /**
+     * The end of the wire milestone 1 opened: a bundle running in the real
+     * JavaScript engine, computing a value and sending it with the call.
+     *
+     * Run through the engine rather than asserted on the generated source,
+     * because the interesting part is that the value survives being computed in
+     * JavaScript and written out -- not that the writer emitted the right text.
+     */
+    @Test
+    fun `asks the app to invoke a callback with a value it computed`() {
+
+        val bundle = buildBundle(twoScreens())
+
+        val response = bundle.act("com.example.CartScreen", "open", """{"unitPrice":100}""")
+
+        assertTrue(
+            response,
+            response.contains(
+                """{"type":"invokeCallback","name":"onOpenItem","arguments":["sku-100"]}"""
+            ),
         )
     }
 
@@ -181,12 +206,17 @@ class BundleExecutionTest {
 
             @Bundlable
             @Composable
-            fun CartScreen(unitPrice: Int, onCheckout: () -> Unit) {
+            fun CartScreen(
+                unitPrice: Int,
+                onCheckout: () -> Unit,
+                onOpenItem: (String) -> Unit,
+            ) {
                 var quantity = 1
                 Column {
                     Text("Total: " + unitPrice * quantity)
                     Button(onClick = { quantity = quantity + 1 }) { Text("Add") }
                     Button(onClick = onCheckout) { Text("Checkout") }
+                    Button(onClick = { onOpenItem("sku-" + unitPrice) }) { Text("Open") }
                 }
             }
 

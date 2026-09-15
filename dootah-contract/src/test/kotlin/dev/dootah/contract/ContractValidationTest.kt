@@ -37,6 +37,7 @@ class ContractValidationTest {
                     "androidx.compose.material3.MaterialTheme.padding.small",
                     "androidx.compose.material3.MaterialTheme.padding.medium",
                 ),
+                callbacks = listOf("onSave()", "navigateToPost(String)"),
             )
         ),
     )
@@ -47,11 +48,20 @@ class ContractValidationTest {
         handles: List<String> = emptyList(),
         resources: List<String> = emptyList(),
         anchors: List<String> = emptyList(),
+        callbacks: List<String> = emptyList(),
         runtimeVersion: String = "3",
     ) = BundleRequirements(
         runtimeVersion = runtimeVersion,
         screens = listOf(
-            ScreenRequirements("app.Toolbox", adapters, capabilities, handles, resources, anchors)
+            ScreenRequirements(
+                id = "app.Toolbox",
+                adapters = adapters,
+                capabilities = capabilities,
+                handles = handles,
+                resources = resources,
+                anchors = anchors,
+                callbacks = callbacks,
+            )
         ),
     )
 
@@ -254,4 +264,61 @@ class ContractValidationTest {
         assertEquals(emptyList<ContractValidation.Finding>(), findings(requires()))
     }
 
+
+    // ---- callbacks -------------------------------------------------------
+
+    /**
+     * Calling a callback the screen already declares is an ordinary update.
+     *
+     * This is the whole point of the widening: the app's own signature already
+     * says `navigateToPost` takes a `String`, so a bundle that adds a button
+     * calling it is asking for nothing the installed binary has not got.
+     */
+    @Test
+    fun `invoking a callback the screen declares is allowed`() {
+
+        assertTrue(findings(requires(callbacks = listOf("navigateToPost(String)"))).isEmpty())
+        assertTrue(findings(requires(callbacks = listOf("onSave()"))).isEmpty())
+    }
+
+    @Test
+    fun `refuses a callback the screen does not declare`() {
+
+        val findings = findings(requires(callbacks = listOf("navigateToTopic(String)")))
+
+        assertEquals(1, findings.size)
+        assertEquals(ContractValidation.Code.MISSING_CALLBACK, findings.single().code)
+    }
+
+    /**
+     * The reason the types are part of the identity.
+     *
+     * A build that kept the name and changed `(String) -> Unit` into
+     * `(Int) -> Unit` still has a parameter called `navigateToPost`. A bundle
+     * written against the old shape would go on sending it text, which the app
+     * would coerce to nothing and drop -- a button that silently stops working.
+     */
+    @Test
+    fun `refuses a callback whose signature changed`() {
+
+        val findings = findings(requires(callbacks = listOf("navigateToPost(Int)")))
+
+        assertEquals(1, findings.size)
+        assertEquals(
+            ContractValidation.Code.CALLBACK_SIGNATURE_CHANGED,
+            findings.single().code,
+        )
+    }
+
+    /** Passing a value to a callback that takes none is the same disagreement. */
+    @Test
+    fun `refuses a callback given values it does not take`() {
+
+        val findings = findings(requires(callbacks = listOf("onSave(String)")))
+
+        assertEquals(
+            ContractValidation.Code.CALLBACK_SIGNATURE_CHANGED,
+            findings.single().code,
+        )
+    }
 }

@@ -15,8 +15,8 @@ internal data class BundleScreen(
     /** Parameters whose values travel to the bundle, in declaration order. */
     val parameters: List<BundleParameter>,
 
-    /** `() -> Unit` parameters the bundle may ask the app to invoke, by name. */
-    val callbacks: List<String>,
+    /** `(T...) -> Unit` parameters the bundle may ask the app to invoke, by name. */
+    val callbacks: List<BundleCallback>,
 
     /** Declarations evaluated before the UI is built, in source order. */
     val prelude: List<BundleStatement>,
@@ -51,6 +51,27 @@ internal data class BundleScreen(
 
     /** Stretches of list-building this screen asks the app to perform. */
     val builders: List<String> = emptyList(),
+
+    /**
+     * The callbacks this bundle actually invokes, as `CallbackId` strings.
+     *
+     * Only the ones it calls, not every one the screen declares: a parameter the
+     * bundle never uses is not something the installed app has to still have,
+     * and requiring it would refuse an update for a callback nobody asks for.
+     */
+    val requiredCallbacks: List<String> = emptyList(),
+)
+
+/**
+ * One of the screen's callback parameters, as the bundle may call it.
+ *
+ * The types are carried because they decide two things: whether the bundle can
+ * produce a value for each argument at all, and what the installed app coerces
+ * the value it receives back to.
+ */
+internal data class BundleCallback(
+    val name: String,
+    val parameterTypes: List<BundleType>,
 )
 
 internal data class BundleParameter(

@@ -104,7 +104,7 @@ class DootahScreenStateTest {
         val state = DootahScreenState(
             screenId = "screen",
             arguments = dootahArguments("erasing", false),
-            callbacks = dootahCallbacks(""),
+            callbacks = dootahCallbacks("", ""),
             bindings = dootahBindings(
                 dootahAdapters(), dootahCapabilities(), dootahHandles(), dootahResources(),
                 dootahAnchors(), dootahBuilders(),
@@ -116,7 +116,7 @@ class DootahScreenStateTest {
 
         state.update(
             arguments = dootahArguments("erasing", true),
-            callbacks = dootahCallbacks(""),
+            callbacks = dootahCallbacks("", ""),
             bindings = dootahBindings(
                 dootahAdapters(), dootahCapabilities(), dootahHandles(), dootahResources(),
                 dootahAnchors(), dootahBuilders(),

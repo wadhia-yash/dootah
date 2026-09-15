@@ -29,8 +29,19 @@ internal sealed interface ScreenParameter {
         val isNullable: Boolean,
     ) : ScreenParameter
 
-    /** A `() -> Unit` the bundle may ask the app to call, by name. */
-    data class Callback(override val name: String) : ScreenParameter
+    /**
+     * A `(T...) -> Unit` the bundle may ask the app to call, by name.
+     *
+     * [parameterTypes] are the values the bundle has to send with the call, and
+     * every one of them is a type Dootah can carry. A callback taking anything
+     * else stays a [NativeOnly] value: the bundle could name it but could not
+     * produce a value to hand it, and a call it cannot complete is worse than no
+     * call at all.
+     */
+    data class Callback(
+        override val name: String,
+        val parameterTypes: List<BundleType>,
+    ) : ScreenParameter
 
     /** The `Modifier` the caller passed, spliced into the layout by position. */
     data class LayoutModifier(override val name: String) : ScreenParameter
@@ -71,8 +82,8 @@ private fun FirValueParameter.classify(): ScreenParameter {
         return ScreenParameter.LayoutModifier(name)
     }
 
-    if (type != null && type.isNoArgumentUnitFunction()) {
-        return ScreenParameter.Callback(name)
+    type?.unitFunctionParameterTypes()?.let { parameterTypes ->
+        return ScreenParameter.Callback(name, parameterTypes)
     }
 
     return ScreenParameter.NativeOnly(
@@ -82,22 +93,29 @@ private fun FirValueParameter.classify(): ScreenParameter {
 }
 
 /**
- * Whether this is `() -> Unit`.
+ * The values a `(T...) -> Unit` parameter takes, or null if it is not one.
  *
- * Only that shape. A callback taking arguments would need those arguments to
- * cross back from the bundle, which is a wider hole than Dootah's command model
- * opens today, so it is left as a native-only value until a real screen needs it.
+ * Every parameter type has to be one Dootah can carry, because a bundle invoking
+ * this callback has to produce each value itself. That is the whole widening
+ * over `() -> Unit`: the bundle computes a value it already knows how to compute
+ * and the app receives it as the type its own source declared. Nothing about the
+ * app's memory becomes reachable -- a `(Post) -> Unit` is still a native-only
+ * value, because a bundle has no way to make a `Post`.
  */
-private fun ConeKotlinType.isNoArgumentUnitFunction(): Boolean {
+private fun ConeKotlinType.unitFunctionParameterTypes(): List<BundleType>? {
 
-    val classId = classId?.asSingleFqName() ?: return false
-    if (classId != FUNCTION_ZERO) return false
+    val name = classId?.asSingleFqName()?.asString() ?: return null
+    if (!name.startsWith(FUNCTION_PREFIX)) return null
+    if (name.removePrefix(FUNCTION_PREFIX).toIntOrNull() == null) return null
 
-    val returnType = (typeArguments.singleOrNull() as? ConeKotlinType)
-        ?.classId
-        ?.asSingleFqName()
+    val arguments = typeArguments.map { argument -> argument as? ConeKotlinType }
 
-    return returnType == UNIT
+    if (arguments.lastOrNull()?.classId?.asSingleFqName() != UNIT) return null
+
+    return arguments.dropLast(1).map { argument ->
+        if (argument == null || argument.isMarkedNullable) return null
+        bundleTypeOf(argument) ?: return null
+    }
 }
 
 internal fun bundleTypeOf(type: ConeKotlinType?): BundleType? =
@@ -121,11 +139,11 @@ internal fun List<ScreenParameter>.valueParameters(): List<BundleParameter> =
         )
     }
 
-internal fun List<ScreenParameter>.callbackNames(): List<String> =
-    filterIsInstance<ScreenParameter.Callback>().map { it.name }
+internal fun List<ScreenParameter>.callbacks(): List<ScreenParameter.Callback> =
+    filterIsInstance<ScreenParameter.Callback>()
 
 internal fun List<ScreenParameter>.modifierName(): String? =
     filterIsInstance<ScreenParameter.LayoutModifier>().singleOrNull()?.name
 
-private val FUNCTION_ZERO = FqName("kotlin.Function0")
+private const val FUNCTION_PREFIX = "kotlin.Function"
 private val UNIT = FqName("kotlin.Unit")

@@ -97,6 +97,29 @@ public object ContractValidation {
             }
         }
 
+        // A callback is checked by name *and* signature: the values the bundle
+        // sends are coerced to the declared types on arrival, so a build that
+        // kept the name and changed the types cannot carry this bundle.
+        for (callback in callbacks) {
+
+            if (callback in installed.callbacks) continue
+
+            val name = CallbackId.nameOf(callback)
+            val installedShape = installed.callbacks
+                .firstOrNull { candidate -> CallbackId.nameOf(candidate) == name }
+
+            findings += if (installedShape == null) {
+                Finding(Code.MISSING_CALLBACK, id, callback)
+            } else {
+                Finding(
+                    code = Code.CALLBACK_SIGNATURE_CHANGED,
+                    screen = id,
+                    detail = "'$name' is $installedShape in the installed app " +
+                        "and $callback here",
+                )
+            }
+        }
+
         handles.filterNot { handle -> handle in installed.handles }
             .forEach { handle -> findings += Finding(Code.MISSING_HANDLE, id, handle) }
 
@@ -140,6 +163,8 @@ public object ContractValidation {
         UNSUPPORTED_PROP(true),
         MISSING_CAPABILITY(true),
         CAPABILITY_ARITY_CHANGED(true),
+        MISSING_CALLBACK(true),
+        CALLBACK_SIGNATURE_CHANGED(true),
         MISSING_HANDLE(true),
         MISSING_RESOURCE(true),
         MISSING_ANCHOR(true),
@@ -162,6 +187,11 @@ public object ContractValidation {
                     "from a handler written in the app's source, so a new one needs " +
                     "a new build."
             CAPABILITY_ARITY_CHANGED -> detail
+            MISSING_CALLBACK ->
+                "the installed app's screen has no callback parameter '$detail'. " +
+                    "A bundle reaches the app through the parameters the screen " +
+                    "already declares, so a new one needs a new build."
+            CALLBACK_SIGNATURE_CHANGED -> detail
             MISSING_HANDLE ->
                 "the installed app has no value named '$detail' on this screen."
             MISSING_BUILDER ->

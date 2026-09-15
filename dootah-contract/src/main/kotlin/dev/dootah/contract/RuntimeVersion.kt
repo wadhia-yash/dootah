@@ -14,6 +14,13 @@ package dev.dootah.contract
  * that checks it, and the contract a bundle is validated against -- and every
  * time it lived in more than one of them they drifted.
  *
+ * "7" lets a callback invocation carry values. A "6" renderer knows no
+ * `arguments` field on a command and, because unknown keys are ignored rather
+ * than refused, would call the screen's callback with none -- which for a
+ * `(String) -> Unit` is not a call at all, and for a `() -> Unit` would be the
+ * wrong one. A "6" app also registers only its `() -> Unit` parameters, so the
+ * callback a "7" bundle names would not be in its table.
+ *
  * "6" lets a native container's content be a list of entries rather than
  * children. A "5" renderer knows no `builders` field and, because unknown keys
  * are ignored rather than refused, would draw the container with nothing in it
@@ -32,5 +39,5 @@ package dev.dootah.contract
  * bundle described, which is exactly the outcome this gate exists to prevent.
  */
 public object RuntimeVersion {
-    public const val CURRENT: String = "6"
+    public const val CURRENT: String = "7"
 }

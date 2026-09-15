@@ -44,6 +44,7 @@ public object ContractJson {
                                 "resources" to screen.resources.sorted().strings(),
                                 "anchors" to screen.anchors.sorted().strings(),
                                 "builders" to screen.builders.sorted().strings(),
+                                "callbacks" to screen.callbacks.sorted().strings(),
                             )
                         )
                     }
@@ -89,6 +90,11 @@ public object ContractJson {
                     // as a build that has none -- which is the right answer to
                     // check a bundle that names one against.
                     builders = fields.optionalStrings("builders"),
+                    // Optional for the same reason anchors and builders are.
+                    // A build that predates callbacks being recorded reads as a
+                    // build with none, which is the right answer to check a
+                    // bundle that invokes one against.
+                    callbacks = fields.optionalStrings("callbacks"),
                 )
             },
         )
@@ -128,6 +134,7 @@ public object ContractJson {
                                 "resources" to screen.resources.sorted().strings(),
                                 "anchors" to screen.anchors.sorted().strings(),
                                 "builders" to screen.builders.sorted().strings(),
+                                "callbacks" to screen.callbacks.sorted().strings(),
                             )
                         )
                     }
@@ -169,6 +176,11 @@ public object ContractJson {
                     // as a build that has none -- which is the right answer to
                     // check a bundle that names one against.
                     builders = fields.optionalStrings("builders"),
+                    // Optional for the same reason anchors and builders are.
+                    // A build that predates callbacks being recorded reads as a
+                    // build with none, which is the right answer to check a
+                    // bundle that invokes one against.
+                    callbacks = fields.optionalStrings("callbacks"),
                 )
             },
         )

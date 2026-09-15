@@ -299,12 +299,46 @@ object BundleUiParser {
     private fun parseCommand(command: JsonObject): BundleCommand =
         when (val type = command.string("type")) {
 
-            "invokeCallback" -> BundleCommand.InvokeCallback(command.string("name"))
+            "invokeCallback" -> BundleCommand.InvokeCallback(
+                name = command.string("name"),
+                arguments = command.callbackArguments(),
+            )
             "log" -> BundleCommand.Log(command.string("message"))
             "toast" -> BundleCommand.Toast(command.string("message"))
 
             else -> throw BundleProtocolException("Unknown command '$type'")
         }
+
+    /**
+     * Reads the values sent with a callback invocation.
+     *
+     * Absent means none, so a bundle built before callbacks took values still
+     * parses and still invokes the no-argument callbacks it was written for.
+     * Anything that is not a JSON scalar fails the whole response: a bundle
+     * cannot have produced one, so its presence means the two sides disagree.
+     */
+    private fun JsonObject.callbackArguments(): List<CallbackArgument> {
+
+        val elements = (this["arguments"] as? JsonArray) ?: return emptyList()
+
+        return elements.map { element ->
+
+            val primitive = element as? JsonPrimitive
+                ?: throw BundleProtocolException("A callback value is not a scalar")
+
+            when {
+                primitive.isString -> CallbackArgument.Text(primitive.content)
+                primitive.content == "true" -> CallbackArgument.Bool(true)
+                primitive.content == "false" -> CallbackArgument.Bool(false)
+                else -> CallbackArgument.Number(
+                    primitive.doubleOrNull
+                        ?: throw BundleProtocolException(
+                            "A callback value is not a number: ${primitive.content}"
+                        )
+                )
+            }
+        }
+    }
 
     /**
      * Reads one length: a number, or an object naming a value the app owns.

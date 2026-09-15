@@ -79,8 +79,8 @@ class RuntimeCompatibilityTest {
     }
 
     @Test
-    fun `declares runtime version 5`() {
-        assertEquals("6", DOOTAH_RUNTIME_VERSION)
+    fun `declares runtime version 7`() {
+        assertEquals("7", DOOTAH_RUNTIME_VERSION)
     }
 
     @Test
@@ -172,7 +172,7 @@ class RuntimeCompatibilityTest {
     @Test
     fun `refuses every earlier runtime`() {
 
-        listOf("1", "2", "3", "4").forEach { version ->
+        listOf("1", "2", "3", "4", "5", "6").forEach { version ->
             assertFalse(version, isRuntimeCompatible(testManifest(runtimeVersion = version)))
         }
 

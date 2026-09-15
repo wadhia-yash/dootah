@@ -306,6 +306,84 @@ class NativeAdapterAgreementTest {
         assertTrue("the callback name was not carried", compiled.contains("onSave"))
     }
 
+    /**
+     * A callback taking a value is named the same by both passes.
+     *
+     * The case milestone 1 turned on. The APK is built from source that only
+     * *passes* `navigateToPost` down; the bundle is published from source that
+     * also calls it. Nothing about the APK changed, so the app has to already
+     * register the callback under exactly the name the bundle asks for -- and
+     * with the same parameter types, because those decide what the value the
+     * bundle sends is coerced to on arrival.
+     */
+    @Test
+    fun `a callback taking a value is named the same by both passes`() {
+
+        val app = intercept(feed(callsCallback = false))
+            .compiledClassText("com/example/ScreenKt.class")
+
+        val bundle = extract(feed(callsCallback = true))
+
+        assertTrue("the app did not register its callbacks", app.contains("dootahCallbacks"))
+        assertTrue("the app did not register the callback", app.contains("navigateToPost"))
+        assertTrue("the app did not record what the callback takes", app.contains("String"))
+
+        assertTrue(
+            bundle.generatedScreen(),
+            bundle.generatedScreen().contains("""Command.InvokeCallback("navigateToPost""""),
+        )
+        assertTrue(
+            bundle.requirementsFragment(),
+            bundle.requirementsFragment().contains("navigateToPost(String)"),
+        )
+    }
+
+    /**
+     * And the reverse: a screen that never calls its callback requires nothing.
+     *
+     * A parameter the bundle does not use is not something the installed app
+     * has to still have. Requiring every declared callback would refuse an
+     * update over one nobody asks for.
+     */
+    @Test
+    fun `a callback the bundle never calls is not required`() {
+
+        val bundle = extract(feed(callsCallback = false))
+
+        assertFalse(
+            bundle.requirementsFragment(),
+            bundle.requirementsFragment().contains("navigateToPost(String)"),
+        )
+    }
+
+    /**
+     * One screen, in the two versions an update has: the one the APK was built
+     * from, and the one a bundle is published from.
+     */
+    private fun feed(callsCallback: Boolean): SourceFile = SourceFile(
+        name = "Screen.kt",
+        contents = """
+            package com.example
+
+            import androidx.compose.foundation.layout.Column
+            import androidx.compose.material3.Button
+            import androidx.compose.material3.Text
+            import androidx.compose.runtime.Composable
+            import dev.dootah.Bundlable
+
+            @Bundlable
+            @Composable
+            fun Screen(headline: String, navigateToPost: (String) -> Unit) {
+                Column {
+                    Text(headline)
+                    ${if (callsCallback)
+                        """Button(onClick = { navigateToPost("2") }) { Text("Read now") }"""
+                      else ""}
+                }
+            }
+        """.trimIndent(),
+    )
+
     // ---- harness ---------------------------------------------------------
 
     /**

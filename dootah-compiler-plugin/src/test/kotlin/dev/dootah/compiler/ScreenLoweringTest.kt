@@ -345,6 +345,91 @@ class ScreenLoweringTest {
         assertTrue(generated, generated.contains("""Command.InvokeCallback("onSave")"""))
     }
 
+    /**
+     * The widening milestone 1 needed: a callback the app already declares,
+     * invoked with a value the bundle worked out for itself.
+     *
+     * Nothing about the app's memory becomes reachable. The bundle sends a
+     * string it computed; the app calls its own parameter with it.
+     */
+    @Test
+    fun `lowers a button that invokes a screen callback with a value`() {
+
+        val generated = lower(
+            screen(
+                body = """Button(onClick = { navigateToPost("2") }) { Text("Read now") }""",
+                parameters = "navigateToPost: (String) -> Unit",
+            )
+        )
+
+        assertTrue(
+            generated,
+            generated.contains(
+                """Command.InvokeCallback("navigateToPost", listOf(CallbackArgument.Text("2")))"""
+            ),
+        )
+    }
+
+    /** A value the screen was given travels just as a literal one does. */
+    @Test
+    fun `lowers a callback invoked with one of the screen's own values`() {
+
+        val generated = lower(
+            screen(
+                body = """Button(onClick = { onPick(label) }) { Text("Pick") }""",
+                parameters = "label: String, onPick: (String) -> Unit",
+            )
+        )
+
+        assertTrue(
+            generated,
+            generated.contains("""Command.InvokeCallback("onPick", listOf("""),
+        )
+        assertTrue(generated, generated.contains("""arguments.string("label")"""))
+    }
+
+    /**
+     * A `Long` goes as text, the same way a screen argument does on the way in.
+     *
+     * Every number inside a bundle is a JavaScript double. An id past 2^53 sent
+     * as one arrives with its low digits gone, which is worse than not arriving.
+     */
+    @Test
+    fun `sends a Long callback value as text`() {
+
+        val generated = lower(
+            screen(
+                body = """Button(onClick = { onOpen(id) }) { Text("Open") }""",
+                parameters = "id: Long, onOpen: (Long) -> Unit",
+            )
+        )
+
+        assertTrue(generated, generated.contains("""CallbackArgument.Text("""))
+        assertTrue(generated, generated.contains(""").toString())"""))
+    }
+
+    /**
+     * A callback taking something a bundle cannot make stays out of reach.
+     *
+     * `Post` is the app's own type. Widening to `(String) -> Unit` must not
+     * widen to this, or a bundle would be naming a call it has no value for --
+     * so the parameter stays a native-only value and the call is refused.
+     */
+    @Test
+    fun `refuses a callback taking a value Dootah cannot carry`() {
+
+        val (generated, degraded) = keptNative(
+            screen(
+                body = """Button(onClick = { onPick(post) }) { Text("Pick") }""",
+                parameters = "post: Post, onPick: (Post) -> Unit",
+                declarations = "data class Post(val id: String)",
+            )
+        )
+
+        assertTrue(degraded, degraded.contains("UNSUPPORTED_CALL_IN_HANDLER"))
+        assertTrue(generated, !generated.contains("""Command.InvokeCallback("onPick""""))
+    }
+
     @Test
     fun `gives two buttons with the same label distinct actions`() {
 
@@ -1271,6 +1356,7 @@ class ScreenLoweringTest {
         parameters: String = "",
         columnModifier: String = "",
         extraImports: String = "",
+        declarations: String = "",
     ): SourceFile = SourceFile(
         name = "Screen.kt",
         contents = """
@@ -1297,6 +1383,8 @@ class ScreenLoweringTest {
                     ${body.trimIndent().replace("\n", "\n        ")}
                 }
             }
+
+            ${declarations.trimIndent()}
         """.trimIndent(),
     )
 

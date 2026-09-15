@@ -1,8 +1,11 @@
 package dev.dootah.compiler.fir
 
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
+import dev.dootah.contract.CallbackId
 import dev.dootah.compiler.model.ArithmeticOperator
 import dev.dootah.compiler.model.BundleAction
+import dev.dootah.compiler.model.BundleCallback
+import dev.dootah.compiler.model.BundleCallbackArgument
 import dev.dootah.compiler.model.BundleCommandModel
 import dev.dootah.compiler.model.BundleEntry
 import dev.dootah.compiler.model.BundleExpression
@@ -105,7 +108,10 @@ internal class ScreenLowering(
 
     private val signature = function.screenParameters()
     private val modifierParameter = signature.modifierName()
-    private val callbacks = signature.callbackNames()
+    private val callbacks = signature.callbacks().associateBy { callback -> callback.name }
+
+    /** The callbacks this screen's bundle actually invokes, as `CallbackId`s. */
+    private val requiredCallbacks = linkedSetOf<String>()
 
     private val nativeOnlyParameters = signature
         .filterIsInstance<ScreenParameter.NativeOnly>()
@@ -284,7 +290,9 @@ internal class ScreenLowering(
                 screenId = screenId,
                 functionName = functionName,
                 parameters = signature.valueParameters(),
-                callbacks = callbacks,
+                callbacks = callbacks.values.map { callback ->
+                    BundleCallback(callback.name, callback.parameterTypes)
+                },
                 prelude = prelude.toList(),
                 ui = ui,
                 actions = actions.toList(),
@@ -295,6 +303,7 @@ internal class ScreenLowering(
                 resources = components.requirements.resources.toList(),
                 anchors = components.requirements.anchors.toList(),
                 builders = components.requirements.builders.toList(),
+                requiredCallbacks = requiredCallbacks.toList(),
             ),
         )
 
@@ -823,9 +832,13 @@ internal class ScreenLowering(
      */
     private fun lowerClickHandler(expression: FirExpression): List<BundleStatement>? {
 
+        // `onClick` is `() -> Unit`, so a callback forwarded straight into it is
+        // one too; a callback taking values cannot reach here without arguments
+        // to send, and typing it as anything else would be Kotlin that does not
+        // compile in the app either.
         (expression as? FirPropertyAccessExpression)?.resolvedName()?.let { name ->
-            if (name in callbacks) {
-                return listOf(BundleStatement.Perform(BundleCommandModel.InvokeCallback(name)))
+            callbacks[name]?.takeIf { it.parameterTypes.isEmpty() }?.let {
+                return listOf(BundleStatement.Perform(invokeCallback(name, emptyList())))
             }
         }
 
@@ -1229,10 +1242,11 @@ internal class ScreenLowering(
 
     private fun lowerCallStatement(call: FirFunctionCall): BundleStatement? {
 
-        val callback = call.invokedCallbackName()
+        val callback = call.invokedCallbackName()?.let { name -> callbacks.getValue(name) }
 
         if (callback != null) {
-            return BundleStatement.Perform(BundleCommandModel.InvokeCallback(callback))
+            val arguments = lowerCallbackArguments(call, callback) ?: return null
+            return BundleStatement.Perform(invokeCallback(callback.name, arguments))
         }
 
         reject(
@@ -1242,22 +1256,72 @@ internal class ScreenLowering(
             code = RejectionCode.UNSUPPORTED_CALL_IN_HANDLER,
             detail = call.resolvedCallableName()?.asString(),
             remedy = "Remote code reaches the app only through the screen's own callback " +
-                "parameters. Add a `() -> Unit` parameter and call that.",
+                "parameters. Add a parameter whose type is a function of the values " +
+                "Dootah can carry -- `() -> Unit`, `(String) -> Unit` -- and call that.",
         )
 
         return null
+    }
+
+    /**
+     * The values a call hands one of the screen's callbacks.
+     *
+     * Each one is lowered as an ordinary bundle expression, so the bundle can
+     * only send something it was already able to work out. The count is checked
+     * here rather than trusted from the call: a default or a trailing lambda
+     * would leave the bundle sending fewer values than the app reads back.
+     */
+    private fun lowerCallbackArguments(
+        call: FirFunctionCall,
+        callback: ScreenParameter.Callback,
+    ): List<BundleCallbackArgument>? {
+
+        val supplied = call.arguments
+
+        if (supplied.size != callback.parameterTypes.size) {
+            reject(
+                call.sourceOffset(),
+                "the call `${callback.name}()` with ${supplied.size} value(s) in a " +
+                    "click handler",
+                code = RejectionCode.UNSUPPORTED_CALL_IN_HANDLER,
+                detail = callback.name,
+                remedy = "`${callback.name}` takes ${callback.parameterTypes.size} " +
+                    "value(s). Call it with exactly that many.",
+            )
+            return null
+        }
+
+        return supplied.zip(callback.parameterTypes) { argument, type ->
+            BundleCallbackArgument(type, lowerExpression(argument) ?: return null)
+        }
+    }
+
+    /** Records a callback as required, and builds the command that invokes it. */
+    private fun invokeCallback(
+        name: String,
+        arguments: List<BundleCallbackArgument>,
+    ): BundleCommandModel.InvokeCallback {
+
+        val callback = callbacks.getValue(name)
+
+        requiredCallbacks += CallbackId.of(
+            name = name,
+            parameterTypes = callback.parameterTypes.map { type -> type.kotlinName },
+        )
+
+        return BundleCommandModel.InvokeCallback(name, arguments)
     }
 
     /** The screen callback this call invokes, if that is what it is. */
     private fun FirFunctionCall.invokedCallbackName(): String? {
 
         val receiverName = (explicitReceiver as? FirPropertyAccessExpression)?.resolvedName()
-        if (receiverName != null && receiverName in callbacks) return receiverName
+        if (receiverName != null && receiverName in callbacks.keys) return receiverName
 
         val directName = (calleeReference.toResolvedCallableSymbol()?.callableId
             ?.callableName?.asString())
 
-        return directName?.takeIf { it in callbacks }
+        return directName?.takeIf { it in callbacks.keys }
     }
 
     private fun lowerConditionalStatement(expression: FirWhenExpression): List<BundleStatement>? {

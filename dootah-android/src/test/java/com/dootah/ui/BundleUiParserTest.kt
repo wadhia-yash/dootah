@@ -238,6 +238,73 @@ class BundleUiParserTest {
         )
     }
 
+    /**
+     * The values a bundle sends with a call, read back as JSON scalars.
+     *
+     * Typed by the parameter the screen declares rather than by what the value
+     * looks like, so the parser's job stops at "which of the three JSON shapes
+     * is this" -- see `DootahCallbacks` for the coercion that follows.
+     */
+    @Test
+    fun `reads the values sent with a callback`() {
+
+        val response = BundleUiParser.parse(
+            """
+            {"ui":{"type":"text","text":"x"},
+             "commands":[
+               {"type":"invokeCallback","name":"open",
+                "arguments":["sku-1",42,true]}
+             ]}
+            """.trimIndent()
+        )
+
+        assertEquals(
+            listOf(
+                BundleCommand.InvokeCallback(
+                    name = "open",
+                    arguments = listOf(
+                        CallbackArgument.Text("sku-1"),
+                        CallbackArgument.Number(42.0),
+                        CallbackArgument.Bool(true),
+                    ),
+                )
+            ),
+            response.commands,
+        )
+    }
+
+    /** A bundle that sends no values still invokes a no-argument callback. */
+    @Test
+    fun `a callback with no values parses as one with none`() {
+
+        val response = BundleUiParser.parse(
+            """
+            {"ui":{"type":"text","text":"x"},
+             "commands":[{"type":"invokeCallback","name":"onSave","arguments":[]}]}
+            """.trimIndent()
+        )
+
+        assertEquals(
+            listOf(BundleCommand.InvokeCallback("onSave", emptyList())),
+            response.commands,
+        )
+    }
+
+    @Test
+    fun `refuses a callback value that is not a scalar`() {
+
+        // A bundle has no way to produce one, so its presence means the two
+        // sides disagree -- and half-running a command is worse than falling
+        // back to the native screen.
+        assertThrows(BundleProtocolException::class.java) {
+            BundleUiParser.parse(
+                """{"ui":{"type":"text","text":"x"},
+                    "commands":[{"type":"invokeCallback","name":"open",
+                                 "arguments":[{"handle":"viewModel"}]}]}"""
+            )
+        }
+    }
+
     @Test
     fun `refuses a command it does not implement`() {
 

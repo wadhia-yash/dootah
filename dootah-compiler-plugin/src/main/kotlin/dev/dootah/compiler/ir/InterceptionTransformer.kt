@@ -157,6 +157,7 @@ internal class InterceptionTransformer(
             resources = native.resources.map { resource -> resource.key }.sorted(),
             anchors = native.anchors.map { anchor -> anchor.name }.sorted(),
             builders = native.builders.map { builder -> builder.id }.sorted(),
+            callbacks = binding.callbackIds.sorted(),
         )
 
         val builder = DeclarationIrBuilder(pluginContext, function.symbol)
@@ -236,8 +237,9 @@ internal class InterceptionTransformer(
     private fun IrBuilderWithScope.buildCallbacks(binding: ScreenBinding): IrExpression =
         irCall(symbols.callbacks).apply {
             arguments[0] = irString(binding.callbackNames)
-            arguments[1] = varargOf(
-                parameter = symbols.callbacks.owner.parameters[1],
+            arguments[1] = irString(binding.callbackSignatures)
+            arguments[2] = varargOf(
+                parameter = symbols.callbacks.owner.parameters[2],
                 elements = binding.callbacks.map { irGet(it) },
             )
         }

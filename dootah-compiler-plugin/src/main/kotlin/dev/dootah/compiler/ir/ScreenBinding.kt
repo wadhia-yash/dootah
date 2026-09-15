@@ -9,7 +9,9 @@ import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.IrTypeArgument
 import org.jetbrains.kotlin.ir.types.IrTypeProjection
+import org.jetbrains.kotlin.ir.types.isMarkedNullable
 import org.jetbrains.kotlin.name.FqName
+import dev.dootah.contract.CallbackId
 
 /**
  * What a screen's parameters are, as the interception needs to see them.
@@ -39,6 +41,31 @@ internal class ScreenBinding private constructor(
 
     val callbackNames: String get() = callbacks.joinToString(",") { it.name.asString() }
 
+    /**
+     * The declared types of each callback, in the same order as [callbackNames].
+     *
+     * Sent alongside the functions themselves so the runtime can turn the values
+     * a bundle sends back into the types the app's own signature asked for. One
+     * string rather than a structure for the same reason the names are: both are
+     * compile-time constants, and pairing them positionally cannot go half
+     * right.
+     */
+    val callbackSignatures: String
+        get() = callbacks.joinToString(SIGNATURE_SEPARATOR) { parameter ->
+            parameter.type.unitFunctionParameterTypes()
+                .orEmpty()
+                .joinToString(CallbackId.SEPARATOR)
+        }
+
+    /** What this screen lets a bundle invoke, as the contract records it. */
+    val callbackIds: List<String>
+        get() = callbacks.map { parameter ->
+            CallbackId.of(
+                name = parameter.name.asString(),
+                parameterTypes = parameter.type.unitFunctionParameterTypes().orEmpty(),
+            )
+        }
+
     companion object {
 
         @OptIn(UnsafeDuringIrConstructionAPI::class)
@@ -48,11 +75,11 @@ internal class ScreenBinding private constructor(
 
             return ScreenBinding(
                 values = parameters.filter { it.type.isBundleValue() },
-                callbacks = parameters.filter { it.type.isNoArgumentUnitFunction() },
+                callbacks = parameters.filter { it.type.unitFunctionParameterTypes() != null },
                 modifier = parameters.firstOrNull { it.type.classFqName == MODIFIER },
                 natives = parameters.filterNot { parameter ->
                     parameter.type.isBundleValue() ||
-                        parameter.type.isNoArgumentUnitFunction() ||
+                        parameter.type.unitFunctionParameterTypes() != null ||
                         parameter.type.classFqName == MODIFIER
                 },
             )
@@ -64,30 +91,41 @@ private fun IrType.isBundleValue(): Boolean =
     classFqName?.asString() in BUNDLE_VALUE_TYPES
 
 /**
- * Whether this is `() -> Unit`.
+ * The values a `(T...) -> Unit` parameter takes, or null if it is not one.
  *
- * Only that shape: a callback taking arguments would need those arguments to
- * cross back from the bundle, which the command model does not do.
+ * The same rule the extraction pass applies, by name rather than by shared code
+ * because the two passes read different trees. Every parameter type has to be
+ * one a bundle can produce; a callback taking anything else stays a native-only
+ * value, which is what keeps the app's own objects out of a bundle's reach.
  */
-private fun IrType.isNoArgumentUnitFunction(): Boolean {
+internal fun IrType.unitFunctionParameterTypes(): List<String>? {
 
-    if (classFqName != FUNCTION_ZERO) return false
+    val name = classFqName?.asString() ?: return null
+    if (!name.startsWith(FUNCTION_PREFIX)) return null
+    if (name.removePrefix(FUNCTION_PREFIX).toIntOrNull() == null) return null
 
-    val returned = (this as? IrSimpleType)
-        ?.arguments
-        ?.singleOrNull()
-        ?.typeOrNull
-        ?.classFqName
+    val arguments = (this as? IrSimpleType)?.arguments ?: return null
+    if (arguments.lastOrNull()?.typeOrNull?.classFqName != UNIT) return null
 
-    return returned == UNIT
+    return arguments.dropLast(1).map { argument ->
+        val type = argument.typeOrNull ?: return null
+        val simple = type.classFqName?.asString()?.removePrefix("kotlin.") ?: return null
+        if (simple !in BUNDLE_VALUE_NAMES || type.isMarkedNullable()) return null
+        simple
+    }
 }
 
 private val IrTypeArgument.typeOrNull: IrType?
     get() = (this as? IrTypeProjection)?.type
 
 private val MODIFIER = FqName("androidx.compose.ui.Modifier")
-private val FUNCTION_ZERO = FqName("kotlin.Function0")
+private const val FUNCTION_PREFIX = "kotlin.Function"
+private const val SIGNATURE_SEPARATOR = ","
 private val UNIT = FqName("kotlin.Unit")
+
+private val BUNDLE_VALUE_NAMES = setOf(
+    "String", "Int", "Boolean", "Long", "Float", "Double",
+)
 
 private val BUNDLE_VALUE_TYPES = setOf(
     "kotlin.String",

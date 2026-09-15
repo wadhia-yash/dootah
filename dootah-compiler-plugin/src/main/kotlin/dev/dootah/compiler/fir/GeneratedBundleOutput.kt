@@ -77,7 +77,7 @@ private fun writeScreenMetadata(reportDirectory: File, screen: BundleScreen) {
         "functionName=${screen.functionName}",
         "objectName=${BundleSourceWriter.screenObjectName(screen)}",
         "parameters=${screen.parameters.joinToString(",") { it.name }}",
-        "callbacks=${screen.callbacks.joinToString(",")}",
+        "callbacks=${screen.callbacks.joinToString(",") { it.name }}",
         "actions=${screen.actions.joinToString(",") { it.name }}",
         // What the screen needs the installed app to have generated for it.
         // Separated by "," and never by ", ": this file is read back by the
@@ -123,6 +123,7 @@ private fun writeRequirementsFragment(reportDirectory: File, screen: BundleScree
                 resources = screen.resources.sorted(),
                 anchors = screen.anchors.sorted(),
                 builders = screen.builders.sorted(),
+                callbacks = screen.requiredCallbacks.sorted(),
             )
         ),
     )

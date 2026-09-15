@@ -34,7 +34,7 @@ package com.dootah.ota
  * and `handleAction(id, action, args)`, returning a UI-and-commands envelope.
  * "1" was single-screen and took no arguments.
  */
-const val DOOTAH_RUNTIME_VERSION: String = "6"
+const val DOOTAH_RUNTIME_VERSION: String = "7"
 
 /**
  * True when [manifest] targets exactly the runtime named by [supportedVersion].
