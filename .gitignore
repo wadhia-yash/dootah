@@ -43,3 +43,9 @@ replay_pid*.log
 *.pem
 *.key
 dootah-signing-key*
+
+# --- Internal planning/handoff/acceptance docs (local only, not for the public repo) ---
+/DOOTAH_CURRENT.md
+/DOOTAH_HANDOFF.md
+/docs/
+/validation/

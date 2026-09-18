@@ -79,8 +79,8 @@ class RuntimeCompatibilityTest {
     }
 
     @Test
-    fun `declares runtime version 7`() {
-        assertEquals("7", DOOTAH_RUNTIME_VERSION)
+    fun `declares runtime version 9`() {
+        assertEquals("9", DOOTAH_RUNTIME_VERSION)
     }
 
     @Test

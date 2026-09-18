@@ -1,6 +1,5 @@
 package dev.dootah.compiler.ir
 
-import dev.dootah.compiler.BUNDLABLE_ANNOTATION
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import dev.dootah.compiler.DOOTAH_NATIVE_ANNOTATION
 import dev.dootah.compiler.PREVIEW_ANNOTATION_NAME
@@ -43,7 +42,6 @@ internal fun IrSimpleFunction.composableShape(file: IrFile): ComposableShape =
             .filter { it.kind == IrParameterKind.Regular }
             .any { it.type.isComposableFunctionType() },
         isSuppressed = isSuppressedIn(file),
-        isForced = hasAnnotation(BUNDLABLE_ANNOTATION),
     )
 
 /** The function, any class it is declared in, or the file, marked `@DootahNative`. */

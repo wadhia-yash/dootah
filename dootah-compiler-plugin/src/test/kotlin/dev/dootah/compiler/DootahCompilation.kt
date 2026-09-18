@@ -200,7 +200,7 @@ fun compileWithDootah(
     dootahFirst: Boolean = true,
     withDootahRuntime: Boolean = true,
     screenFilter: String = "",
-    discovery: String = "auto",
+    discovery: String? = null,
 ): CompilationResult {
 
     val sourceDirectory = File(workingDirectory, "src").apply { mkdirs() }
@@ -239,9 +239,8 @@ fun compileWithDootah(
             "plugin:dev.dootah:mode=$mode",
             "plugin:dev.dootah:reportDir=${reportDirectory.absolutePath}",
             "plugin:dev.dootah:generatedDir=${generatedDirectory.absolutePath}",
-            "plugin:dev.dootah:discovery=$discovery",
             "plugin:dev.dootah:filter=$screenFilter",
-        )
+        ) + (discovery?.let { arrayOf("plugin:dev.dootah:discovery=$it") } ?: emptyArray())
     }
 
     val collected = mutableListOf<String>()
@@ -894,7 +893,7 @@ private fun requiredJar(property: String): File {
  * The fixture's compile classpath.
  *
  * Reuses the test runtime classpath so the fixtures see the same kotlin-stdlib
- * and the real `@Bundlable` annotation this module already depends on.
+ * and the real optional native opt-out annotation this module already depends on.
  */
 private fun testCompileClasspath(): String =
     System.getProperty("java.class.path")

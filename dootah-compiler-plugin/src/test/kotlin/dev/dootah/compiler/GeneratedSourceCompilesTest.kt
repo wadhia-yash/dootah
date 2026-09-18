@@ -35,9 +35,7 @@ class GeneratedSourceCompilesTest {
                 import androidx.compose.material3.Button
                 import androidx.compose.material3.Text
                 import androidx.compose.runtime.Composable
-                import dev.dootah.Bundlable
 
-                @Bundlable
                 @Composable
                 fun OfferScreen() {
                     val price = 999
@@ -80,9 +78,7 @@ class GeneratedSourceCompilesTest {
                 import androidx.compose.foundation.layout.Column
                 import androidx.compose.material3.Text
                 import androidx.compose.runtime.Composable
-                import dev.dootah.Bundlable
 
-                @Bundlable
                 @Composable
                 fun CountScreen() {
                     val count = 3
@@ -120,13 +116,11 @@ class GeneratedSourceCompilesTest {
                 import androidx.compose.foundation.lazy.LazyListScope
                 import androidx.compose.material3.Text
                 import androidx.compose.runtime.Composable
-                import dev.dootah.Bundlable
 
                 fun LazyListScope.articleItems(title: String) {
                     item { Text(title) }
                 }
 
-                @Bundlable
                 @Composable
                 fun ArticleScreen(title: String) {
                     LazyColumn {

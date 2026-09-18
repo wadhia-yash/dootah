@@ -66,6 +66,8 @@ object BundleManifestParser {
             url = root.requireBundleUrl(),
             sha256 = root.requireSha256(),
             signature = root.optionalString("signature"),
+            appId = root.optionalString("appId"),
+            images = root.readImages(),
         )
     }
 
@@ -174,12 +176,7 @@ private fun JsonObject.optionalString(field: String): String? {
     return requireString(field)
 }
 
-/**
- * Requires HTTPS for the payload. Until publisher signatures land, TLS is the
- * only thing binding a bundle to the party allowed to publish it, and the digest
- * in the manifest cannot help because an attacker who can rewrite the payload
- * over plaintext can rewrite the manifest too.
- */
+/** HTTPS remains required in addition to publisher authentication and payload hashes. */
 private fun JsonObject.requireBundleUrl(): String {
 
     val url = requireString("url")
@@ -205,4 +202,23 @@ private fun JsonObject.requireSha256(): String {
     }
 
     return digest
+}
+
+private fun JsonObject.readImages(): List<BundleImage> {
+    val value = this["images"] ?: return emptyList()
+    val entries = value as? kotlinx.serialization.json.JsonArray
+        ?: throw BundleManifestException("Manifest images must be an array")
+    if (entries.size > 128) throw BundleManifestException("Too many images (maximum 128)")
+    val images = entries.map { element ->
+        val obj = element as? JsonObject
+            ?: throw BundleManifestException("Each image must be an object")
+        val hash = obj.requireSha256()
+        val id = obj.requireString("id")
+        if (id != hash) throw BundleManifestException("Image id must equal its SHA-256")
+        BundleImage(id, obj.requireBundleUrl(), hash)
+    }
+    if (images.map { it.id }.distinct().size != images.size) {
+        throw BundleManifestException("Duplicate image id")
+    }
+    return images
 }

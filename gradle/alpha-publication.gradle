@@ -1,0 +1,165 @@
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
+import org.gradle.plugins.signing.SigningExtension
+
+// SDK artifacts only. The server is an application distribution, not a Maven library.
+def sdkModules = ['dootah-annotations', 'dootah-contract', 'dootah-compiler-plugin',
+                  'dootah-gradle-plugin', 'dootah-bundle-runtime', 'dootah-android']
+def descriptions = [
+    'dootah-annotations': 'Optional DootahNative opt-out for automatic Compose discovery',
+    'dootah-contract': 'Shared Dootah compiler, native runtime and update contracts',
+    'dootah-compiler-plugin': 'Kotlin compiler integration for ordinary Compose OTA updates',
+    'dootah-gradle-plugin': 'Dootah source extraction, compatibility validation and signed OTA publishing',
+    'dootah-bundle-runtime': 'Kotlin/JS runtime library used when building Dootah OTA bundles',
+    'dootah-android': 'Native Compose rendering and verified, persistent Android OTA updates',
+]
+def projectUrl = providers.gradleProperty('dootahProjectUrl').orElse('https://github.com/wadhia-yash/dootah')
+def scmUrl = providers.gradleProperty('dootahScmUrl').orElse(projectUrl)
+def licenseName = providers.gradleProperty('dootahLicenseName')
+def licenseUrl = providers.gradleProperty('dootahLicenseUrl')
+def repositoryDirectory = providers.gradleProperty('dootahTestRepository')
+    .map { file(it) }.orElse(layout.buildDirectory.dir('alpha-repository').map { it.asFile })
+
+sdkModules.each { project(":${it}").pluginManager.apply('signing') }
+project(':dootah-server').pluginManager.apply('signing')
+
+tasks.register('publishAlphaCandidate') {
+    group = 'publishing'
+    description = 'Publishes the SDK only to the isolated file Maven repository and packages the server'
+    dependsOn sdkModules.collect { ":${it}:publishAllPublicationsToAlphaTestRepository" }
+    dependsOn ':dootah-server:distZip', ':dootah-server:distTar'
+    dependsOn ':dootah-server:signDistZip', ':dootah-server:signDistTar'
+    dependsOn 'alphaServerChecksums'
+}
+
+tasks.register('checkPublicReleaseMetadata') {
+    group = 'verification'
+    description = 'Refuses public-release readiness until the owner supplies a root license and its metadata'
+    doLast {
+        if (!file('LICENSE').isFile() || !licenseName.isPresent() || !licenseUrl.isPresent()) {
+            throw new GradleException('Public release blocked: owner must choose LICENSE and supply dootahLicenseName/dootahLicenseUrl. No license is selected automatically.')
+        }
+    }
+}
+
+gradle.projectsEvaluated {
+    def server = project(':dootah-server')
+    def serverSigning = server.extensions.getByType(SigningExtension)
+    def serverKeyPath = providers.environmentVariable('DOOTAH_MAVEN_SIGNING_KEY_FILE').orNull
+    if (serverKeyPath != null) {
+        def key = rootProject.file(serverKeyPath).canonicalFile
+        if (!key.isFile() || key.toPath().startsWith(rootProject.projectDir.canonicalFile.toPath())) {
+            throw new GradleException('Artifact signing key must be an existing file outside the repository')
+        }
+        serverSigning.useInMemoryPgpKeys(key.getText('UTF-8'), providers.environmentVariable('DOOTAH_MAVEN_SIGNING_PASSWORD').getOrElse(''))
+    }
+    serverSigning.sign(server.tasks.named('distZip').get(), server.tasks.named('distTar').get())
+    def serverArchives = ['distZip', 'distTar'].collect { server.tasks.named(it).get().archiveFile }
+    tasks.register('alphaServerChecksums') {
+        group = 'publishing'
+        dependsOn ':dootah-server:distZip', ':dootah-server:distTar'
+        inputs.files(serverArchives)
+        outputs.files(serverArchives.collectMany { archive ->
+            ['sha256', 'sha512'].collect { suffix -> new File(archive.get().asFile.path + '.' + suffix) }
+        })
+        doLast {
+            serverArchives.each { archive ->
+                def file = archive.get().asFile
+                ['sha256': 'SHA-256', 'sha512': 'SHA-512'].each { suffix, algorithm ->
+                    def hash = java.security.MessageDigest.getInstance(algorithm).digest(file.bytes).encodeHex()
+                    new File(file.path + '.' + suffix).text = hash.toString() + '\n'
+                }
+            }
+        }
+    }
+    sdkModules.each { moduleName ->
+        def sdk = project(":${moduleName}")
+        def publishing = sdk.extensions.getByType(PublishingExtension)
+        publishing.repositories.maven {
+            name = 'AlphaTest'
+            url = repositoryDirectory.get().toURI()
+        }
+        def sources = sdk.fileTree('src') {
+            include 'main/**/*.kt', 'main/**/*.java', 'jsMain/**/*.kt', 'commonMain/**/*.kt'
+        }
+        // This JS-only library has no commonMain declarations. Include its JS
+        // source in the root publication as well as the platform sources JAR.
+        if (moduleName == 'dootah-bundle-runtime') {
+            sdk.tasks.named('sourcesJar') { from(sdk.file('src/jsMain/kotlin')) { into('jsMain') } }
+        }
+        def referenceDir = sdk.layout.buildDirectory.dir('alpha-reference')
+        def reference = sdk.tasks.register('alphaReference') {
+            inputs.files(sources)
+            inputs.file(rootProject.file('ALPHA_DISTRIBUTION.md'))
+            inputs.property('description', descriptions[moduleName])
+            outputs.dir(referenceDir)
+            doLast {
+                def destination = referenceDir.get().asFile
+                sdk.delete(destination)
+                destination.mkdirs()
+                def escape = { String value -> value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;') }
+                def links = []
+                sources.files.sort { a, b -> a.path <=> b.path }.each { source ->
+                    def relative = sdk.relativePath(source)
+                    def output = new File(destination, relative + '.html')
+                    output.parentFile.mkdirs()
+                    output.text = '<!doctype html><meta charset="utf-8"><title>' + escape(relative) +
+                        '</title><h1>' + escape(relative) + '</h1><pre>' + escape(source.getText('UTF-8')) + '</pre>'
+                    links.add('<li><a href="' + escape(relative + '.html') + '">' + escape(relative) + '</a></li>')
+                }
+                new File(destination, 'index.html').text = '<!doctype html><meta charset="utf-8"><title>' + moduleName +
+                    '</title><h1>' + moduleName + '</h1><p>' + descriptions[moduleName] +
+                    '</p><p>Source and KDoc reference. Kotlin declarations and their documentation are shown together.</p>' +
+                    '<ul>' + links.join('\n') + '</ul><h2>Alpha integration guide</h2><pre>' +
+                    escape(rootProject.file('ALPHA_DISTRIBUTION.md').getText('UTF-8')) + '</pre>'
+            }
+        }
+        def sourceJar = sdk.tasks.register('alphaSourcesJar', Jar) {
+            archiveClassifier = 'sources'
+            from(sources) { eachFile { details -> details.path = details.path.replaceFirst('^(main|jsMain|commonMain)/(kotlin|java)/', '') } }
+        }
+        publishing.publications.withType(MavenPublication).configureEach { publication ->
+            pom {
+                name = moduleName == 'dootah-gradle-plugin' && publication.name.contains('Marker') ? 'Dootah Gradle plugin marker' : moduleName
+                description = descriptions[moduleName]
+                url = projectUrl.get()
+                scm {
+                    url = scmUrl.get()
+                    connection = providers.gradleProperty('dootahScmConnection').orElse(scmUrl.map { "scm:git:${it}.git" }).get()
+                    developerConnection = providers.gradleProperty('dootahScmDeveloperConnection').orElse(scmUrl.map { "scm:git:${it}.git" }).get()
+                }
+                developers {
+                    developer {
+                        id = providers.gradleProperty('dootahDeveloperId').orElse('dootah-maintainers').get()
+                        name = providers.gradleProperty('dootahDeveloperName').orElse('Dootah maintainers').get()
+                        url = providers.gradleProperty('dootahDeveloperUrl').orElse(projectUrl).get()
+                    }
+                }
+                // A missing license is an explicit blocker, never a guessed license or placeholder grant.
+                if (rootProject.file('LICENSE').isFile() && licenseName.isPresent() && licenseUrl.isPresent()) {
+                    licenses { license { name = licenseName.get(); url = licenseUrl.get(); distribution = 'repo' } }
+                }
+            }
+            if (!publication.name.contains('Marker')) {
+                if (!publication.artifacts.any { it.classifier == 'sources' }) artifact(sourceJar)
+                def documentationJar = sdk.tasks.register("alpha${publication.name.capitalize()}JavadocJar", Jar) {
+                    archiveBaseName = publication.artifactId
+                    archiveClassifier = 'javadoc'
+                    from(reference)
+                }
+                artifact(documentationJar)
+            }
+        }
+        def signing = sdk.extensions.getByType(SigningExtension)
+        def keyFile = providers.environmentVariable('DOOTAH_MAVEN_SIGNING_KEY_FILE').orNull
+        if (keyFile != null) {
+            def externalKey = rootProject.file(keyFile).canonicalFile
+            if (!externalKey.isFile() || externalKey.toPath().startsWith(rootProject.projectDir.canonicalFile.toPath())) {
+                throw new GradleException('DOOTAH_MAVEN_SIGNING_KEY_FILE must name an existing private key outside the repository')
+            }
+            signing.useInMemoryPgpKeys(externalKey.getText('UTF-8'), providers.environmentVariable('DOOTAH_MAVEN_SIGNING_PASSWORD').getOrElse(''))
+        }
+        signing.required = { gradle.taskGraph.allTasks.any { it instanceof PublishToMavenRepository } }
+        signing.sign(publishing.publications)
+    }
+}

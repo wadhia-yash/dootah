@@ -245,7 +245,8 @@ private fun PropValue.requirements(): BundleRequirements = when (this) {
 
     is PropValue.AnchorValue -> BundleRequirements(anchors = listOf(anchor))
 
-    is PropValue.PainterResourceValue -> BundleRequirements(resources = listOf(key))
+    is PropValue.PainterResourceValue -> if (dev.dootah.contract.BundleImages.isImage(key))
+        BundleRequirements() else BundleRequirements(resources = listOf(key))
     is PropValue.StringResourceValue -> BundleRequirements(resources = listOf(key))
 
     is PropValue.ModifierValue ->

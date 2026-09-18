@@ -6,8 +6,8 @@ internal const val DOOTAH_LOG_TAG = "Dootah"
 /**
  * How Dootah should behave in a host app.
  *
- * Only [manifestUrl] has no sensible default. The limits are exposed so an app
- * can tighten them, not because they are expected to be tuned.
+ * [manifestUrl] selects the update endpoint; [trustedPublicKey] authorizes its
+ * publisher. Without a key the app can use its APK content but cannot accept OTA.
  */
 data class DootahConfig(
 
@@ -25,4 +25,15 @@ data class DootahConfig(
 
     val maxManifestSizeBytes: Int = 64 * 1024,
     val maxBundleSizeBytes: Int = 8 * 1024 * 1024,
+
+    /** Base64 of the trusted 32-byte Ed25519 public key. Missing key rejects OTA. */
+    val trustedPublicKey: String? = null,
+
+    /** Defaults to the installed application package name. */
+    val appId: String? = null,
+
+    /** Null keeps the static-manifest flow. Otherwise manifestUrl is /updates/check.
+     * Explicit native choice: development, staging or production. Fixed for this process.
+     */
+    val channel: String? = null,
 )

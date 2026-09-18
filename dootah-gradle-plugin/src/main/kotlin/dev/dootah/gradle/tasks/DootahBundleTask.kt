@@ -1,5 +1,11 @@
 package dev.dootah.gradle.tasks
 
+import dev.dootah.contract.SignedUpdate
+import dev.dootah.contract.SignedImage
+import dev.dootah.gradle.internal.PublisherSigning
+import dev.dootah.contract.BundleImages
+import dev.dootah.gradle.internal.BundleImagePackaging
+import dev.dootah.gradle.internal.PackagedImage
 import dev.dootah.gradle.internal.compiledBundleFile
 import dev.dootah.gradle.internal.compiledKlibFile
 import dev.dootah.gradle.internal.klibArguments
@@ -41,6 +47,10 @@ abstract class DootahBundleTask @Inject constructor(
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val generatedSourceDirectory: DirectoryProperty
 
+    @get:org.gradle.api.tasks.InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val imageResources: ConfigurableFileCollection
+
     @get:Classpath
     abstract val kotlinCompilerClasspath: ConfigurableFileCollection
 
@@ -57,12 +67,33 @@ abstract class DootahBundleTask @Inject constructor(
     @get:Input
     abstract val bundleUrl: Property<String>
 
+    @get:Input
+    abstract val appId: Property<String>
+
+    @get:Input
+    @get:org.gradle.api.tasks.Optional
+    abstract val publishingServer: Property<String>
+
+    init {
+        // Never cache or skip signing based on an earlier key. Secret bytes are not task inputs.
+        outputs.upToDateWhen { false }
+        outputs.doNotCacheIf("Signing uses a private local key") { true }
+    }
+
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
     @TaskAction
     fun assemble() {
 
+        // Only the path enters the environment. Never log or put key bytes in Gradle inputs.
+        val keyPath = System.getenv("DOOTAH_SIGNING_KEY_FILE")
+            ?: throw GradleException("Set DOOTAH_SIGNING_KEY_FILE to an external PKCS#8 PEM file")
+        val signingKey = File(keyPath).canonicalFile
+        if (!signingKey.isFile || signingKey.toPath().startsWith(project.rootDir.canonicalFile.toPath())) {
+            throw GradleException("Signing key must be an existing file outside the project")
+        }
+        require(appId.get().isNotBlank()) { "Dootah appId must not be blank" }
         val sources = generatedSourceDirectory.get().asFile
             .walkTopDown()
             .filter { it.isFile && it.extension == "kt" }
@@ -75,6 +106,13 @@ abstract class DootahBundleTask @Inject constructor(
             )
         }
 
+        val images = BundleImagePackaging.collect(sources, imageResources.files)
+        val prepared = freshDirectory("image-sources")
+        val imageSources = sources.mapIndexed { index, source ->
+            File(prepared, "$index.kt").apply {
+                writeText(BundleImagePackaging.rewrite(source.readText(), images))
+            }
+        }
         val libraries = bundleRuntimeClasspath.files.toList()
 
         // Separate directories on purpose. The linker clears its output
@@ -83,13 +121,13 @@ abstract class DootahBundleTask @Inject constructor(
         val klibDirectory = freshDirectory("klib")
         val bundleDirectory = freshDirectory("bundle")
 
-        compile(klibArguments(sources, libraries, klibDirectory), step = "klib")
+        compile(klibArguments(imageSources, libraries, klibDirectory), step = "klib")
         compile(
             linkArguments(compiledKlibFile(klibDirectory), libraries, bundleDirectory),
             step = "link",
         )
 
-        publish(compiledBundleFile(bundleDirectory))
+        publish(compiledBundleFile(bundleDirectory), images, signingKey)
     }
 
     private fun freshDirectory(name: String): File =
@@ -118,7 +156,7 @@ abstract class DootahBundleTask @Inject constructor(
         }
     }
 
-    private fun publish(bundleFile: File) {
+    private fun publish(bundleFile: File, images: List<PackagedImage>, signingKey: File) {
 
         if (!bundleFile.isFile) {
             throw GradleException(
@@ -126,33 +164,35 @@ abstract class DootahBundleTask @Inject constructor(
             )
         }
 
-        val payload = bundleFile.readBytes()
+        val payload = BundleImages.header(images.map { it.hash }).toByteArray() + bundleFile.readBytes()
         val digest = sha256Hex(payload)
 
+        val update = SignedUpdate(
+            1, appId.get(), runtimeVersion.get(), bundleVersion.get(), true,
+            publishingServer.orNull?.let { "$it/artifacts/$digest" } ?: bundleUrl.get(), digest,
+            images.distinctBy { it.hash }.map {
+                SignedImage(it.hash, publishingServer.orNull?.let { server -> "$server/artifacts/${it.hash}" }
+                    ?: BundleImagePackaging.imageUrl(bundleUrl.get(), it.hash), it.hash)
+            },
+        )
+        val signedManifest = try {
+            update.manifestJson(PublisherSigning.sign(update, signingKey))
+        } catch (_: Exception) {
+            // Key parser exceptions must never echo sensitive input.
+            throw GradleException("Cannot sign update: expected a valid Ed25519 PKCS#8 PEM private key")
+        }
         val output = outputDirectory.get().asFile.apply { mkdirs() }
         output.resolve(BUNDLE_FILE_NAME).writeBytes(payload)
-        output.resolve(MANIFEST_FILE_NAME).writeText(manifest(digest))
+        images.distinctBy { it.hash }.forEach { image ->
+            output.resolve("images/${image.hash}").apply { parentFile.mkdirs() }.writeBytes(image.bytes)
+        }
+        output.resolve(MANIFEST_FILE_NAME).writeText(signedManifest)
 
         logger.lifecycle(
             "Dootah bundle ${bundleVersion.get()}: ${output.resolve(BUNDLE_FILE_NAME)} " +
                 "(${payload.size} bytes, sha256 $digest)"
         )
     }
-
-    /**
-     * The manifest schema the installed app already validates. Every field is
-     * required there, so every field is written here.
-     */
-    private fun manifest(digest: String): String = """
-        {
-          "schemaVersion": 1,
-          "bundleVersion": ${bundleVersion.get()},
-          "runtimeVersion": "${runtimeVersion.get()}",
-          "enabled": true,
-          "url": "${bundleUrl.get()}",
-          "sha256": "$digest"
-        }
-    """.trimIndent() + "\n"
 
     private fun sha256Hex(payload: ByteArray): String =
         MessageDigest.getInstance("SHA-256")

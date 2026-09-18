@@ -8,7 +8,7 @@ package com.dootah
  */
 sealed interface UpdateResult {
 
-    /** A new bundle was downloaded, verified and stored. */
+    /** A new candidate was downloaded, verified and stored; it is not yet confirmed healthy. */
     data class Updated(
         val bundleVersion: Int,
         val previousBundleVersion: Int,

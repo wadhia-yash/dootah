@@ -369,9 +369,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.material3.Button
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(headline: String, navigateToPost: (String) -> Unit) {
                 Column {
@@ -434,9 +432,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.ui.Modifier
             import androidx.compose.foundation.layout.padding
             import androidx.compose.ui.unit.dp
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen() {
                 Column {
@@ -600,11 +596,9 @@ class NativeAdapterAgreementTest {
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.unit.dp
-            import dev.dootah.Bundlable
 
             private val RowHeight = 96.dp
 
-            @Bundlable
             @Composable
             fun Screen(title: String, modifier: Modifier = Modifier) {
                 Column(modifier = modifier) {
@@ -635,7 +629,6 @@ class NativeAdapterAgreementTest {
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.unit.dp
-            import dev.dootah.Bundlable
 
             class Padding {
                 val small = 8.dp
@@ -644,7 +637,6 @@ class NativeAdapterAgreementTest {
 
             val MaterialTheme.padding: Padding get() = Padding()
 
-            @Bundlable
             @Composable
             fun Screen(title: String, modifier: Modifier = Modifier) {
                 Column(
@@ -670,9 +662,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.graphics.Color
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(
                 title: String,
@@ -698,9 +688,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.material3.Icon
             import androidx.compose.material3.IconButton
             import androidx.compose.runtime.Composable
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(onPick: () -> Unit) {
                 Column {
@@ -744,7 +732,6 @@ class NativeAdapterAgreementTest {
                 import androidx.compose.material3.IconButton
                 import androidx.compose.runtime.Composable
                 import androidx.compose.runtime.MutableState
-                import dev.dootah.Bundlable
 
                 class DrawingViewModel {
                     fun changeBrush(brush: String) {}
@@ -761,7 +748,6 @@ class NativeAdapterAgreementTest {
                     customBrushes: List<CustomBrush>,
                 ) {}
 
-                @Bundlable
                 @Composable
                 fun Screen(
                     viewModel: DrawingViewModel,
@@ -798,9 +784,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.material3.Chip
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(onSave: () -> Unit) {
                 Column {
@@ -820,9 +804,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.material3.Icon
             import androidx.compose.material3.MaterialTheme
             import androidx.compose.runtime.Composable
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(label: String) {
                 Column {
@@ -846,9 +828,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(
                 title: String,
@@ -876,9 +856,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(
                 title: String,
@@ -944,13 +922,11 @@ class NativeAdapterAgreementTest {
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
-            import dev.dootah.Bundlable
 
             fun LazyListScope.articleItems(title: String) {
                 item { Text(title) }
             }
 
-            @Bundlable
             @Composable
             fun Screen(
                 title: String,
@@ -1049,7 +1025,6 @@ class NativeAdapterAgreementTest {
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.unit.Dp
-            import dev.dootah.Bundlable
 
             val defaultSpacerSize = Dp(16f)
 
@@ -1059,7 +1034,6 @@ class NativeAdapterAgreementTest {
                 item { Text(post.title) }
             }
 
-            @Bundlable
             @Composable
             fun PostContent(
                 post: Post,
@@ -1097,9 +1071,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(
                 title: String,
@@ -1127,9 +1099,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(
                 title: String,
@@ -1159,9 +1129,7 @@ class NativeAdapterAgreementTest {
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.graphics.Color
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen(
                 title: String,

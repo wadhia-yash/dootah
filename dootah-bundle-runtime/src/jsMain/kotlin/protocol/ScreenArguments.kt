@@ -1,7 +1,7 @@
 package protocol
 
 /**
- * The values a native caller passed into a `@Bundlable` screen.
+ * The values a native caller passed into an intercepted Compose screen.
  *
  * Parsed from JSON the Android side builds out of the screen's actual
  * parameters. Only the types Dootah can carry appear here; a parameter of any

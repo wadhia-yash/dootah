@@ -16,11 +16,14 @@ import kotlinx.coroutines.withContext
  */
 internal class BundleUpdater(
     private val manifestUrl: String,
-    private val downloader: BundleDownloader,
-    private val store: BundleStore,
+    private val download: (String, Int) -> ByteArray,
+    private val store: UpdateStore,
     private val supportedRuntimeVersion: String,
     private val maxManifestSizeBytes: Int,
     private val maxBundleSizeBytes: Int,
+    private val verifier: ManifestVerifier,
+    private val checkRequest: UpdateCheckRequest? = null,
+    private val downloadCheck: (String, Int) -> ByteArray = download,
 ) {
 
     suspend fun checkForUpdate(): UpdateResult = withContext(Dispatchers.IO) {
@@ -32,12 +35,21 @@ internal class BundleUpdater(
             failed(UpdateFailure.NETWORK, e)
         } catch (e: BundleVerificationException) {
             failed(UpdateFailure.FAILED_VERIFICATION, e)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: java.io.IOException) {
+            UpdateResult.Failed(UpdateFailure.STORAGE, e.message ?: "Storage failure")
+        } catch (e: Exception) {
+            UpdateResult.Failed(UpdateFailure.UNKNOWN, e.message ?: "Update failed")
         }
     }
 
     private fun runCheck(): UpdateResult {
 
-        val manifest = BundleManifestParser.parse(fetchManifestJson())
+        val response = fetchManifestJson()
+        if (response == null) return UpdateResult.NoUpdate(store.installedBundleVersion)
+        val manifest = BundleManifestParser.parse(response)
+        verifier.verify(manifest)
         val installedVersion = store.installedBundleVersion
 
         Log.i(
@@ -84,8 +96,10 @@ internal class BundleUpdater(
             }
 
             is UpdateDecision.Download -> {
-                clearDisabledFlag()
-                install(decision.manifest, installedVersion)
+                if (store.isBlocked(manifest)) {
+                    Log.w(DOOTAH_LOG_TAG, "QUARANTINE/PAUSE: refusing bundle ${manifest.bundleVersion} before download")
+                    UpdateResult.NoUpdate(installedVersion)
+                } else install(decision.manifest, installedVersion)
             }
         }
     }
@@ -94,7 +108,7 @@ internal class BundleUpdater(
 
         Log.i(DOOTAH_LOG_TAG, "downloading bundle ${manifest.bundleVersion}")
 
-        val payload = downloader.download(manifest.url, maxBundleSizeBytes)
+        val payload = download(manifest.url, maxBundleSizeBytes)
 
         val actualDigest = sha256Hex(payload)
 
@@ -108,7 +122,9 @@ internal class BundleUpdater(
         Log.i(DOOTAH_LOG_TAG, "hash verified for bundle ${manifest.bundleVersion}")
 
         try {
-            store.saveDownloadedBundle(payload, manifest.bundleVersion)
+            store.install(manifest, payload, download)
+        } catch (e: BundleException) {
+            throw e
         } catch (e: Exception) {
             Log.e(DOOTAH_LOG_TAG, "could not store bundle ${manifest.bundleVersion}", e)
             return UpdateResult.Failed(
@@ -117,6 +133,7 @@ internal class BundleUpdater(
             )
         }
 
+        clearDisabledFlag()
         Log.i(DOOTAH_LOG_TAG, "stored bundle ${manifest.bundleVersion}")
 
         return UpdateResult.Updated(
@@ -134,12 +151,13 @@ internal class BundleUpdater(
         }
     }
 
-    private fun fetchManifestJson(): String {
+    private fun fetchManifestJson(): String? {
 
         // Adds context but keeps the exception type, so an unreachable manifest
         // is reported as NETWORK rather than as a malformed document.
         val payload = try {
-            downloader.download(manifestUrl, maxManifestSizeBytes)
+            if (checkRequest == null) download(manifestUrl, maxManifestSizeBytes)
+            else downloadCheck(checkRequest.url(manifestUrl), maxManifestSizeBytes)
         } catch (cause: BundleDownloadException) {
             throw BundleDownloadException(
                 "Could not fetch manifest from $manifestUrl: ${cause.message}",
@@ -147,7 +165,9 @@ internal class BundleUpdater(
             )
         }
 
-        return payload.decodeToString()
+        if (checkRequest != null && payload.isEmpty()) return null
+        val json = payload.decodeToString()
+        return checkRequest?.manifest(json) ?: json
     }
 
     private fun failed(reason: UpdateFailure, cause: BundleException): UpdateResult {
@@ -159,4 +179,12 @@ internal class BundleUpdater(
             message = cause.message ?: cause::class.java.simpleName,
         )
     }
+}
+
+/** Update transaction boundary, also usable without an Android Context in regression tests. */
+internal interface UpdateStore {
+    val installedBundleVersion: Int
+    var isRemotelyDisabled: Boolean
+    fun isBlocked(manifest: BundleManifest): Boolean = false
+    fun install(manifest: BundleManifest, payload: ByteArray, download: (String, Int) -> ByteArray)
 }

@@ -368,9 +368,7 @@ class LayoutArgumentLoweringTest {
             import androidx.compose.ui.Alignment
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.unit.dp
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun Screen($parameters) {
                 ${prelude.trimIndent().replace("\n", "\n    ")}
@@ -539,11 +537,9 @@ class LayoutArgumentLoweringTest {
                     import androidx.compose.runtime.Composable
                     import androidx.compose.ui.Modifier
                     import androidx.compose.ui.unit.dp
-                    import dev.dootah.Bundlable
 
                     private val RowHeight = 96.dp
 
-                    @Bundlable
                     @Composable
                     fun Screen() {
                         Column {
@@ -580,7 +576,6 @@ class LayoutArgumentLoweringTest {
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.unit.dp
-            import dev.dootah.Bundlable
 
             class Padding {
                 val small = 8.dp
@@ -589,7 +584,6 @@ class LayoutArgumentLoweringTest {
 
             val MaterialTheme.padding: Padding get() = Padding()
 
-            @Bundlable
             @Composable
             fun Screen() {
                 ${prelude.trimIndent().replace("\n", "\n    ")}

@@ -39,7 +39,7 @@ class DootahCommandLineProcessor : CommandLineProcessor {
         ),
         CliOption(
             optionName = OPTION_DISCOVERY,
-            valueDescription = "auto|annotated",
+            valueDescription = "auto",
             description = "How Dootah finds the Compose functions it may take over",
             required = false,
         ),

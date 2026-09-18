@@ -1,7 +1,5 @@
 package dev.dootah.compiler.ir
 
-import dev.dootah.compiler.BUNDLABLE_ANNOTATION
-import dev.dootah.compiler.DootahDiscovery
 import dev.dootah.contract.ScreenEligibility
 import dev.dootah.contract.ScreenFilter
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
@@ -9,7 +7,6 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
-import org.jetbrains.kotlin.ir.util.hasAnnotation
 
 /**
  * A Compose function Dootah will rewrite, together with the file declaring it.
@@ -41,13 +38,12 @@ internal data class DiscoveredScreen(
  */
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 internal fun IrModuleFragment.discoverScreens(
-    discovery: DootahDiscovery,
     filter: ScreenFilter,
 ): List<DiscoveredScreen> =
     files
         .sortedBy { it.fileEntry.name }
         .flatMap { file ->
-            file.eligibleFunctions(file, discovery, filter)
+            file.eligibleFunctions(file, filter)
                 .map { DiscoveredScreen(file = file, function = it) }
         }
 
@@ -56,17 +52,16 @@ internal fun IrModuleFragment.discoverScreens(
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrDeclarationContainer.eligibleFunctions(
     file: IrFile,
-    discovery: DootahDiscovery,
     filter: ScreenFilter,
 ): List<IrSimpleFunction> =
     declarations.flatMap { declaration ->
         when (declaration) {
 
             is IrSimpleFunction ->
-                if (declaration.isDiscovered(file, discovery, filter)) listOf(declaration)
+                if (declaration.isDiscovered(file, filter)) listOf(declaration)
                 else emptyList()
 
-            is IrDeclarationContainer -> declaration.eligibleFunctions(file, discovery, filter)
+            is IrDeclarationContainer -> declaration.eligibleFunctions(file, filter)
 
             else -> emptyList()
         }
@@ -75,16 +70,8 @@ private fun IrDeclarationContainer.eligibleFunctions(
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrSimpleFunction.isDiscovered(
     file: IrFile,
-    discovery: DootahDiscovery,
     filter: ScreenFilter,
 ): Boolean {
-
-    // The older model, kept so an app can hold still while it migrates. The
-    // structural rule still applies: a function that cannot be intercepted
-    // cannot be intercepted because someone annotated it.
-    if (discovery == DootahDiscovery.ANNOTATED && !hasAnnotation(BUNDLABLE_ANNOTATION)) {
-        return false
-    }
 
     return ScreenEligibility.accepts(composableShape(file), filter)
 }

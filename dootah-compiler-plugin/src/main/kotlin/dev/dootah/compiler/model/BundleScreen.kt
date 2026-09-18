@@ -1,7 +1,7 @@
 package dev.dootah.compiler.model
 
 /**
- * One `@Bundlable` screen, reduced to the subset Dootah can send over the air.
+ * One ordinary Compose screen, reduced to the subset Dootah can send over the air.
  *
  * The whole contract between the frontend that reads the developer's Kotlin and
  * the writer that emits bundle Kotlin. Nothing outside this model can reach a

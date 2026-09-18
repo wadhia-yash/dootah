@@ -85,7 +85,7 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
     }
 
     /**
-     * Puts `@Bundlable` and the Dootah runtime on the app's classpath.
+     * Puts the optional native opt-out annotation and the Dootah runtime on the app's classpath.
      *
      * Wired automatically because requiring a host app to declare dependencies
      * it did not choose is exactly the manual step this plugin exists to remove
@@ -152,7 +152,7 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
 
     private companion object {
         /** Used when running from a build output that carries no jar manifest. */
-        const val FALLBACK_VERSION = "0.1.0-SNAPSHOT"
+        const val FALLBACK_VERSION = "0.1.0-alpha.1"
 
         const val DEBUG_COMPILE_TASK = "compileDebugKotlin"
         const val EXTRACT_TASK = "dootahExtract"

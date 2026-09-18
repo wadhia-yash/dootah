@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.fir.types.isMarkedNullable
 import org.jetbrains.kotlin.name.FqName
 
 /**
- * What one parameter of a `@Bundlable` screen is, to Dootah.
+ * What one parameter of an ordinary Compose screen is, to Dootah.
  *
  * The four kinds are handled in four different ways, and the difference matters
  * for security as much as for capability: a serialisable value crosses into the

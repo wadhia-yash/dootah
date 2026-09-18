@@ -1,6 +1,5 @@
 package dev.dootah.compiler.fir
 
-import dev.dootah.compiler.DootahDiscovery
 import dev.dootah.contract.Eligibility
 import dev.dootah.contract.ScreenEligibility
 import dev.dootah.contract.ScreenFilter
@@ -28,7 +27,6 @@ import java.io.File
 internal class ScreenExtractionChecker(
     private val reportDirectory: File,
     private val generatedDirectory: File?,
-    private val discovery: DootahDiscovery,
     private val filter: ScreenFilter,
 ) : FirDeclarationChecker<FirNamedFunction>(MppCheckerKind.Common) {
 
@@ -42,11 +40,6 @@ internal class ScreenExtractionChecker(
         // every helper and extension against it would make the figure useless.
         if (!shape.isComposable) return
 
-        // The older model, kept for migration. An unannotated function is
-        // passed over silently rather than recorded as ineligible, because
-        // under this setting that is a choice rather than a limitation.
-        if (discovery == DootahDiscovery.ANNOTATED && !shape.isForced) return
-
         when (val eligibility = ScreenEligibility.of(shape, filter)) {
 
             is Eligibility.Ineligible -> {
@@ -55,7 +48,6 @@ internal class ScreenExtractionChecker(
                     fqName = shape.fqName,
                     outcome = DiscoveryOutcome.INELIGIBLE,
                     reason = eligibility.reason,
-                    forced = shape.isForced,
                 )
                 return
             }
@@ -97,7 +89,6 @@ internal class ScreenExtractionChecker(
                     reportDirectory = reportDirectory,
                     fqName = shape.fqName,
                     outcome = DiscoveryOutcome.LOWERED,
-                    forced = shape.isForced,
                     adapters = result.screen.adapters.size,
                     shape = result.screen.remoteShape(),
                 )
@@ -120,7 +111,6 @@ internal class ScreenExtractionChecker(
                     reportDirectory = reportDirectory,
                     fqName = shape.fqName,
                     outcome = DiscoveryOutcome.NOT_WORTH_SHIPPING,
-                    forced = shape.isForced,
                     adapters = result.screen.adapters.size,
                     shape = result.shape,
                 )
@@ -131,14 +121,12 @@ internal class ScreenExtractionChecker(
                     reportDirectory = reportDirectory,
                     screenId = screenId,
                     reasons = result.reasons,
-                    forced = shape.isForced,
                 )
 
                 writeDiscoveryRecord(
                     reportDirectory = reportDirectory,
                     fqName = shape.fqName,
                     outcome = DiscoveryOutcome.REJECTED,
-                    forced = shape.isForced,
                 )
             }
         }

@@ -32,6 +32,7 @@ internal data class RemoteShape(
     val conditionals: Int,
     val actions: Int,
     val states: Int,
+    val imagePainters: Int = 0,
 ) {
 
     val nodes: Int get() = described + placed + frozen
@@ -39,12 +40,13 @@ internal data class RemoteShape(
     /**
      * Whether publishing this screen could change anything.
      *
-     * Two ways to qualify, and a screen needs one of them.
+     * A screen needs a visible decision the bundle can change.
      *
      * Either the bundle owns a decision of its own -- a layout it arranges, a
      * condition it evaluates, text it writes, an action it performs, state it
      * keeps -- or it holds more than one node, in which case it decides the
-     * order and the number of them even if it wrote none of them.
+     * order and the number of them even if it wrote none of them. A supplied
+     * image painter also qualifies: one image can visibly change on its own.
      *
      * The rule is stated as "something changeable", not as a proportion. A
      * screen that is one described node and nine frozen ones is ten per cent
@@ -53,7 +55,7 @@ internal data class RemoteShape(
      * exactly the screens that update fine.
      */
     val worthShipping: Boolean
-        get() = described > 0 || conditionals > 0 || actions > 0 || states > 0 || nodes > 1
+        get() = described > 0 || conditionals > 0 || actions > 0 || states > 0 || nodes > 1 || imagePainters > 0
 
     /** Why not, in the words a build log should use. */
     fun refusal(): String =
@@ -69,12 +71,20 @@ internal fun BundleScreen.remoteShape(): RemoteShape {
     var placed = 0
     var frozen = 0
     var conditionals = 0
+    var imagePainters = 0
 
     fun walk(node: BundleUi) {
         when (node) {
 
             is BundleUi.ComponentUi -> {
                 if (FrozenRegionId.isFrozen(node.adapterId)) frozen++ else placed++
+                // One native Image is enough to ship: changing its painter is
+                // visible even when no layout or sibling changes. Frozen calls
+                // have no remotely supplied props and never qualify this way.
+                imagePainters += node.props.values.count { prop ->
+                    prop is dev.dootah.compiler.model.BundleProp.Constant &&
+                        prop.value is dev.dootah.contract.PropValue.PainterResourceValue
+                }
                 node.children.values.flatten().forEach(::walk)
 
                 // A builder slot is a list the bundle owns. An `item` it
@@ -115,6 +125,7 @@ internal fun BundleScreen.remoteShape(): RemoteShape {
         frozen = frozen,
         conditionals = conditionals,
         actions = actions.size,
+        imagePainters = imagePainters,
         states = prelude.count { statement ->
             statement is dev.dootah.compiler.model.BundleStatement.DeclareState
         },

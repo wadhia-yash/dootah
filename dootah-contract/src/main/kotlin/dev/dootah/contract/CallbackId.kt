@@ -3,7 +3,7 @@ package dev.dootah.contract
 /**
  * The identity of a screen callback a bundle may ask the installed app to run.
  *
- * A callback is a function-typed parameter of a `@Bundlable` screen -- an
+ * A callback is a function-typed parameter of an ordinary Compose screen -- an
  * `onSave`, a `navigateToPost` -- that the app's own caller supplied. The bundle
  * refers to one by this id and hands it values it computed itself; it cannot
  * construct one, cannot reach a callback of another screen, and cannot name a

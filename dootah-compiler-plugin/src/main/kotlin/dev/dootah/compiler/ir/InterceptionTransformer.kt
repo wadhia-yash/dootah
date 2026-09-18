@@ -64,7 +64,7 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
 
 /**
- * Rewrites a `@Bundlable` function so Dootah can substitute a remote
+ * Rewrites an ordinary Compose function so Dootah can substitute a remote
  * implementation, keeping the original body as the fallback.
  *
  * The rewrite produces, in effect:

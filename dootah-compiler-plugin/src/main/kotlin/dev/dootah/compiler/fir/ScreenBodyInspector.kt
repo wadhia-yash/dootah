@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 
 /**
- * What one `@Bundlable` function's body is made of, as far as extraction needs
+ * What one ordinary Compose function's body is made of, as far as extraction needs
  * to know.
  *
  * Recorded in source order: the eventual lowering emits UI in the order the

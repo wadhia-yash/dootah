@@ -7,97 +7,101 @@
   "totals": {
     "composables": 140,
     "eligible": 79,
-    "fallback": 33,
-    "ineligible": 61,
-    "ineligible:RETURNS_A_VALUE": 13,
-    "shape:described": 8,
-    "shape:placed": 60,
-    "shape:frozen": 20,
+    "shape:described": 9,
+    "shape:placed": 63,
+    "shape:frozen": 25,
     "shape:conditionals": 0,
     "shape:actions": 0,
     "shape:states": 0,
-    "mixed": 31,
+    "mixed": 34,
+    "ineligible": 61,
+    "ineligible:RETURNS_A_VALUE": 13,
+    "fallback": 22,
+    "not_worth": 23,
     "ineligible:HAS_RECEIVER": 6,
     "ineligible:TAKES_COMPOSABLE_CONTENT": 19,
-    "not_worth": 15,
     "ineligible:PREVIEW": 23
   },
   "blocked_by": {
-    "third-party composable": 17,
+    "callback argument type": 3,
     "native local read remotely": 1,
-    "native capability": 4,
-    "Compose value type": 5,
-    "name from outside the screen": 1,
-    "callback argument type": 2,
-    "unsupported Kotlin syntax": 3
+    "native capability": 9,
+    "collections/data classes": 1,
+    "third-party composable": 1,
+    "unsupported Kotlin syntax": 2,
+    "Compose value type": 4,
+    "name from outside the screen": 1
   },
   "occurrences": {
-    "third-party composable": 17,
+    "callback argument type": 3,
     "native local read remotely": 1,
-    "native capability": 4,
-    "Compose value type": 5,
-    "name from outside the screen": 1,
-    "callback argument type": 2,
-    "unsupported Kotlin syntax": 3
+    "native capability": 9,
+    "collections/data classes": 1,
+    "third-party composable": 1,
+    "unsupported Kotlin syntax": 2,
+    "Compose value type": 4,
+    "name from outside the screen": 1
   },
   "details": {
-    "third-party composable": {
-      "com.google.samples.apps.nowinandroid.core.designsystem.theme.NiaTheme": 2,
-      "androidx.compose.runtime.LaunchedEffect": 2,
-      "androidx.compose.runtime.DisposableEffect": 2,
-      "com.google.samples.apps.nowinandroid.core.designsystem.component.NiaNavigationSuiteScaffold": 1,
-      "com.google.samples.apps.nowinandroid.core.ui.TrackDisposableJank": 1,
-      "androidx.compose.material3.CircularProgressIndicator": 1
+    "callback argument type": {
+      "lambda:kotlin.Function1": 1,
+      "lambda:kotlin.Function0": 1,
+      "lambda:kotlin.coroutines.SuspendFunction1": 1
     },
     "native local read remotely": {
       "native local:isLocalInspection": 1
     },
     "native capability": {
-      "kotlin.collections.forEachIndexed": 1,
+      "kotlin.collections.forEachIndexed": 2,
       "kotlin.text.isEmpty": 1,
+      "call:androidx.compose.ui.semantics.semantics": 1,
       "kotlin.text.isNotBlank": 1,
+      "call:androidx.compose.foundation.shape.RoundedCornerShape": 1,
       "call:androidx.compose.material3.TextFieldDefaults.colors": 1
+    },
+    "collections/data classes": {
+      "value:kotlin.Any": 1
+    },
+    "third-party composable": {
+      "androidx.compose.material3.CircularProgressIndicator": 1
+    },
+    "unsupported Kotlin syntax": {
+      "expression:FirVarargArgumentsExpressionImpl": 2
     },
     "Compose value type": {
       "value:androidx.compose.foundation.gestures.ScrollableState": 3,
-      "androidx.compose.foundation.horizontalScroll": 1,
       "property:<local>.shouldDisplayUndoBookmark": 1
     },
     "name from outside the screen": {
       "outside the screen:current": 1
-    },
-    "callback argument type": {
-      "lambda:kotlin.Function0": 1,
-      "lambda:kotlin.coroutines.SuspendFunction1": 1
-    },
-    "unsupported Kotlin syntax": {
-      "FirPropertyImpl": 2,
-      "FirAnonymousFunctionExpressionImpl": 1
     }
   },
   "inside": {
-    "Compose value type": 6,
-    "native capability": 5,
-    "unsupported Kotlin syntax": 7,
+    "unsupported Kotlin syntax": 9,
+    "Compose value type": 8,
+    "native capability": 7,
     "collections/data classes": 2,
     "name from outside the screen": 1
   },
   "inside_details": {
+    "unsupported Kotlin syntax": {
+      "expression:FirResolvedQualifierImpl": 7,
+      "FirPropertyImpl": 1,
+      "FirAnonymousFunctionExpressionImpl": 1
+    },
     "Compose value type": {
-      "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.BookmarkBorder": 2,
-      "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.Bookmark": 2,
+      "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.BookmarkBorder": 3,
+      "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.Bookmark": 3,
       "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.Add": 1,
       "property:com.google.samples.apps.nowinandroid.core.designsystem.icon.NiaIcons.ArrowBack": 1
     },
     "native capability": {
+      "call:androidx.compose.foundation.layout.windowInsetsTopHeight": 2,
       "kotlin.text.uppercase": 1,
       "call:com.google.samples.apps.nowinandroid.feature.foryou.impl.OnboardingUiState.Shown.Shown": 1,
       "call:com.google.samples.apps.nowinandroid.feature.interests.impl.InterestsUiState.Interests.Interests": 1,
-      "call:androidx.compose.foundation.layout.windowInsetsTopHeight": 1,
+      "kotlin.collections.isNotEmpty": 1,
       "call:com.google.samples.apps.nowinandroid.feature.topic.impl.TopicUiState.Success.Success": 1
-    },
-    "unsupported Kotlin syntax": {
-      "expression:FirResolvedQualifierImpl": 7
     },
     "collections/data classes": {
       "com.google.samples.apps.nowinandroid.feature.interests.impl.InterestsUiState": 1,
@@ -108,6 +112,22 @@
     }
   },
   "shapes": [
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
     {
       "described": 1,
       "placed": 3,
@@ -286,6 +306,38 @@
     },
     {
       "described": 0,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,
@@ -311,6 +363,14 @@
     {
       "described": 0,
       "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -398,6 +458,14 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 1,
       "frozen": 1,
       "conditionals": 0,
@@ -422,6 +490,30 @@
     },
     {
       "described": 1,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,

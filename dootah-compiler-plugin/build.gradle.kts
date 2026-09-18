@@ -71,8 +71,19 @@ tasks.test {
     // the compiler's plugin classpath. Passing classes directories instead
     // would skip the service-loader registration that wiring depends on.
     val pluginJar = tasks.jar.flatMap { it.archiveFile }
+    val annotationJar = project(":dootah-annotations").tasks
+        .named<org.gradle.jvm.tasks.Jar>("jar").flatMap { it.archiveFile }
     inputs.file(pluginJar)
+    inputs.file(annotationJar)
     inputs.files(contractJar)
+
+    // Guard the shipped API and its documentation against obsolete opt-in paths.
+    val apiSources = rootProject.fileTree(rootProject.projectDir) {
+        include("dootah-*/src/main/**", "dootah-*/src/jsMain/**")
+        include("*.md", "examples/**/*.md", "validation/**/*.md")
+        exclude("**/build/**")
+    }
+    inputs.files(apiSources)
 
     // Generated bundle Kotlin is compiled against the real bundle runtime
     // sources, so the test proves the generator's output works with the code it
@@ -85,6 +96,8 @@ tasks.test {
         CommandLineArgumentProvider {
             listOf(
                 "-Ddootah.plugin.jar=${pluginJar.get().asFile.absolutePath}",
+                "-Ddootah.annotations.jar=${annotationJar.get().asFile.absolutePath}",
+                "-Ddootah.repository=${rootProject.projectDir.absolutePath}",
                 "-Ddootah.contract.jar=${contractJar.asPath}",
                 "-Ddootah.js.stdlib=${jsStdlib.asPath}",
                 "-Ddootah.runtime.sources=${runtimeSources.absolutePath}",

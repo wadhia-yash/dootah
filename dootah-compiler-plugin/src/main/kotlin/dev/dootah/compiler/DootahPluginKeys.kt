@@ -6,8 +6,6 @@ import org.jetbrains.kotlin.name.FqName
 /** The plugin id shared by the Gradle plugin and this compiler plugin. */
 const val DOOTAH_PLUGIN_ID: String = "dev.dootah"
 
-val BUNDLABLE_ANNOTATION: FqName = FqName("dev.dootah.Bundlable")
-
 /** Opts a function, class or file out of Dootah entirely. */
 val DOOTAH_NATIVE_ANNOTATION: FqName = FqName("dev.dootah.DootahNative")
 
@@ -64,14 +62,11 @@ enum class DootahMode {
 /**
  * How Dootah decides which Compose functions it may take over.
  *
- * [AUTO] is the product: a developer configures the project once and keeps
- * writing ordinary Compose. [ANNOTATED] is the older model, kept because it is
- * the only way to ask "what changes when discovery is switched on", and because
- * an app part-way through migrating needs to be able to stand still.
+ * [AUTO] is the only supported mode. Projects narrow discovery with include/exclude
+ * patterns; source annotations are only used for explicit native opt-out.
  */
 enum class DootahDiscovery {
-    AUTO,
-    ANNOTATED;
+    AUTO;
 
     companion object {
         fun fromCliValue(value: String): DootahDiscovery? =
@@ -92,7 +87,7 @@ object DootahConfigurationKeys {
     val GENERATED_DIR: CompilerConfigurationKey<String> =
         CompilerConfigurationKey.create("dootah generated source directory")
 
-    /** Whether functions are discovered automatically or by annotation. */
+    /** Automatic discovery; unsupported discovery modes are rejected. */
     val DISCOVERY: CompilerConfigurationKey<DootahDiscovery> =
         CompilerConfigurationKey.create("dootah discovery")
 

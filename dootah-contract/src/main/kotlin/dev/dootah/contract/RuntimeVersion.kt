@@ -14,6 +14,12 @@ package dev.dootah.contract
  * that checks it, and the contract a bundle is validated against -- and every
  * time it lived in more than one of them they drifted.
  *
+ * "9" requires an app-bound Ed25519 publisher signature before OTA state changes.
+ * Older runtimes cannot enforce this policy; unsigned caches are not migrated.
+ *
+ * "8" adds verified, content-addressed image painters and atomic bundle/image activation.
+ * A "7" app cannot resolve image hashes and must reject these updates.
+ *
  * "7" lets a callback invocation carry values. A "6" renderer knows no
  * `arguments` field on a command and, because unknown keys are ignored rather
  * than refused, would call the screen's callback with none -- which for a
@@ -39,5 +45,5 @@ package dev.dootah.contract
  * bundle described, which is exactly the outcome this gate exists to prevent.
  */
 public object RuntimeVersion {
-    public const val CURRENT: String = "7"
+    public const val CURRENT: String = "9"
 }

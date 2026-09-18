@@ -7,53 +7,51 @@
   "totals": {
     "composables": 92,
     "eligible": 57,
-    "fallback": 30,
+    "fallback": 23,
+    "not_worth": 21,
     "ineligible": 35,
     "ineligible:PREVIEW": 21,
-    "not_worth": 16,
-    "shape:described": 3,
-    "shape:placed": 20,
-    "shape:frozen": 11,
+    "shape:described": 4,
+    "shape:placed": 19,
+    "shape:frozen": 16,
     "shape:conditionals": 0,
     "shape:actions": 0,
     "shape:states": 0,
-    "mixed": 11,
+    "mixed": 13,
     "ineligible:TAKES_COMPOSABLE_CONTENT": 7,
     "ineligible:RETURNS_A_VALUE": 7
   },
   "blocked_by": {
-    "third-party composable": 11,
+    "collections/data classes": 3,
     "Compose value type": 6,
     "native local read remotely": 3,
     "unsupported Kotlin syntax": 3,
-    "native capability": 4,
-    "callback argument type": 1,
-    "collections/data classes": 2
+    "native capability": 5,
+    "third-party composable": 2,
+    "callback argument type": 1
   },
   "occurrences": {
-    "third-party composable": 11,
+    "collections/data classes": 5,
     "Compose value type": 6,
     "native local read remotely": 3,
-    "collections/data classes": 4,
     "unsupported Kotlin syntax": 3,
-    "native capability": 4,
+    "native capability": 5,
+    "third-party composable": 2,
     "callback argument type": 1
   },
   "details": {
-    "third-party composable": {
-      "androidx.compose.foundation.lazy.LazyColumn": 2,
-      "androidx.glance.layout.Column": 2,
-      "androidx.compose.runtime.DisposableEffect": 1,
-      "androidx.compose.material3.IconToggleButton": 1,
-      "androidx.compose.animation.SharedTransitionLayout": 1,
-      "androidx.glance.appwidget.lazy.LazyColumn": 1
+    "collections/data classes": {
+      "value:kotlin.Any": 1,
+      "value:kotlin.Int": 1,
+      "value:kotlin.String": 1,
+      "com.example.jetnews.glance.ui.PostLayout": 1,
+      "value:com.example.jetnews.ui.home.HomeUiState": 1
     },
     "Compose value type": {
+      "property:androidx.glance.layout.Alignment.Vertical.Companion.CenterVertically": 2,
       "dp": 1,
       "androidx.compose.ui.semantics.semantics": 1,
       "androidx.compose.foundation.clickable": 1,
-      "androidx.compose.foundation.selection.toggleable": 1,
-      "androidx.compose.foundation.verticalScroll": 1,
       "value:androidx.compose.ui.graphics.Color": 1
     },
     "native local read remotely": {
@@ -61,40 +59,43 @@
       "native local:showUnimplementedActionDialog": 1,
       "native local:title": 1
     },
-    "collections/data classes": {
-      "value:kotlin.Int": 1,
-      "value:kotlin.String": 1,
-      "com.example.jetnews.glance.ui.PostLayout": 1,
-      "value:com.example.jetnews.ui.home.HomeUiState": 1
-    },
     "unsupported Kotlin syntax": {
       "FirPropertyImpl": 2,
       "FirSmartCastExpressionImpl": 1
     },
     "native capability": {
+      "call:androidx.compose.ui.semantics.semantics": 1,
       "call:com.example.jetnews.ui.modifiers.interceptKey": 1,
-      "kotlin.with": 1,
+      "call:androidx.glance.background": 1,
       "kotlin.collections.forEachIndexed": 1,
       "call:androidx.compose.ui.res.painterResource": 1
+    },
+    "third-party composable": {
+      "androidx.compose.material3.Surface": 1,
+      "androidx.glance.layout.Column": 1
     },
     "callback argument type": {
       "lambda:kotlin.Function0": 1
     }
   },
   "inside": {
-    "Compose value type": 2,
-    "native capability": 4,
+    "Compose value type": 3,
+    "native capability": 7,
     "name from outside the screen": 5,
     "unsupported Kotlin syntax": 2
   },
   "inside_details": {
     "Compose value type": {
       "property:com.example.jetnews.model.PostsFeed.highlightedPost": 1,
-      "dp": 1
+      "dp": 1,
+      "androidx.compose.foundation.selection.toggleable": 1
     },
     "native capability": {
       "call:androidx.glance.text.TextStyle.copy": 2,
       "call:androidx.glance.layout.height": 1,
+      "call:androidx.compose.foundation.layout.height": 1,
+      "call:androidx.compose.foundation.layout.width": 1,
+      "call:androidx.compose.ui.graphics.Color.copy": 1,
       "call:androidx.compose.foundation.clickable": 1
     },
     "name from outside the screen": {
@@ -109,6 +110,14 @@
     }
   },
   "shapes": [
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
     {
       "described": 0,
       "placed": 0,
@@ -183,8 +192,8 @@
     },
     {
       "described": 1,
-      "placed": 2,
-      "frozen": 2,
+      "placed": 1,
+      "frozen": 3,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -223,6 +232,14 @@
     },
     {
       "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,
@@ -231,8 +248,16 @@
     },
     {
       "described": 1,
-      "placed": 2,
-      "frozen": 1,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 0,
+      "frozen": 2,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -247,6 +272,22 @@
     },
     {
       "described": 1,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,
@@ -289,6 +330,22 @@
       "described": 0,
       "placed": 1,
       "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
       "conditionals": 0,
       "actions": 0,
       "states": 0

@@ -87,6 +87,14 @@ abstract class DootahValidateBundleTask : DefaultTask() {
 
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val generatedSourceDirectory: DirectoryProperty
+
+    @get:org.gradle.api.tasks.InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val imageResources: org.gradle.api.file.ConfigurableFileCollection
+
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val requirementsDirectory: DirectoryProperty
 
     @get:InputFile
@@ -113,7 +121,14 @@ abstract class DootahValidateBundleTask : DefaultTask() {
         }
 
         val installed = ContractJson.readContract(contract.readText())
-        val required = readRequirements(requirementsDirectory.get().asFile)
+        val images = dev.dootah.gradle.internal.BundleImagePackaging.collect(
+            generatedSourceDirectory.get().asFile.walkTopDown().filter { it.isFile && it.extension == "kt" }.toList(),
+            imageResources.files,
+        ).map { it.resource }.toSet()
+        val original = readRequirements(requirementsDirectory.get().asFile)
+        val required = original.copy(screens = original.screens.map { screen ->
+            screen.copy(resources = screen.resources.filterNot { it in images })
+        })
 
         val findings = ContractValidation.validate(installed, required)
         val fatal = findings.filter { finding -> finding.isFatal }

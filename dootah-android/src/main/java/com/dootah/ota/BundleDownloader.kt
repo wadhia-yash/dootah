@@ -21,13 +21,19 @@ internal class BundleDownloader(
     private val readTimeoutMillis: Int,
 ) {
 
-    fun download(url: String, maxBytes: Int): ByteArray {
+    fun download(url: String, maxBytes: Int): ByteArray = fetch(url, maxBytes, false)
+
+    /** Only the selection endpoint may return HTTP 204. Payload downloads still require 200. */
+    fun downloadCheck(url: String, maxBytes: Int): ByteArray = fetch(url, maxBytes, true)
+
+    private fun fetch(url: String, maxBytes: Int, allowNoContent: Boolean): ByteArray {
 
         requireHttps(url)
 
         val connection = try {
             (URL(url).openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
+                instanceFollowRedirects = false
                 connectTimeout = connectTimeoutMillis
                 readTimeout = readTimeoutMillis
             }
@@ -37,6 +43,8 @@ internal class BundleDownloader(
 
         try {
             val status = connection.responseCode
+
+            if (allowNoContent && status == HttpURLConnection.HTTP_NO_CONTENT) return byteArrayOf()
 
             if (status != HttpURLConnection.HTTP_OK) {
                 throw BundleDownloadException("Request for $url returned HTTP $status")
@@ -63,11 +71,7 @@ internal class BundleDownloader(
     }
 }
 
-/**
- * Until publisher signatures land, TLS is the only thing binding a bundle to the
- * party allowed to publish it. The digest cannot help: an attacker who can
- * rewrite the payload over plaintext can rewrite the manifest that describes it.
- */
+/** HTTPS transport remains mandatory alongside publisher signatures. */
 private fun requireHttps(url: String) {
 
     if (!url.startsWith(REQUIRED_URL_SCHEME)) {

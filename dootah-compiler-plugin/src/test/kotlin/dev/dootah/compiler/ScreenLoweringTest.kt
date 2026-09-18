@@ -17,6 +17,22 @@ class ScreenLoweringTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
+    @Test
+    fun `one native image painter is worth publishing without a layout change`() {
+        val generated = lower(SourceFile("Screen.kt", """
+            package com.example
+            import androidx.compose.runtime.Composable
+            import androidx.compose.material3.Icon
+            import androidx.compose.ui.res.painterResource
+            object R { object drawable { val new_photo: Int = 1 } }
+            @Composable
+            fun Screen() {
+                Icon(painter = painterResource(R.drawable.new_photo), contentDescription = "Photo")
+            }
+        """.trimIndent()))
+        assertTrue(generated, generated.contains("PainterResourceProp(\"drawable:new_photo\")"))
+    }
+
     // ---- layout ---------------------------------------------------------
 
     @Test
@@ -257,11 +273,9 @@ class ScreenLoweringTest {
                     import androidx.compose.foundation.layout.Column
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
 
                     private fun total(unit: Int, quantity: Int): Int = unit * quantity
 
-                    @Bundlable
                     @Composable
                     fun Screen() {
                         val amount = total(899, 2)
@@ -547,7 +561,6 @@ class ScreenLoweringTest {
                     import androidx.compose.ui.res.painterResource
                     import androidx.compose.ui.res.stringResource
                     import androidx.compose.ui.unit.dp
-                    import dev.dootah.Bundlable
 
                     // The generated resource table, in the shape every Android
                     // build generates one. A resource identifier is a number
@@ -558,7 +571,6 @@ class ScreenLoweringTest {
                         object string { val brush: Int = 2 }
                     }
 
-                    @Bundlable
                     @Composable
                     fun Screen(onPick: () -> Unit, erasing: Boolean) {
                         Column {
@@ -616,9 +628,7 @@ class ScreenLoweringTest {
                     import androidx.compose.runtime.Composable
                     import androidx.compose.ui.Modifier
                     import androidx.compose.ui.unit.dp
-                    import dev.dootah.Bundlable
 
-                    @Bundlable
                     @Composable
                     fun Screen(onPick: () -> Unit) {
                         Column {
@@ -719,9 +729,7 @@ class ScreenLoweringTest {
                     import androidx.compose.material3.Icon
                     import androidx.compose.runtime.Composable
                     import androidx.compose.runtime.MutableState
-                    import dev.dootah.Bundlable
 
-                    @Bundlable
                     @Composable
                     fun Screen(menu: MutableState<Boolean>) {
                         IconButton(onClick = { menu.value = true }) { Icon("a") }
@@ -759,9 +767,7 @@ class ScreenLoweringTest {
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
                     import androidx.compose.ui.Modifier
-                    import dev.dootah.Bundlable
 
-                    @Bundlable
                     @Composable
                     fun Screen(vertical: Boolean, modifier: Modifier = Modifier) {
                         if (vertical) {
@@ -791,9 +797,7 @@ class ScreenLoweringTest {
                     import androidx.compose.foundation.layout.Column
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
 
-                    @Bundlable
                     @Composable
                     fun Screen(vertical: Boolean) {
                         if (vertical) {
@@ -832,9 +836,7 @@ class ScreenLoweringTest {
                     import androidx.compose.foundation.layout.Box
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
 
-                    @Bundlable
                     @Composable
                     fun Screen(title: String) {
                         Box { Text(title) }
@@ -858,7 +860,7 @@ class ScreenLoweringTest {
 
     /**
      * The shape of Cahier's real `ToolBoxContent`, which is the screen Phase 3
-     * exists to make bundlable.
+     * exists to update over the air.
      *
      * It receives a view model, two `MutableState`s and a list of a domain type,
      * none of which can cross to a bundle; its body is three siblings rather
@@ -882,7 +884,6 @@ class ScreenLoweringTest {
                     import androidx.compose.runtime.Composable
                     import androidx.compose.runtime.MutableState
                     import androidx.compose.ui.Modifier
-                    import dev.dootah.Bundlable
 
                     class DrawingViewModel {
                         fun changeBrush(brush: String) {}
@@ -899,7 +900,6 @@ class ScreenLoweringTest {
                         customBrushes: List<CustomBrush>,
                     ) {}
 
-                    @Bundlable
                     @Composable
                     fun ToolBoxContent(
                         viewModel: DrawingViewModel,
@@ -1030,11 +1030,9 @@ class ScreenLoweringTest {
                     import androidx.compose.foundation.layout.Column
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
 
                     data class Note(val title: String)
 
-                    @Bundlable
                     @Composable
                     fun Screen(note: Note) {
                         Column {
@@ -1067,11 +1065,9 @@ class ScreenLoweringTest {
                     import androidx.compose.foundation.layout.Column
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
 
                     data class Note(val title: String)
 
-                    @Bundlable
                     @Composable
                     fun Screen(note: Note) {
                         Column {
@@ -1136,11 +1132,9 @@ class ScreenLoweringTest {
                     import androidx.compose.material3.Button
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
 
                     fun checkout() {}
 
-                    @Bundlable
                     @Composable
                     fun Screen() {
                         Column {
@@ -1175,11 +1169,9 @@ class ScreenLoweringTest {
                     import androidx.compose.material3.Button
                     import androidx.compose.material3.Text
                     import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
 
                     fun checkout() {}
 
-                    @Bundlable
                     @Composable
                     fun Screen() {
                         var count = 0
@@ -1222,14 +1214,12 @@ class ScreenLoweringTest {
 
                         import androidx.compose.foundation.layout.Column
                         import androidx.compose.runtime.Composable
-                        import dev.dootah.Bundlable
 
                         // Not Compose's Text. Resolving by name alone would
                         // bundle this as though it were, which is why the plugin
                         // matches on the resolved symbol.
                         fun Text(text: String) {}
 
-                        @Bundlable
                         @Composable
                         fun Screen() {
                             Column {
@@ -1267,12 +1257,10 @@ class ScreenLoweringTest {
                         import androidx.compose.foundation.layout.Column
                         import androidx.compose.material3.Text
                         import androidx.compose.runtime.Composable
-                        import dev.dootah.Bundlable
 
                         @Composable
                         fun Card(label: String) {}
 
-                        @Bundlable
                         @Composable
                         fun Screen() {
                             Column {
@@ -1372,10 +1360,8 @@ class ScreenLoweringTest {
             import androidx.compose.runtime.Composable
             import androidx.compose.ui.Modifier
             import androidx.compose.ui.unit.dp
-            import dev.dootah.Bundlable
             ${extraImports.trimIndent()}
 
-            @Bundlable
             @Composable
             fun Screen($parameters) {
                 ${prelude.trimIndent().replace("\n", "\n    ")}

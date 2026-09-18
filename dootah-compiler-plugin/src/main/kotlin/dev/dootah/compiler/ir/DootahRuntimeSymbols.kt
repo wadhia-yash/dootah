@@ -111,7 +111,7 @@ internal class DootahRuntimeSymbols private constructor(
 }
 
 internal fun missingRuntimeMessage(): String =
-    "Dootah's runtime is not on this module's compile classpath, so @Bundlable " +
+    "Dootah's runtime is not on this module's compile classpath, so eligible " +
         "functions cannot be intercepted.\n" +
         "Add the Dootah runtime dependency to the module that declares them:\n" +
         "    implementation(\"dev.dootah:dootah-android:<version>\")"

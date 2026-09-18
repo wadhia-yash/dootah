@@ -12,7 +12,7 @@ import org.junit.rules.TemporaryFolder
  * name resolves to -- everything downstream depends on knowing which `Text` a
  * call meant.
  */
-class BundlableExtractionTest {
+class ScreenExtractionTest {
 
     @get:Rule
     val temporaryFolder = TemporaryFolder()
@@ -42,12 +42,10 @@ class BundlableExtractionTest {
                     package com.example
 
                     import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
 
                     @Composable
                     fun Text(text: String) {}
 
-                    @Bundlable
                     @Composable
                     fun ShadowedScreen() {
                         Text("not compose")
@@ -96,9 +94,7 @@ class BundlableExtractionTest {
 
                     import androidx.compose.runtime.Composable
                     import androidx.compose.material3.Text
-                    import dev.dootah.Bundlable
 
-                    @Bundlable
                     @Composable
                     fun BranchingScreen() {
                         val premium = true
@@ -110,30 +106,6 @@ class BundlableExtractionTest {
         )
 
         assertTrue(report, report.contains("hasConditional=true"))
-    }
-
-    @Test
-    fun `an explicit id names the extracted screen`() {
-
-        val report = extract(
-            SourceFile(
-                name = "Explicit.kt",
-                contents = """
-                    package com.example
-
-                    import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
-
-                    @Bundlable("checkout-screen")
-                    @Composable
-                    fun SomeLaterName() {}
-                """.trimIndent(),
-            ),
-            screenId = "checkout-screen",
-        )
-
-        assertTrue(report, report.contains("screen=checkout-screen"))
-        assertTrue(report, report.contains("function=com.example.SomeLaterName"))
     }
 
     /**
@@ -187,9 +159,7 @@ class BundlableExtractionTest {
             import androidx.compose.material3.Button
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun OfferScreen() {
                 val price = 999

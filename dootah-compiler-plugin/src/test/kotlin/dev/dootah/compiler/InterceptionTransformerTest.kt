@@ -17,7 +17,7 @@ class InterceptionTransformerTest {
     val temporaryFolder = TemporaryFolder()
 
     @Test
-    fun `inserts the Dootah runtime calls into a bundlable function`() {
+    fun `inserts the Dootah runtime calls into an ordinary Compose function`() {
 
         val result = compile(offerScreen())
 
@@ -66,31 +66,6 @@ class InterceptionTransformerTest {
             result.orderingReport()!!,
             result.orderingReport()!!.contains("intercepted=com.example.OfferScreen"),
         )
-    }
-
-    @Test
-    fun `an explicit id overrides the derived one`() {
-
-        val result = compile(
-            SourceFile(
-                name = "Renamed.kt",
-                contents = """
-                    package com.example
-
-                    import androidx.compose.runtime.Composable
-                    import dev.dootah.Bundlable
-
-                    @Bundlable("checkout-screen")
-                    @Composable
-                    fun SomeLaterName() {}
-                """.trimIndent(),
-            )
-        )
-
-        val report = result.orderingReport()!!
-
-        assertTrue(report, report.contains("intercepted=checkout-screen"))
-        assertFalse(report, report.contains("intercepted=com.example.SomeLaterName"))
     }
 
     /**

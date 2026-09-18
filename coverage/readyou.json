@@ -10,47 +10,53 @@
     "ineligible:TAKES_COMPOSABLE_CONTENT": 27,
     "ineligible:RETURNS_A_VALUE": 87,
     "eligible": 133,
-    "fallback": 98,
+    "fallback": 88,
     "ineligible:PREVIEW": 25,
     "not_worth": 31,
     "ineligible:HAS_RECEIVER": 7,
-    "shape:described": 8,
-    "shape:placed": 8,
-    "shape:frozen": 4,
+    "shape:described": 9,
+    "shape:placed": 30,
+    "shape:frozen": 14,
     "shape:conditionals": 0,
     "shape:actions": 0,
     "shape:states": 0,
-    "mixed": 4,
+    "mixed": 14,
     "ineligible:INLINE": 1
   },
   "blocked_by": {
-    "third-party composable": 34,
-    "Compose value type": 19,
+    "native capability": 31,
+    "third-party composable": 2,
+    "Compose value type": 18,
     "native local read remotely": 5,
-    "native value read remotely": 13,
-    "callback argument type": 4,
-    "native capability": 15,
-    "unsupported Kotlin syntax": 6,
-    "collections/data classes": 2
+    "native value read remotely": 14,
+    "callback argument type": 7,
+    "unsupported Kotlin syntax": 7,
+    "collections/data classes": 3,
+    "name from outside the screen": 1
   },
   "occurrences": {
-    "third-party composable": 34,
+    "native capability": 32,
+    "third-party composable": 2,
     "Compose value type": 31,
     "native local read remotely": 5,
-    "native value read remotely": 13,
-    "callback argument type": 4,
-    "native capability": 16,
-    "unsupported Kotlin syntax": 6,
-    "collections/data classes": 4
+    "native value read remotely": 14,
+    "callback argument type": 7,
+    "unsupported Kotlin syntax": 7,
+    "collections/data classes": 5,
+    "name from outside the screen": 1
   },
   "details": {
+    "native capability": {
+      "call:me.ash.reader.ui.theme.palette.onLight": 15,
+      "kotlin.collections.List.isEmpty": 2,
+      "kotlin.collections.forEach": 1,
+      "call:androidx.compose.foundation.clickable": 1,
+      "call:androidx.compose.ui.Modifier.then": 1,
+      "call:androidx.compose.foundation.layout.navigationBarsPadding": 1
+    },
     "third-party composable": {
-      "me.ash.reader.ui.component.base.RYScaffold": 17,
-      "androidx.compose.material3.Surface": 4,
-      "androidx.compose.runtime.DisposableEffect": 2,
-      "androidx.compose.foundation.lazy.LazyRow": 2,
-      "androidx.compose.ui.viewinterop.AndroidView": 1,
-      "androidx.compose.material3.Scaffold": 1
+      "androidx.compose.runtime.DisposableEffect": 1,
+      "androidx.navigation3.ui.NavDisplay": 1
     },
     "Compose value type": {
       "androidx.compose.foundation.clickable": 3,
@@ -71,37 +77,57 @@
       "read through a native value:groupOptionUiState": 6,
       "read through a native value:uiState": 4,
       "read through a native value:feedOptionUiState": 2,
-      "read through a native value:kotlin.collections.List": 1
+      "read through a native value:kotlin.collections.List": 1,
+      "read through a native value:readerState": 1
     },
     "callback argument type": {
+      "lambda:kotlin.Function1": 3,
       "lambda:kotlin.Function0": 3,
       "lambda:kotlin.coroutines.SuspendFunction1": 1
-    },
-    "native capability": {
-      "kotlin.collections.List.isEmpty": 2,
-      "kotlin.collections.forEach": 1,
-      "call:androidx.compose.foundation.clickable": 1,
-      "call:androidx.compose.ui.Modifier.then": 1,
-      "call:me.ash.reader.ui.theme.palette.onLight": 1,
-      "call:me.ash.reader.ui.page.settings.tips.githubAvatar": 1
     },
     "unsupported Kotlin syntax": {
       "expression:FirResolvedQualifierImpl": 3,
       "FirPropertyImpl": 2,
-      "FirTypeOperatorCallImpl": 1
+      "FirTypeOperatorCallImpl": 1,
+      "FirSafeCallExpressionImpl": 1
     },
     "collections/data classes": {
-      "value:kotlin.Any": 4
+      "value:kotlin.Any": 5
+    },
+    "name from outside the screen": {
+      "outside the screen:isStarred": 1
     }
   },
   "inside": {
-    "Compose value type": 3
+    "Compose value type": 5,
+    "name from outside the screen": 2,
+    "collections/data classes": 2,
+    "native capability": 6,
+    "unsupported Kotlin syntax": 1
   },
   "inside_details": {
     "Compose value type": {
       "androidx.compose.foundation.combinedClickable": 1,
+      "property:androidx.compose.material.icons.outlined.People": 1,
+      "property:androidx.compose.material.icons.rounded.Close": 1,
       "property:androidx.compose.material.icons.outlined.Info": 1,
-      "property:<local>.modifier": 1
+      "androidx.compose.ui.text.input.ImeAction": 1
+    },
+    "name from outside the screen": {
+      "outside the screen:apply": 1,
+      "outside the screen:cancel": 1
+    },
+    "collections/data classes": {
+      "android.content.Context": 1,
+      "kotlin.collections.List": 1
+    },
+    "native capability": {
+      "call:androidx.compose.foundation.layout.Arrangement.spacedBy": 3,
+      "call:me.ash.reader.ui.theme.palette.onLight": 1,
+      "kotlin.collections.forEachIndexed": 1
+    },
+    "unsupported Kotlin syntax": {
+      "conditional": 1
     }
   },
   "shapes": [
@@ -139,7 +165,23 @@
     },
     {
       "described": 0,
-      "placed": 0,
+      "placed": 2,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 4,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -203,6 +245,30 @@
     },
     {
       "described": 0,
+      "placed": 2,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,
@@ -228,6 +294,22 @@
     {
       "described": 0,
       "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -291,8 +373,8 @@
     },
     {
       "described": 0,
-      "placed": 0,
-      "frozen": 1,
+      "placed": 2,
+      "frozen": 0,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -307,8 +389,16 @@
     },
     {
       "described": 0,
-      "placed": 0,
-      "frozen": 1,
+      "placed": 2,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 5,
+      "frozen": 2,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -331,8 +421,8 @@
     },
     {
       "described": 0,
-      "placed": 0,
-      "frozen": 1,
+      "placed": 1,
+      "frozen": 0,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -381,6 +471,22 @@
       "described": 0,
       "placed": 0,
       "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 2,
       "conditionals": 0,
       "actions": 0,
       "states": 0

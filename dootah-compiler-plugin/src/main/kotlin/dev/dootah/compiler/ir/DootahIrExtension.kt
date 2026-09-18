@@ -1,6 +1,5 @@
 package dev.dootah.compiler.ir
 
-import dev.dootah.compiler.DootahDiscovery
 import dev.dootah.contract.RuntimeVersion
 import dev.dootah.contract.ScreenFilter
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
@@ -21,7 +20,6 @@ import java.io.File
 internal class DootahIrExtension(
     private val messageCollector: MessageCollector,
     private val reportDirectory: File?,
-    private val discovery: DootahDiscovery,
     private val filter: ScreenFilter,
 ) : IrGenerationExtension {
 
@@ -29,7 +27,7 @@ internal class DootahIrExtension(
         moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext,
     ) {
-        val screens = moduleFragment.discoverScreens(discovery, filter)
+        val screens = moduleFragment.discoverScreens(filter)
         val ordering = composeOrderingOf(screens)
 
         val interceptedScreenIds = when (ordering) {

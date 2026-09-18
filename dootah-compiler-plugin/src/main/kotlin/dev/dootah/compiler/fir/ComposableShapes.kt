@@ -1,6 +1,5 @@
 package dev.dootah.compiler.fir
 
-import dev.dootah.compiler.BUNDLABLE_ANNOTATION
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import dev.dootah.compiler.DOOTAH_NATIVE_ANNOTATION
 import dev.dootah.compiler.PREVIEW_ANNOTATION_NAME
@@ -40,7 +39,6 @@ internal fun FirNamedFunction.composableShape(context: CheckerContext): Composab
         hasReceiver = receiverParameter != null,
         takesComposableContent = valueParameters.any { it.isComposableContentParameter() },
         isSuppressed = isSuppressedBy(context),
-        isForced = hasAnnotationNamed(BUNDLABLE_ANNOTATION),
     )
 
 /**

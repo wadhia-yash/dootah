@@ -89,7 +89,7 @@ abstract class DootahExtractTask @Inject constructor(
         output.deleteRecursively()
         output.mkdirs()
 
-        // Cleared so a screen that stops being @Bundlable, or stops being
+        // Cleared so a screen that is excluded, removed, or stops being
         // supported, cannot leave last run's generated source behind to be
         // compiled into the next bundle.
         val generated = generatedSourceDirectory.get().asFile
@@ -141,10 +141,8 @@ abstract class DootahExtractTask @Inject constructor(
      * renders the native body it always had. Failing the build over each one
      * would make an ordinary app impossible to build.
      *
-     * Two things are still failures. A function marked `@Bundlable` that cannot
-     * be described is a developer asking for a screen by name and not getting
-     * it. And a module where nothing at all could be described has nothing to
-     * publish, which is worth saying before a bundle is built from it.
+     * Rejections fail the build when failOnUnsupportedScreen is enabled. A module
+     * where nothing could be described also fails because it has nothing to publish.
      */
     private fun reportOutcome(reportDirectory: java.io.File) {
 
@@ -154,10 +152,8 @@ abstract class DootahExtractTask @Inject constructor(
 
         logger.lifecycle(summarise(discovered, screens))
 
-        val insisted = rejections.filter { it.forced }
-
-        if (insisted.isNotEmpty() || (rejections.isNotEmpty() && failOn())) {
-            throw GradleException(describeRejections(if (failOn()) rejections else insisted))
+        if (rejections.isNotEmpty() && failOn()) {
+            throw GradleException(describeRejections(rejections))
         }
 
         if (rejections.isNotEmpty()) {

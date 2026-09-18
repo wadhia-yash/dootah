@@ -17,10 +17,16 @@ enum class BundleSource {
  * A snapshot of Dootah's state, for diagnostics and for the validation screen.
  */
 data class DootahStatus(
+    /** Newest staged or active version; retained for update/reload decisions. */
     val bundleVersion: Int,
     val runtimeVersion: String,
     val source: BundleSource,
 
     /** True when a manifest has switched Dootah off. */
     val isRemotelyDisabled: Boolean,
+    val candidateVersion: Int? = null,
+    val activeVersion: Int? = null,
+    val lastKnownGoodVersion: Int? = null,
+    val activeConfirmedHealthy: Boolean = false,
+    val updatesPaused: Boolean = false,
 )

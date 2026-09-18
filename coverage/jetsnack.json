@@ -7,86 +7,99 @@
   "totals": {
     "composables": 113,
     "eligible": 59,
-    "shape:described": 2,
-    "shape:placed": 6,
-    "shape:frozen": 5,
+    "shape:described": 5,
+    "shape:placed": 15,
+    "shape:frozen": 21,
     "shape:conditionals": 0,
     "shape:actions": 0,
     "shape:states": 0,
-    "mixed": 4,
+    "mixed": 12,
     "ineligible": 54,
     "ineligible:HAS_RECEIVER": 1,
     "ineligible:RETURNS_A_VALUE": 11,
     "ineligible:TAKES_COMPOSABLE_CONTENT": 16,
     "ineligible:PREVIEW": 22,
-    "fallback": 42,
-    "not_worth": 13,
+    "fallback": 25,
+    "not_worth": 22,
     "ineligible:LOCAL_FUNCTION": 4
   },
   "blocked_by": {
-    "native capability": 14,
-    "third-party composable": 14,
-    "Compose value type": 9,
-    "name from outside the screen": 2,
-    "unsupported Kotlin syntax": 3
+    "native capability": 15,
+    "Compose value type": 4,
+    "third-party composable": 1,
+    "unsupported Kotlin syntax": 4,
+    "callback argument type": 1
   },
   "occurrences": {
-    "native capability": 17,
-    "third-party composable": 14,
-    "Compose value type": 9,
-    "name from outside the screen": 2,
-    "unsupported Kotlin syntax": 3
+    "native capability": 18,
+    "Compose value type": 4,
+    "third-party composable": 1,
+    "unsupported Kotlin syntax": 4,
+    "callback argument type": 1
   },
   "details": {
     "native capability": {
-      "kotlin.with": 8,
+      "kotlin.with": 9,
       "android.content.Context.getString": 3,
       "call:android.content.Context.getString": 3,
       "kotlin.collections.List.isEmpty": 1,
       "kotlin.collections.forEach": 1,
       "call:androidx.compose.ui.Modifier.then": 1
     },
-    "third-party composable": {
-      "androidx.compose.foundation.lazy.LazyColumn": 5,
-      "com.example.jetsnack.ui.components.JetsnackSurface": 4,
-      "androidx.compose.foundation.lazy.LazyRow": 2,
-      "com.example.jetsnack.ui.components.JetsnackScaffold": 1,
-      "androidx.compose.ui.layout.Layout": 1,
-      "com.example.jetsnack.ui.snackdetail.CollapsingImageLayout": 1
-    },
     "Compose value type": {
-      "property:<local>.modifier": 2,
-      "androidx.compose.foundation.clickable": 2,
-      "androidx.compose.foundation.layout.heightIn": 1,
-      "androidx.compose.foundation.selection.selectable": 1
+      "value:androidx.compose.ui.graphics.Color": 1,
+      "value:androidx.compose.foundation.lazy.LazyListState": 1,
+      "androidx.compose.foundation.clickable": 1
     },
-    "name from outside the screen": {
-      "outside the screen:cart_subtotal_label": 1,
-      "outside the screen:quantity": 1
+    "third-party composable": {
+      "androidx.compose.foundation.lazy.LazyListScope.item": 1
     },
     "unsupported Kotlin syntax": {
-      "FirNamedFunctionImpl": 3
+      "FirNamedFunctionImpl": 3,
+      "FirPropertyImpl": 1
+    },
+    "callback argument type": {
+      "value:kotlin.Function0": 1
     }
   },
   "inside": {
-    "native value read remotely": 1,
+    "native capability": 9,
+    "native value read remotely": 2,
     "unsupported Kotlin syntax": 1,
-    "name from outside the screen": 1,
-    "native capability": 2
+    "name from outside the screen": 6,
+    "third-party composable": 1,
+    "Compose value type": 4
   },
   "inside_details": {
+    "native capability": {
+      "call:androidx.compose.foundation.layout.height": 3,
+      "call:androidx.compose.foundation.layout.statusBarsPadding": 2,
+      "call:androidx.compose.foundation.layout.windowInsetsTopHeight": 1,
+      "call:coil.request.ImageRequest.Builder.build": 1,
+      "call:kotlin.ranges.rangeTo": 1,
+      "kotlin.collections.forEach": 1
+    },
     "native value read remotely": {
-      "read through a native value:com.example.jetsnack.model.SearchCategoryCollection": 1
+      "read through a native value:com.example.jetsnack.model.SearchCategoryCollection": 1,
+      "read through a native value:com.example.jetsnack.ui.home.search.SearchState": 1
     },
     "unsupported Kotlin syntax": {
       "FirPropertyImpl": 1
     },
     "name from outside the screen": {
-      "outside the screen:per_serving": 1
+      "outside the screen:cart_summary_header": 1,
+      "outside the screen:cart_subtotal_label": 1,
+      "outside the screen:cart_shipping_label": 1,
+      "outside the screen:cart_total_label": 1,
+      "outside the screen:per_serving": 1,
+      "outside the screen:search_count": 1
     },
-    "native capability": {
-      "call:kotlin.ranges.rangeTo": 1,
-      "kotlin.collections.forEach": 1
+    "third-party composable": {
+      "com.example.jetsnack.ui.home.cart.CartContent": 1
+    },
+    "Compose value type": {
+      "property:com.example.jetsnack.ui.home.search.SearchState.query": 2,
+      "property:androidx.compose.ui.text.input.TextFieldValue.text": 2
     }
   },
   "shapes": [
@@ -94,6 +107,70 @@
       "described": 1,
       "placed": 2,
       "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 2,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 0,
+      "frozen": 3,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 2,
+      "frozen": 5,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -116,6 +193,14 @@
     },
     {
       "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,
@@ -124,7 +209,143 @@
     },
     {
       "described": 0,
-      "placed": 2,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
       "frozen": 2,
       "conditionals": 0,
       "actions": 0,
@@ -132,80 +353,8 @@
     },
     {
       "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
+      "placed": 1,
+      "frozen": 0,
       "conditionals": 0,
       "actions": 0,
       "states": 0

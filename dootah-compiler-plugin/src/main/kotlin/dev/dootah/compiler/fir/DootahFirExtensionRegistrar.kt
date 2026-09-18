@@ -1,6 +1,5 @@
 package dev.dootah.compiler.fir
 
-import dev.dootah.compiler.DootahDiscovery
 import dev.dootah.contract.ScreenFilter
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.DeclarationCheckers
@@ -22,7 +21,6 @@ import java.io.File
 internal class DootahFirExtensionRegistrar(
     private val reportDirectory: File,
     private val generatedDirectory: File?,
-    private val discovery: DootahDiscovery,
     private val filter: ScreenFilter,
 ) : FirExtensionRegistrar() {
 
@@ -32,7 +30,6 @@ internal class DootahFirExtensionRegistrar(
                 session = session,
                 reportDirectory = reportDirectory,
                 generatedDirectory = generatedDirectory,
-                discovery = discovery,
                 filter = filter,
             )
         }
@@ -43,7 +40,6 @@ private class DootahCheckersExtension(
     session: FirSession,
     reportDirectory: File,
     generatedDirectory: File?,
-    discovery: DootahDiscovery,
     filter: ScreenFilter,
 ) : FirAdditionalCheckersExtension(session) {
 
@@ -54,7 +50,6 @@ private class DootahCheckersExtension(
                 ScreenExtractionChecker(
                     reportDirectory = reportDirectory,
                     generatedDirectory = generatedDirectory,
-                    discovery = discovery,
                     filter = filter,
                 )
             )

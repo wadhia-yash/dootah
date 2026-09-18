@@ -9,42 +9,42 @@
     "ineligible": 194,
     "ineligible:HAS_RECEIVER": 34,
     "eligible": 365,
-    "fallback": 227,
+    "fallback": 179,
     "ineligible:TAKES_COMPOSABLE_CONTENT": 55,
-    "not_worth": 74,
+    "not_worth": 105,
     "ineligible:RETURNS_A_VALUE": 99,
-    "shape:described": 24,
-    "shape:placed": 115,
-    "shape:frozen": 87,
+    "shape:described": 30,
+    "shape:placed": 136,
+    "shape:frozen": 112,
     "shape:conditionals": 6,
     "shape:actions": 0,
     "shape:states": 0,
-    "mixed": 61,
+    "mixed": 78,
     "ineligible:PREVIEW": 5,
     "remote": 3,
     "ineligible:NO_BODY": 1
   },
   "blocked_by": {
-    "name from outside the screen": 6,
-    "third-party composable": 96,
-    "Compose value type": 45,
+    "name from outside the screen": 8,
+    "native capability": 32,
+    "Compose value type": 33,
     "unsupported Kotlin syntax": 15,
-    "collections/data classes": 12,
-    "native local read remotely": 18,
-    "native value read remotely": 10,
-    "callback argument type": 6,
-    "native capability": 19
+    "collections/data classes": 13,
+    "native local read remotely": 20,
+    "third-party composable": 37,
+    "native value read remotely": 12,
+    "callback argument type": 9
   },
   "occurrences": {
-    "name from outside the screen": 6,
-    "third-party composable": 98,
-    "Compose value type": 50,
-    "unsupported Kotlin syntax": 21,
-    "collections/data classes": 16,
-    "native local read remotely": 18,
-    "native value read remotely": 10,
-    "callback argument type": 7,
-    "native capability": 27
+    "name from outside the screen": 8,
+    "native capability": 44,
+    "Compose value type": 38,
+    "unsupported Kotlin syntax": 23,
+    "collections/data classes": 18,
+    "native local read remotely": 20,
+    "third-party composable": 37,
+    "native value read remotely": 13,
+    "callback argument type": 11
   },
   "details": {
     "name from outside the screen": {
@@ -53,39 +53,39 @@
       "outside the screen:licenses": 1,
       "outside the screen:label_stats": 1,
       "outside the screen:label_upcoming": 1,
-      "outside the screen:also_set_chapter_settings_for_library": 1
+      "outside the screen:label_extension_info": 1
     },
-    "third-party composable": {
-      "tachiyomi.presentation.core.components.material.Scaffold": 13,
-      "tachiyomi.presentation.core.components.FastScrollLazyColumn": 6,
-      "eu.kanade.presentation.components.AdaptiveSheet": 5,
-      "androidx.compose.runtime.LaunchedEffect": 5,
-      "androidx.compose.material3.AlertDialog": 4,
-      "androidx.compose.foundation.lazy.LazyColumn": 4
+    "native capability": {
+      "call:tachiyomi.presentation.core.i18n.stringResource": 6,
+      "kotlin.collections.List.isEmpty": 2,
+      "kotlin.text.isNotEmpty": 2,
+      "kotlin.collections.map": 2,
+      "eu.kanade.tachiyomi.util.system.isTabletUi": 2,
+      "call:androidx.compose.ui.draw.clipToBounds": 2
     },
     "Compose value type": {
-      "androidx.compose.foundation.clickable": 6,
+      "androidx.compose.foundation.verticalScroll": 4,
       "androidx.compose.foundation.combinedClickable": 4,
-      "dp": 4,
       "value:androidx.compose.ui.graphics.vector.ImageVector": 3,
       "androidx.compose.ui.Modifier.then": 3,
-      "androidx.compose.foundation.verticalScroll": 2
+      "value:androidx.compose.foundation.lazy.LazyListState": 2,
+      "value:androidx.compose.foundation.text.input.TextFieldState": 2
     },
     "unsupported Kotlin syntax": {
-      "FirPropertyImpl": 7,
+      "FirPropertyImpl": 5,
       "FirTypeOperatorCallImpl": 4,
+      "expression:FirResolvedQualifierImpl": 3,
       "FirSafeCallExpressionImpl": 2,
       "expression:FirBooleanOperatorExpressionImpl": 2,
-      "FirNamedFunctionImpl": 1,
-      "expression:FirEqualityOperatorCallImpl": 1
+      "FirNamedFunctionImpl": 1
     },
     "collections/data classes": {
-      "value:kotlin.Any": 3,
+      "value:kotlin.Any": 4,
       "value:kotlin.Boolean": 3,
       "value:eu.kanade.tachiyomi.ui.manga.notes.MangaNotesScreen.State": 1,
       "value:kotlin.Int": 1,
-      "eu.kanade.tachiyomi.extension.model.Extension": 1,
-      "value:eu.kanade.domain.ui.model.ThemeMode": 1
+      "value:kotlin.String": 1,
+      "eu.kanade.tachiyomi.extension.model.Extension": 1
     },
     "native local read remotely": {
       "native local:source": 3,
@@ -95,79 +95,84 @@
       "native local:headers": 1,
       "native local:highlightKey": 1
     },
+    "third-party composable": {
+      "tachiyomi.presentation.core.components.material.Scaffold": 7,
+      "androidx.compose.runtime.LaunchedEffect": 4,
+      "androidx.compose.foundation.lazy.items": 2,
+      "tachiyomi.presentation.core.components.material.AlertDialogContent": 2,
+      "eu.kanade.presentation.more.settings.PreferenceScaffold": 2,
+      "eu.kanade.presentation.reader.appbars.ReaderAppBars": 1
+    },
     "native value read remotely": {
       "read through a native value:state": 5,
+      "read through a native value:eu.kanade.domain.extension.interactor.ExtensionSourceItem": 2,
+      "read through a native value:eu.kanade.presentation.library.components.LibraryToolbarTitle": 1,
       "read through a native value:eu.kanade.tachiyomi.ui.browse.migration.sources.MigrateSourceViewModel.State": 1,
       "read through a native value:eu.kanade.tachiyomi.ui.browse.extension.ExtensionsViewModel.State": 1,
-      "read through a native value:eu.kanade.tachiyomi.ui.browse.source.SourcesViewModel.State": 1,
-      "read through a native value:tachiyomi.domain.source.model.Source": 1,
-      "read through a native value:eu.kanade.tachiyomi.ui.reader.ReaderViewModel.State": 1
+      "read through a native value:eu.kanade.tachiyomi.ui.browse.source.SourcesViewModel.State": 1
     },
     "callback argument type": {
-      "lambda:kotlin.Function0": 3,
+      "lambda:kotlin.Function0": 4,
+      "lambda:kotlin.Function1": 2,
       "value:kotlin.Function1": 2,
       "lambda:kotlin.coroutines.SuspendFunction1": 1,
-      "lambda:kotlin.Function1": 1
-    },
-    "native capability": {
-      "call:tachiyomi.presentation.core.i18n.stringResource": 5,
-      "kotlin.text.isNotEmpty": 2,
-      "kotlin.collections.map": 2,
-      "call:androidx.compose.ui.res.painterResource": 1,
-      "eu.kanade.tachiyomi.util.system.LocaleHelper.getSourceDisplayName": 1,
-      "kotlin.collections.forEach": 1
+      "lambda:kotlin.Function2": 1,
+      "value:kotlin.Function0": 1
     }
   },
   "inside": {
-    "name from outside the screen": 56,
-    "Compose value type": 15,
-    "unsupported Kotlin syntax": 13,
-    "native value read remotely": 3,
-    "native capability": 18,
+    "name from outside the screen": 60,
+    "Compose value type": 26,
+    "native value read remotely": 6,
+    "unsupported Kotlin syntax": 19,
+    "native capability": 24,
     "collections/data classes": 1,
-    "callback argument type": 1
+    "callback argument type": 2
   },
   "inside_details": {
     "name from outside the screen": {
       "outside the screen:action_cancel": 8,
       "outside the screen:action_ok": 7,
+      "outside the screen:size": 2,
       "outside the screen:action_edit_notes": 2,
       "outside the screen:are_you_sure": 2,
-      "outside the screen:BrowseFavoriteCoverAlpha": 2,
-      "outside the screen:confirm_delete_chapters": 2
+      "outside the screen:BrowseFavoriteCoverAlpha": 2
     },
     "Compose value type": {
+      "property:kotlin.collections.List.size": 2,
+      "property:eu.kanade.tachiyomi.ui.updates.UpdatesViewModel.State.selected": 2,
       "property:tachiyomi.i18n.MR.strings.empty_screen": 2,
       "androidx.compose.ui.text.TextStyle": 2,
       "property:mihon.icons.materialsymbols.rounded.Preview": 2,
-      "property:eu.kanade.tachiyomi.ui.reader.setting.ReadingMode.DEFAULT": 1,
-      "property:eu.kanade.tachiyomi.ui.reader.setting.ReadingMode.LEFT_TO_RIGHT": 1,
-      "property:<local>.topBarScrollBehavior": 1
+      "property:eu.kanade.tachiyomi.ui.reader.setting.ReadingMode.DEFAULT": 1
     },
     "native value read remotely": {
+      "read through a native value:eu.kanade.tachiyomi.ui.updates.UpdatesViewModel.State": 2,
       "read through a native value:tachiyomi.domain.source.model.Source": 1,
       "read through a native value:eu.kanade.tachiyomi.extension.model.Extension": 1,
-      "read through a native value:tachiyomi.domain.source.model.StubSource": 1
+      "read through a native value:tachiyomi.domain.source.model.StubSource": 1,
+      "read through a native value:mihon.domain.extension.model.ExtensionStore": 1
     },
     "unsupported Kotlin syntax": {
-      "expression:FirLiteralExpressionImpl": 5,
+      "expression:FirLiteralExpressionImpl": 8,
+      "conditional": 2,
       "FirPropertyImpl": 1,
-      "conditional": 1,
       "FirElvisExpressionImpl": 1
     },
     "native capability": {
       "call:eu.kanade.tachiyomi.ui.reader.model.ChapterTransition.Next.Next": 4,
       "call:tachiyomi.presentation.core.i18n.stringResource": 4,
+      "kotlin.collections.isNotEmpty": 2,
       "call:tachiyomi.presentation.core.util.secondaryItemAlpha": 1,
       "call:kotlin.collections.mapOf": 1,
-      "call:eu.kanade.tachiyomi.ui.reader.model.ChapterTransition.Prev.Prev": 1,
-      "call:androidx.compose.material3.SnackbarHostState.SnackbarHostState": 1
+      "kotlin.collections.onEachIndexed": 1
     },
     "collections/data classes": {
       "kotlinx.datetime.LocalDate": 1
     },
     "callback argument type": {
-      "lambda:kotlin.Function0": 1
+      "lambda:kotlin.Function0": 1,
+      "lambda:kotlin.Function1": 1
     }
   },
   "shapes": [
@@ -220,7 +225,39 @@
       "states": 0
     },
     {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
       "described": 1,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,
@@ -268,8 +305,40 @@
       "states": 0
     },
     {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
       "described": 1,
       "placed": 2,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
       "frozen": 2,
       "conditionals": 0,
       "actions": 0,
@@ -293,6 +362,14 @@
     },
     {
       "described": 0,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 3,
       "frozen": 3,
       "conditionals": 0,
@@ -309,8 +386,48 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 1,
       "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -373,6 +490,14 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 2,
       "frozen": 1,
       "conditionals": 0,
@@ -413,7 +538,39 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -446,6 +603,22 @@
     {
       "described": 0,
       "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -493,6 +666,22 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 2,
       "frozen": 1,
       "conditionals": 0,
@@ -533,8 +722,32 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 2,
       "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -597,7 +810,7 @@
     },
     {
       "described": 0,
-      "placed": 0,
+      "placed": 1,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -613,8 +826,24 @@
     },
     {
       "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 0,
       "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 2,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -644,7 +873,23 @@
       "states": 0
     },
     {
+      "described": 0,
+      "placed": 2,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
       "described": 1,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 0,
       "frozen": 1,
       "conditionals": 0,
@@ -669,8 +914,40 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 3,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 3,
       "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -765,6 +1042,22 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 2,
       "frozen": 0,
       "conditionals": 0,
@@ -781,8 +1074,24 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 1,
       "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -860,9 +1169,9 @@
       "states": 0
     },
     {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
+      "described": 1,
+      "placed": 1,
+      "frozen": 3,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -894,6 +1203,14 @@
     {
       "described": 0,
       "placed": 2,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -934,6 +1251,22 @@
     {
       "described": 0,
       "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -957,6 +1290,14 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 1,
       "frozen": 0,
       "conditionals": 0,
@@ -1021,8 +1362,24 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 2,
       "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 2,
+      "placed": 2,
+      "frozen": 3,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -1061,6 +1418,22 @@
     },
     {
       "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
       "placed": 2,
       "frozen": 1,
       "conditionals": 0,
@@ -1133,8 +1506,8 @@
     },
     {
       "described": 0,
-      "placed": 0,
-      "frozen": 1,
+      "placed": 1,
+      "frozen": 0,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -1151,6 +1524,14 @@
       "described": 0,
       "placed": 0,
       "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 2,
+      "frozen": 0,
       "conditionals": 0,
       "actions": 0,
       "states": 0
@@ -1190,54 +1571,6 @@
     {
       "described": 1,
       "placed": 1,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 1,
-      "frozen": 1,
-      "conditionals": 0,
-      "actions": 0,
-      "states": 0
-    },
-    {
-      "described": 0,
-      "placed": 0,
       "frozen": 1,
       "conditionals": 0,
       "actions": 0,
@@ -1255,6 +1588,62 @@
       "described": 1,
       "placed": 1,
       "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 1,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 1,
+      "frozen": 2,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 1,
+      "placed": 1,
+      "frozen": 0,
+      "conditionals": 0,
+      "actions": 0,
+      "states": 0
+    },
+    {
+      "described": 0,
+      "placed": 0,
+      "frozen": 1,
       "conditionals": 0,
       "actions": 0,
       "states": 0

@@ -195,10 +195,10 @@ dootah {
 }
 ```
 
-`@Bundlable` still exists for the two jobs discovery cannot do: pinning an id that must not
-follow a function's name, and forcing something back past an `exclude`. A function marked
-with it is also held to a stricter standard — if Dootah cannot describe it, the build
-fails rather than passing it over, because that is someone asking for a screen by name.
+`@DootahNative` is the only optional public annotation in `dootah-annotations`.
+Normal usage requires no Dootah annotations. Screen IDs use fully qualified function
+names; renaming or moving a function changes its identity. There is no explicit-ID
+or force-include override. Build-script exclusions always win over inclusions.
 
 **Step 3 — ship an asset fallback bundle.** Copy a built `bundle.js` into the target app's
 `src/main/assets/`. This is what renders before any download ever happens, and what the app
@@ -344,9 +344,6 @@ The steps in §10 exist specifically to validate against a Play-installed build.
   *before* it is ever executed. If it stores but then fails to evaluate, the screen falls
   back to native — but the bad bundle stays on disk and will fail the same way on next
   launch. The kill switch (works offline) is the only escape hatch right now.
-- **No `@Bundlable` compiler flow.** Bundles are hand-written Kotlin/JS against a fixed
-  `renderScreen()`/`handleAction()` contract in `Bundle.kt` — there's no compiler plugin or
-  annotation-driven authoring yet.
 - **`Bundle.kt` as a single file is temporary.** It's the whole current bundle surface;
   there's no multi-screen or multi-module bundle structure yet.
 - **Only the current UI primitives render OTA:** `Column`, `Text`, `Button`

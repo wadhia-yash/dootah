@@ -20,9 +20,6 @@ data class LoweredScreen(
 
 /** One reason a screen could not be bundled, as recorded by the compiler. */
 data class RejectedConstruct(
-    /** Whether the developer asked for this screen by name, with `@Bundlable`. */
-    val forced: Boolean,
-
     val functionName: String,
     val filePath: String,
     val sourceOffset: Int,
@@ -97,7 +94,6 @@ private fun parseRejections(contents: String): List<RejectedConstruct> {
             line == "--" -> {
                 current["found"]?.let { found ->
                     rejections += RejectedConstruct(
-                        forced = current["forced"].toBoolean(),
                         functionName = current["function"].orEmpty(),
                         filePath = current["file"].orEmpty(),
                         sourceOffset = current["offset"]?.toIntOrNull() ?: -1,

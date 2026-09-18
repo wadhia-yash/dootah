@@ -10,7 +10,7 @@ import ui.Column
  * A bundle written by hand against the Dootah runtime protocol.
  *
  * Not how an app is built -- the compiler generates bundles from ordinary
- * `@Bundlable` Compose code, and no developer should ever write this file. It is
+ * ordinary Compose code, and no developer should ever write this file. It is
  * kept as a conformance fixture: it exercises the protocol independently of the
  * compiler, so a protocol change that the generator happens to accommodate still
  * has to be honoured here. It also drives Dootah's own validation app.

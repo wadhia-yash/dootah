@@ -181,9 +181,7 @@ class BundleExecutionTest {
             import androidx.compose.material3.Icon
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun ToolbarScreen(label: String) {
                 Box { Text(label) }
@@ -202,9 +200,7 @@ class BundleExecutionTest {
             import androidx.compose.material3.Button
             import androidx.compose.material3.Text
             import androidx.compose.runtime.Composable
-            import dev.dootah.Bundlable
 
-            @Bundlable
             @Composable
             fun CartScreen(
                 unitPrice: Int,
@@ -220,7 +216,6 @@ class BundleExecutionTest {
                 }
             }
 
-            @Bundlable
             @Composable
             fun ProfileScreen(name: String, premium: Boolean) {
                 var quantity = 1

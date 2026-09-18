@@ -7,7 +7,6 @@ data class DiscoveredFunction(
     val fqName: String,
     val outcome: String,
     val reason: String?,
-    val forced: Boolean,
 )
 
 /** Reads the record the extraction pass wrote for every Compose function. */
@@ -35,7 +34,6 @@ internal fun readDiscovery(reportDirectory: File): List<DiscoveredFunction> {
                 fqName = fqName,
                 outcome = values["outcome"] ?: "INELIGIBLE",
                 reason = values["reason"],
-                forced = values["forced"].toBoolean(),
             )
         }
 }

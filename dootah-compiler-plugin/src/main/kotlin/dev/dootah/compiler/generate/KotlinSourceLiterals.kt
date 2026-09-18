@@ -32,9 +32,8 @@ internal fun kotlinStringLiteral(value: String): String {
 /**
  * A file-name-safe form of a screen id.
  *
- * Screen ids are free-form -- a fully qualified name, or whatever an explicit
- * `@Bundlable("...")` said -- so they cannot be used as identifiers or paths as
- * they stand.
+ * Fully qualified function names can contain punctuation, so they cannot be
+ * used as generated identifiers or paths as they stand.
  */
 internal fun sanitizeForIdentifier(screenId: String): String =
     screenId

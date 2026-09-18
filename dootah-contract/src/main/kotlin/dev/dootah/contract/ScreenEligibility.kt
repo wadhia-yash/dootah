@@ -62,9 +62,6 @@ public data class ComposableShape(
 
     /** Marked `@DootahNative`, or inside something that is. */
     val isSuppressed: Boolean,
-
-    /** Marked `@Bundlable`, which overrides the configured package filter. */
-    val isForced: Boolean,
 )
 
 /** Why Dootah passed over a Compose function. */
@@ -123,10 +120,7 @@ public object ScreenEligibility {
             shape.hasReceiver -> IneligibleReason.HAS_RECEIVER
             shape.takesComposableContent -> IneligibleReason.TAKES_COMPOSABLE_CONTENT
 
-            // Last, and skipped for an explicit `@Bundlable`: the filter is
-            // project configuration, and an annotation in the source is a more
-            // specific instruction than a glob in a build script.
-            !shape.isForced && !filter.accepts(shape.fqName) ->
+            !filter.accepts(shape.fqName) ->
                 IneligibleReason.EXCLUDED_BY_FILTER
 
             else -> return Eligibility.Eligible

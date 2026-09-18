@@ -188,7 +188,9 @@ object BundleUiParser {
             PropValue.Kind.THEME_COLOR -> PropValue.ThemeColorValue(prop.string("token"))
             PropValue.Kind.SHAPE -> PropValue.ShapeValue(prop.string("token"))
 
-            PropValue.Kind.PAINTER_RESOURCE -> PropValue.PainterResourceValue(prop.string("key"))
+            PropValue.Kind.PAINTER_RESOURCE -> PropValue.PainterResourceValue(prop.string("key").also {
+                if (dev.dootah.contract.BundleImages.isImage(it)) dev.dootah.contract.BundleImages.hash(it)
+            })
             PropValue.Kind.STRING_RESOURCE -> PropValue.StringResourceValue(prop.string("key"))
 
             PropValue.Kind.MODIFIER -> PropValue.ModifierValue(

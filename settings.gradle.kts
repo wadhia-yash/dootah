@@ -36,3 +36,6 @@ include(":dootah-annotations")
 include(":dootah-contract")
 include(":dootah-compiler-plugin")
 include(":dootah-gradle-plugin")
+
+// Phase 6.5 local Java/Spring control plane.
+include(":dootah-server")

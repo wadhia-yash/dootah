@@ -12,6 +12,9 @@ import androidx.javascriptengine.MessagePortClient
 import com.dootah.DOOTAH_LOG_TAG
 import com.dootah.ota.BundleExecutionException
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -70,6 +73,8 @@ internal class JavaScriptRuntime(
                 "Bundle did not finish within ${executionTimeoutMillis}ms",
                 cause,
             )
+        } catch (cause: CancellationException) {
+            throw cause
         } catch (cause: Exception) {
             throw BundleExecutionException(
                 "Bundle evaluation failed: ${cause.message}",
@@ -104,11 +109,11 @@ internal class JavaScriptRuntime(
             )
         }
 
-        val startedSandbox = JavaScriptSandbox
-            .createConnectedInstanceAsync(context)
-            .await()
-
-        sandbox = startedSandbox
+        // Always take ownership of the connected service, even if a screen leaves
+        // composition while binding. A later restart can then close it normally.
+        val startedSandbox = withContext(NonCancellable) {
+            JavaScriptSandbox.createConnectedInstanceAsync(context).await().also { sandbox = it }
+        }
 
         if (!startedSandbox.isFeatureSupported(JavaScriptSandbox.JS_FEATURE_PROMISE_RETURN)) {
             Log.w(DOOTAH_LOG_TAG, "sandbox cannot return promises; bundle async work may be lost")

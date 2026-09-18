@@ -238,7 +238,6 @@ internal fun writeUnsupportedReport(
     reportDirectory: File,
     screenId: String,
     reasons: List<UnsupportedConstruct>,
-    forced: Boolean,
 ) {
     if (reasons.isEmpty()) return
 
@@ -246,12 +245,6 @@ internal fun writeUnsupportedReport(
 
     val lines = reasons.flatMap { reason ->
         listOf(
-            // Whether the developer asked for this screen by name. Discovery
-            // finds far more functions than anyone marked by hand, and a
-            // limitation Dootah ran into on its own is news rather than a
-            // failure -- but one hit on a function someone explicitly asked to
-            // bundle is exactly the failure they wanted to hear about.
-            "forced=$forced",
             // The stable name for the refusal, and the concrete thing refused.
             // Counting across apps needs these; the prose beside them is for
             // whoever is reading one build.

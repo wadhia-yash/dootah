@@ -3,7 +3,7 @@ package dev.dootah.contract
 /**
  * The identity of a native action the installed app can run on a bundle's behalf.
  *
- * A capability is a lambda written in `@Bundlable` source -- an `onClick`, an
+ * A capability is a lambda written in ordinary Compose source -- an `onClick`, an
  * `onDismissRequest`, an `onBrushChange` -- that the compiler lifts into the
  * APK, closing over the screen's own parameters. The bundle refers to one by
  * name and can attach it to any component it likes; it cannot construct one, and

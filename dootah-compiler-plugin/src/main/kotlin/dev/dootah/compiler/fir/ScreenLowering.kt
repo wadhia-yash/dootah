@@ -88,7 +88,7 @@ internal sealed interface LoweringResult {
 }
 
 /**
- * Turns a resolved `@Bundlable` function body into a [BundleScreen].
+ * Turns a resolved ordinary Compose function body into a [BundleScreen].
  *
  * Every construct is either recognised explicitly, turned into a native slot, or
  * rejected. There is no best-effort branch, because the failure it would cause

@@ -1,0 +1,62 @@
+# Copy into the HOST APP's .github/workflows directory.
+# The app commits app/dootah/contract.json from its shipped APK, and resolves
+# its pinned Dootah tooling version (mavenLocal() for this source-build example).
+name: Publish Dootah update
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        type: choice
+        options: [development, staging, production]
+        required: true
+      rollout:
+        type: number
+        default: 0
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: dootah-publish-${{ inputs.channel }}
+  cancel-in-progress: false
+jobs:
+  publish:
+    # A runner with access to DOOTAH_SERVER_URL; localhost is not a cloud deployment.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: app-source
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ vars.DOOTAH_TOOLING_REPOSITORY }}
+          ref: ${{ vars.DOOTAH_TOOLING_COMMIT }}
+          path: dootah-tooling
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+      - name: Build the pinned Dootah tooling
+        working-directory: dootah-tooling
+        run: ./gradlew publishDootahToMavenLocal --no-daemon --console=plain
+      - name: Validate, build, sign and publish
+        working-directory: app-source
+        env:
+          DOOTAH_PRIVATE_KEY_PEM: ${{ secrets.DOOTAH_PRIVATE_KEY_PEM }}
+          DOOTAH_PUBLISH_TOKEN: ${{ secrets.DOOTAH_PUBLISH_TOKEN }}
+          DOOTAH_SERVER_URL: ${{ vars.DOOTAH_SERVER_URL }}
+          DOOTAH_CHANNEL: ${{ inputs.channel }}
+          DOOTAH_ROLLOUT: ${{ inputs.rollout }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export DOOTAH_SIGNING_KEY_FILE="$RUNNER_TEMP/dootah-publisher.pem"
+          trap 'rm -f "$DOOTAH_SIGNING_KEY_FILE"' EXIT
+          printf '%s' "$DOOTAH_PRIVATE_KEY_PEM" > "$DOOTAH_SIGNING_KEY_FILE"
+          unset DOOTAH_PRIVATE_KEY_PEM
+          ./gradlew :app:dootahPublish \
+            "-PdootahServer=$DOOTAH_SERVER_URL" \
+            "-PdootahChannel=$DOOTAH_CHANNEL" \
+            "-PdootahRollout=$DOOTAH_ROLLOUT" \
+            --no-daemon --no-configuration-cache --console=plain

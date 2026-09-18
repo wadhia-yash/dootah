@@ -1,6 +1,8 @@
 // Version shared by every publishable Dootah module. Consumed via
 // rootProject.extra so the modules do not each hard-code it.
-extra["dootahVersion"] = "0.1.0-SNAPSHOT"
+extra["dootahVersion"] = "0.1.0-alpha.1"
+
+apply(from = "gradle/alpha-publication.gradle")
 
 /**
  * Publishes every part of Dootah a host app resolves, in one go.
@@ -57,9 +59,10 @@ tasks.register("dootahRealComposeCheck") {
         // The screen is found because of what it is, not because anyone marked
         // it. An annotation creeping back in here would make every assertion
         // below pass for the wrong reason.
-        require(!source.asFile.readText().contains("@Bundlable")) {
+        require(!source.asFile.readText().contains("dev.dootah.") &&
+            !source.asFile.readText().contains("@Dootah")) {
             "The regression screen must prove automatic discovery, so it carries " +
-                "no @Bundlable. Remove it, or this check no longer tests anything."
+                "no Dootah annotation. Remove it, or this check no longer tests anything."
         }
 
         val discovered = report.asFile

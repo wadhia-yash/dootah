@@ -31,6 +31,8 @@ dependencies {
     // this plugin encodes. Both ends use the same class so they cannot disagree
     // about what a pattern means.
     implementation(project(":dootah-contract"))
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.21.4")
+    testImplementation(localGroovy())
 
     testImplementation(libs.junit)
     testImplementation(gradleTestKit())
@@ -47,11 +49,4 @@ gradlePlugin {
     }
 }
 
-tasks.test {
-    // GradleRunner builds need to find the plugin and its siblings.
-    dependsOn(
-        ":dootah-annotations:publishToMavenLocal",
-        ":dootah-contract:publishToMavenLocal",
-        ":dootah-compiler-plugin:publishToMavenLocal",
-    )
-}
+// TestKit uses withPluginClasspath(); no implicit Maven Local publication is needed.

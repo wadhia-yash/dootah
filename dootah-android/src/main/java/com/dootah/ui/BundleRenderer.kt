@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -62,6 +63,7 @@ internal fun BundleRenderer(
     bindings: DootahNativeBindings,
     inherited: Modifier,
     onAction: (String) -> Unit,
+    onReady: (() -> Unit)? = null,
 ) {
     RenderNode(
         node = node,
@@ -70,6 +72,9 @@ internal fun BundleRenderer(
         onAction = onAction,
         weightApplier = IgnoreWeight,
     )
+    // Runs only after Compose successfully applies this remote composition.
+    // Parsing a UI tree or rendering the native fallback never reaches this receipt.
+    androidx.compose.runtime.SideEffect { onReady?.invoke() }
 }
 
 /**
@@ -295,7 +300,15 @@ private fun PropValue.resolve(bindings: DootahNativeBindings): Any? = when (this
     is PropValue.ShapeValue -> shapeOf(token)
 
     is PropValue.PainterResourceValue ->
-        bindings.resources[key]?.let { id -> painterResource(id) }
+        if (dev.dootah.contract.BundleImages.isImage(key)) {
+            androidx.compose.runtime.remember(key) {
+                com.dootah.Dootah.imageBytes(dev.dootah.contract.BundleImages.hash(key))?.let { bytes ->
+                    androidx.compose.ui.graphics.painter.BitmapPainter(
+                        com.dootah.ota.decodeNativeImage(bytes).asImageBitmap()
+                    )
+                }
+            }
+        } else bindings.resources[key]?.let { id -> painterResource(id) }
 
     is PropValue.StringResourceValue ->
         bindings.resources[key]?.let { id -> stringResource(id) }

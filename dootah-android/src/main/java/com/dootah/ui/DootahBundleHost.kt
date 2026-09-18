@@ -16,7 +16,9 @@ sealed interface DootahContent {
 
     data object Loading : DootahContent
 
-    data class Bundle(val ui: BundleUiNode) : DootahContent
+    data class Bundle(val ui: BundleUiNode) : DootahContent {
+        internal var nativeReady: (() -> Unit)? = null
+    }
 
     /** Dootah has nothing usable; the host app's fallback is showing. */
     data class Fallback(
@@ -28,8 +30,8 @@ sealed interface DootahContent {
 /**
  * Prepares Dootah for a screen wired by hand.
  *
- * The compiler plugin is the supported route -- a `@Bundlable` annotation and
- * nothing else -- and this exists for Dootah's own validation app, which needs
+ * The compiler plugin automatically discovers ordinary Compose screens. This helper
+ * exists for Dootah's own validation app, which needs
  * to drive update checks and read status directly. It takes a screen id because
  * the bundle protocol addresses screens: there is no "the screen" any more.
  */
@@ -66,6 +68,7 @@ fun DootahBundleHost(
             bindings = state.bindings,
             inherited = Modifier,
             onAction = state::dispatch,
+            onReady = current.nativeReady,
         )
 
         is DootahContent.Fallback -> fallback(current.reason, current.message)

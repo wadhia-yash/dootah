@@ -29,13 +29,11 @@ data class BundleManifest(
     /** Lowercase hex SHA-256 of the bundle payload, normalised by the parser. */
     val sha256: String,
 
-    /**
-     * Detached publisher signature over the manifest.
-     *
-     * Always null today. SHA-256 proves the payload matches the manifest but
-     * proves nothing about who wrote the manifest, so authenticity arrives with
-     * Ed25519 signing in a later milestone. The field exists now so that adding
-     * signatures does not change the manifest schema version.
-     */
+    /** Base64 Ed25519 signature over the canonical manifest values. */
     val signature: String? = null,
+    val images: List<BundleImage> = emptyList(),
+    val appId: String? = null,
 )
+
+/** id is the immutable image hash used by the bundle's image:<id> painter. */
+data class BundleImage(val id: String, val url: String, val sha256: String)

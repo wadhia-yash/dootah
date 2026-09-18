@@ -38,6 +38,9 @@ abstract class DootahExtension {
      */
     abstract val bundleUrl: Property<String>
 
+    /** Stable update identity; match the Android application ID unless explicitly configured there. */
+    abstract val appId: Property<String>
+
     /**
      * Directory for Dootah compiler reports.
      *
@@ -48,10 +51,8 @@ abstract class DootahExtension {
     /**
      * How Dootah decides which Compose functions it may take over.
      *
-     * `"auto"`, the default, is the point of the plugin: configure the project
-     * once and go on writing ordinary Compose. `"annotated"` restricts Dootah to
-     * functions marked `@Bundlable`, which is useful while migrating and when
-     * asking what changes as discovery is switched on.
+     * `"auto"` is the only supported value. Configure the project once and keep
+     * writing ordinary Compose. Use include/exclude patterns to narrow discovery.
      */
     abstract val discovery: Property<String>
 
@@ -82,10 +83,6 @@ abstract class DootahExtension {
      * today, and a build that failed over each one would be unusable. A screen
      * it cannot describe is absent from the bundle, and the app renders the
      * native body it always had.
-     *
-     * A function marked `@Bundlable` is held to the stricter standard whatever
-     * this is set to: that annotation is a developer asking for a specific
-     * screen by name, and silence would be the wrong answer.
      */
     abstract val failOnUnsupportedScreen: Property<Boolean>
 

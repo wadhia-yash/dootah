@@ -1,6 +1,7 @@
 package dev.dootah.compiler
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -26,6 +27,48 @@ class ScreenDiscoveryAgreementTest {
 
     @get:Rule
     val temporaryFolder = TemporaryFolder()
+
+    @Test
+    fun `ordinary source without Dootah annotations has unchanged identities in both passes`() {
+        val original = kept()
+        val edited = original.copy(contents = original.contents.replace("Text(\"kept\")", "Text(\"updated\")"))
+        val expected = setOf("com.example.Kept")
+        assertFalse(original.contents, original.contents.contains("dev.dootah"))
+        listOf(original, edited).forEach { source ->
+            assertEquals(expected, extract(source).discoveredScreens())
+            assertEquals(expected, intercept(source).interceptedScreens())
+        }
+    }
+
+    @Test
+    fun `explicit auto mode agrees with default discovery`() {
+        listOf("extract", "intercept").forEach { mode ->
+            val explicit = compileWithDootah(
+                workingDirectory = temporaryFolder.newFolder(),
+                sources = listOf(kept()), mode = mode, discovery = "auto",
+            )
+            assertTrue(explicit.messages.toString(), explicit.succeeded)
+            val expected = setOf("com.example.Kept")
+            assertEquals(expected, if (mode == "extract") explicit.discoveredScreens() else explicit.interceptedScreens())
+        }
+    }
+
+    @Test
+    fun `annotation-only discovery mode is rejected instead of silently disabling discovery`() {
+        val result = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            sources = listOf(kept()), discovery = "annotated",
+        )
+        assertFalse(result.messages.toString(), result.succeeded)
+        assertTrue(result.messages.toString(), result.messages.toString().contains("Unknown Dootah discovery mode"))
+    }
+
+    @Test
+    fun `native function opt-out wins over explicit build-script inclusion in both passes`() {
+        val source = kept().copy(contents = kept().contents.replace("@Composable", "@dev.dootah.DootahNative\n@Composable"))
+        assertTrue(extract(source, filter = "+com.example.Kept").discoveredScreens().isEmpty())
+        assertTrue(intercept(source, filter = "+com.example.Kept").interceptedScreens().isEmpty())
+    }
 
     @Test
     fun `both passes discover the same functions`() {
@@ -104,36 +147,6 @@ class ScreenDiscoveryAgreementTest {
         assertEquals(
             setOf("com.example.Kept"),
             intercept(kept(), excluded(), filter = filter).interceptedScreens(),
-        )
-    }
-
-    /** `@Bundlable` survives as a way to force something back into scope. */
-    @Test
-    fun `an explicitly marked function overrides the filter`() {
-
-        val source = SourceFile(
-            name = "Debug.kt",
-            contents = """
-                package com.example.debug
-
-                import androidx.compose.runtime.Composable
-                import dev.dootah.Bundlable
-
-                @Bundlable
-                @Composable
-                fun DebugPanel() {}
-            """.trimIndent(),
-        )
-
-        val filter = "-com.example.debug"
-
-        assertEquals(
-            setOf("com.example.debug.DebugPanel"),
-            extract(source, filter = filter).discoveredScreens(),
-        )
-        assertEquals(
-            setOf("com.example.debug.DebugPanel"),
-            intercept(source, filter = filter).interceptedScreens(),
         )
     }
 

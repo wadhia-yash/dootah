@@ -45,7 +45,6 @@ internal fun writeDiscoveryRecord(
     fqName: String,
     outcome: DiscoveryOutcome,
     reason: IneligibleReason? = null,
-    forced: Boolean = false,
     adapters: Int = 0,
     shape: RemoteShape? = null,
 ) {
@@ -55,7 +54,6 @@ internal fun writeDiscoveryRecord(
         add("fqName=$fqName")
         add("outcome=$outcome")
         reason?.let { add("reason=$it") }
-        add("forced=$forced")
         // How much of a lowered screen is still native. A screen with no
         // adapters is describable end to end; one with adapters is a remote
         // layout around components the APK keeps.

@@ -37,6 +37,7 @@ internal fun registerBundleTask(
     )
 
     val extension = project.extensions.getByType(DootahExtension::class.java)
+    val imageResources = project.fileTree("src/main/res") { it.include("drawable*/**") }
 
     // Where the app's own compilation left its account of what it can be asked
     // for, and where the developer keeps the copy that outlives this build.
@@ -69,11 +70,13 @@ internal fun registerBundleTask(
         task.requirementsDirectory.set(
             project.layout.buildDirectory.dir("dootah/extract/requirements")
         )
+        task.generatedSourceDirectory.set(generatedSourceDirectory)
+        task.imageResources.from(imageResources)
         task.contractFile.set(recorded)
         task.reportFile.set(project.layout.buildDirectory.file("dootah/contract-check.txt"))
     }
 
-    project.tasks.register("dootahBundle", DootahBundleTask::class.java) { task ->
+    val bundle = project.tasks.register("dootahBundle", DootahBundleTask::class.java) { task ->
 
         task.group = "dootah"
         task.description = "Builds the Dootah bundle from this app's Compose functions"
@@ -84,6 +87,7 @@ internal fun registerBundleTask(
         task.dependsOn(validate)
 
         task.generatedSourceDirectory.set(generatedSourceDirectory)
+        task.imageResources.from(imageResources)
         task.kotlinCompilerClasspath.from(
             project.configurations.getByName(KOTLIN_COMPILER_CONFIGURATION)
         )
@@ -92,7 +96,29 @@ internal fun registerBundleTask(
         task.runtimeVersion.set(extension.runtimeVersion)
         task.bundleVersion.set(extension.bundleVersion)
         task.bundleUrl.set(extension.bundleUrl)
+        task.appId.set(extension.appId)
+        task.publishingServer.set(project.providers.gradleProperty("dootahServer").map { it.trimEnd('/') })
 
         task.outputDirectory.set(project.layout.buildDirectory.dir("dootah/out"))
     }
+    val preflight = project.tasks.register("dootahPublishPreflight", dev.dootah.gradle.tasks.DootahPublishPreflight::class.java) {
+        it.contractFile.set(recorded)
+        it.server.set(project.providers.gradleProperty("dootahServer"))
+        it.channel.set(project.providers.gradleProperty("dootahChannel"))
+        it.rollout.set(project.providers.gradleProperty("dootahRollout").map(String::toInt))
+    }
+    // Publication always traverses extraction -> installed-contract validation -> build/sign.
+    project.tasks.register("dootahPublish", dev.dootah.gradle.tasks.DootahPublishTask::class.java) {
+        it.group = "dootah"
+        it.description = "Validates, builds, signs, uploads and atomically registers an OTA release"
+        it.dependsOn(preflight, bundle)
+        it.outputDirectory.set(bundle.flatMap { task -> task.outputDirectory })
+        it.server.set(project.providers.gradleProperty("dootahServer"))
+        it.channel.set(project.providers.gradleProperty("dootahChannel"))
+        it.rollout.set(project.providers.gradleProperty("dootahRollout").map(String::toInt))
+        it.minAppVersion.set(project.providers.gradleProperty("dootahMinAppVersion").map(String::toLong))
+        it.maxAppVersion.set(project.providers.gradleProperty("dootahMaxAppVersion").map(String::toLong))
+    }
+    bundle.configure { it.mustRunAfter(preflight) }
+    validate.configure { it.mustRunAfter(preflight) }
 }

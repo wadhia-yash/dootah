@@ -6,7 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The rule that replaced `@Bundlable`.
+ * The shared rule for automatic Compose discovery.
  *
  * Both compiler passes ask this the same questions about the same function, in
  * two compilations that may be months apart, and act on the answer permanently:
@@ -97,33 +97,6 @@ class ScreenEligibilityTest {
         )
     }
 
-    /**
-     * An annotation in the source is a more specific instruction than a glob in
-     * a build script, so it wins -- but only over the filter. A shape that
-     * cannot be intercepted cannot be intercepted because someone asked.
-     */
-    @Test
-    fun `an explicit request overrides the filter but not the shape`() {
-
-        val filter = ScreenFilter.of(include = emptyList(), exclude = listOf("com.example.**"))
-
-        assertSame(Eligibility.Eligible, eligibility(screen().copy(isForced = true), filter))
-
-        assertEquals(
-            IneligibleReason.RETURNS_A_VALUE,
-            reason(screen().copy(isForced = true, returnsUnit = false), filter),
-        )
-    }
-
-    /** An explicit opt-out beats an explicit request: someone said no. */
-    @Test
-    fun `an opt-out beats an opt-in`() {
-        assertEquals(
-            IneligibleReason.EXCLUDED_BY_ANNOTATION,
-            reason(screen().copy(isForced = true, isSuppressed = true)),
-        )
-    }
-
     @Test
     fun `every reason a function is skipped is reachable`() {
 
@@ -170,6 +143,5 @@ class ScreenEligibilityTest {
         hasReceiver = false,
         takesComposableContent = false,
         isSuppressed = false,
-        isForced = false,
     )
 }

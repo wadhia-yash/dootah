@@ -2,6 +2,9 @@ package com.dootah
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import com.dootah.bridge.NativeBridge
 import com.dootah.ota.ASSET_BUNDLE_VERSION
 import com.dootah.ota.BundleDownloader
@@ -14,6 +17,7 @@ import com.dootah.runtime.JavaScriptRuntime
 import com.dootah.ui.BundleCommand
 import com.dootah.ui.BundleResponse
 import com.dootah.ui.BundleUiParser
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -27,7 +31,7 @@ import kotlinx.coroutines.sync.withLock
  *
  * A process-wide singleton because the JavaScript sandbox is an expensive,
  * process-scoped resource that should exist at most once per app -- and because
- * every `@Bundlable` screen in the app shares one loaded bundle.
+ * every intercepted Compose screen in the app shares one loaded bundle.
  */
 object Dootah {
 
@@ -62,6 +66,22 @@ object Dootah {
     val runtimeVersion: String get() = DOOTAH_RUNTIME_VERSION
 
     val isInitialized: Boolean get() = client != null
+
+    internal var recoveryGeneration by mutableStateOf(0)
+        private set
+    internal fun recovered() { recoveryGeneration++ }
+
+    internal fun imageBytes(hash: String): ByteArray? = client?.imageBytes(hash)
+
+    /** Native operator API: verified retained healthy versions only; pauses automatic upgrades. */
+    suspend fun rollbackTo(bundleVersion: Int, reason: String): ManualRollbackResult =
+        client?.rollbackTo(bundleVersion, reason) ?: ManualRollbackResult.Rejected(NOT_INITIALIZED_MESSAGE)
+
+    /** Clears the manual pause. Does not clear quarantine or perform a download. */
+    suspend fun resumeUpdates(): Boolean = client?.resumeUpdates() ?: false
+
+    fun updateHistory(): DootahUpdateHistory = client?.history()
+        ?: DootahUpdateHistory(emptyList(), emptyList(), false)
 
     /** Performs one update check. Never throws; see [UpdateResult]. */
     suspend fun checkForUpdate(): UpdateResult {
@@ -145,10 +165,29 @@ private class DootahClient(
     private val config: DootahConfig,
 ) {
 
+    private val verifier = com.dootah.ota.ManifestVerifier(
+        config.appId ?: applicationContext.packageName, config.trustedPublicKey,
+    )
+
+    private val checkRequest = config.channel?.let { channel ->
+        @Suppress("DEPRECATION")
+        val info = applicationContext.packageManager.getPackageInfo(applicationContext.packageName, 0)
+        val appVersion = if (android.os.Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
+        com.dootah.ota.UpdateCheckRequest(config.appId ?: applicationContext.packageName,
+            DOOTAH_RUNTIME_VERSION, appVersion, channel) {
+            com.dootah.ota.InstallationIdentity.readOrCreate(java.io.File(applicationContext.noBackupFilesDir, "dootah"))
+        }
+    }
+
     private val store = BundleStore(
         context = applicationContext,
         bundledAssetName = config.assetBundleName,
+        verifier = verifier,
+        selectionScope = checkRequest?.cacheScope,
     )
+
+    fun imageBytes(hash: String): ByteArray? = try { store.readImage(hash) }
+        catch (e: Exception) { Log.w(DOOTAH_LOG_TAG, "Image unavailable: $hash", e); null }
 
     private val nativeBridge = NativeBridge(applicationContext)
 
@@ -160,16 +199,17 @@ private class DootahClient(
 
     private val engine = BundleEngine(runtime)
 
+    private val downloader = BundleDownloader(config.connectTimeoutMillis, config.readTimeoutMillis)
     private val updater = BundleUpdater(
         manifestUrl = config.manifestUrl,
-        downloader = BundleDownloader(
-            connectTimeoutMillis = config.connectTimeoutMillis,
-            readTimeoutMillis = config.readTimeoutMillis,
-        ),
+        download = downloader::download,
         store = store,
         supportedRuntimeVersion = DOOTAH_RUNTIME_VERSION,
         maxManifestSizeBytes = config.maxManifestSizeBytes,
         maxBundleSizeBytes = config.maxBundleSizeBytes,
+        verifier = verifier,
+        checkRequest = checkRequest,
+        downloadCheck = downloader::downloadCheck,
     )
 
     /**
@@ -187,12 +227,16 @@ private class DootahClient(
     /** The screens the loaded bundle implements, or null when nothing is loaded. */
     private var loadedScreenIds: List<String>? = null
 
+    private var loadedIdentity: String? = null
+
+    private var health: com.dootah.ota.RemoteHealth? = null
+
     private var currentSource: BundleSource = BundleSource.NATIVE_FALLBACK
 
     /**
      * Runs one update check, and only one at a time.
      *
-     * Every `@Bundlable` screen checks when it appears, so an app showing two of
+     * Every intercepted Compose screen checks when it appears, so an app showing two of
      * them checks twice at once. Two concurrent checks each downloaded the same
      * bundle and each tried to move it into place; the second move failed,
      * because the first had already renamed the file out from under it. The
@@ -210,35 +254,86 @@ private class DootahClient(
         // A new bundle on disk makes the loaded one stale. Dropped rather than
         // reloaded here: the next screen to render loads it, and reloading now
         // would restart the isolate under screens that are still using it.
-        if (result is UpdateResult.Updated) {
-            engineLock.withLock { loadedScreenIds = null }
+        if (result is UpdateResult.Updated || result is UpdateResult.Disabled) {
+            engineLock.withLock { health?.failed(); loadedScreenIds = null }
         }
 
         result
     }
 
-    suspend fun renderScreen(
-        screenId: String,
-        argumentsJson: String,
-    ): BundleLoadResult = engineLock.withLock {
+    suspend fun rollbackTo(version: Int, reason: String): ManualRollbackResult = updateLock.withLock {
+        engineLock.withLock {
+            try {
+                val target = store.rollbackTo(version, reason)
+                health?.failed()
+                health = null
+                loadedIdentity = null
+                loadedScreenIds = null
+                currentSource = BundleSource.NATIVE_FALLBACK
+                Dootah.recovered()
+                ManualRollbackResult.Applied(target.version)
+            } catch (e: Exception) {
+                Log.w(DOOTAH_LOG_TAG, "Manual rollback rejected", e)
+                ManualRollbackResult.Rejected(e.message ?: "Rollback rejected")
+            }
+        }
+    }
 
-        when (val availability = ensureLoaded()) {
+    suspend fun resumeUpdates(): Boolean = updateLock.withLock {
+        try { store.resumeUpdates(); true }
+        catch (e: Exception) { Log.w(DOOTAH_LOG_TAG, "Resume rejected", e); false }
+    }
+
+    fun history(): DootahUpdateHistory = store.state().let { state ->
+        DootahUpdateHistory(state.history, state.retained.map {
+            RetainedHealthyUpdate(it.version, it.identity, it.hash)
+        }, state.paused)
+    }
+
+    suspend fun renderScreen(screenId: String, argumentsJson: String): BundleLoadResult = engineLock.withLock {
+        renderLocked(screenId, argumentsJson)
+    }
+
+    private suspend fun renderLocked(screenId: String, argumentsJson: String): BundleLoadResult {
+        val before = Dootah.recoveryGeneration
+        val result = when (val availability = ensureLoaded()) {
             is BundleAvailability.Unavailable -> availability.asResult()
             is BundleAvailability.Ready -> availability.requiring(screenId)
                 ?: respond { engine.render(screenId, argumentsJson) }
         }
+        // One recovery render; never replay a user action or its native commands.
+        return if (result is BundleLoadResult.Unavailable && Dootah.recoveryGeneration != before)
+            renderLocked(screenId, argumentsJson) else result
     }
 
-    suspend fun dispatchAction(
-        screenId: String,
-        action: String,
-        argumentsJson: String,
-    ): BundleLoadResult = engineLock.withLock {
-
-        when (val availability = ensureLoaded()) {
+    suspend fun dispatchAction(screenId: String, action: String, argumentsJson: String): BundleLoadResult = engineLock.withLock {
+        val before = Dootah.recoveryGeneration
+        val result = when (val availability = ensureLoaded()) {
             is BundleAvailability.Unavailable -> availability.asResult()
             is BundleAvailability.Ready -> availability.requiring(screenId)
                 ?: respond { engine.dispatch(screenId, action, argumentsJson) }
+        }
+        if (result is BundleLoadResult.Unavailable && Dootah.recoveryGeneration != before)
+            renderLocked(screenId, argumentsJson) else result
+    }
+
+    private fun recover(identity: String?, reason: String): Boolean {
+        if (identity == null) return false
+        return try {
+            if (!store.failUnconfirmed(identity, reason)) return false
+            health?.failed()
+            health = null
+            loadedIdentity = null
+            loadedScreenIds = null
+            currentSource = BundleSource.NATIVE_FALLBACK
+            Dootah.recovered()
+            true
+        } catch (e: Exception) {
+            // No unrecorded retry if storage cannot commit recovery. The durable attempt
+            // remains for the next process; this process stays on native fallback.
+            Log.e(DOOTAH_LOG_TAG, "Recovery could not be persisted; using native fallback", e)
+            health?.failed()
+            false
         }
     }
 
@@ -289,6 +384,7 @@ private class DootahClient(
         if (store.isRemotelyDisabled) {
             Log.w(DOOTAH_LOG_TAG, "Dootah disabled, using fallback")
             currentSource = BundleSource.NATIVE_FALLBACK
+            health?.failed()
             loadedScreenIds = null
             return BundleAvailability.Unavailable(
                 reason = FallbackReason.DISABLED,
@@ -300,9 +396,19 @@ private class DootahClient(
 
         val isRemote = store.hasDownloadedBundle()
 
+        var remoteIdentity: String? = null
+        health?.failed()
+        health = null
         val bundleSource = try {
+            if (isRemote) {
+                val selected = store.prepareForLoad()
+                    ?: return loadFailure(FallbackReason.NO_BUNDLE_AVAILABLE, "No remote recovery", IllegalStateException("Using APK fallback"))
+                remoteIdentity = selected.identity
+            }
+            loadedIdentity = remoteIdentity
             if (isRemote) store.readDownloadedBundle() else store.readAssetBundle()
         } catch (e: Exception) {
+            recover(remoteIdentity, "payload")
             Log.w(DOOTAH_LOG_TAG, "no bundle available, using fallback", e)
             currentSource = BundleSource.NATIVE_FALLBACK
             return BundleAvailability.Unavailable(
@@ -316,6 +422,9 @@ private class DootahClient(
 
             currentSource = if (isRemote) BundleSource.REMOTE else BundleSource.ASSET
             loadedScreenIds = screens
+            remoteIdentity?.let { identity ->
+                health = com.dootah.ota.RemoteHealth { store.confirmHealthy(identity) }.also { it.initialized() }
+            }
 
             Log.i(
                 DOOTAH_LOG_TAG,
@@ -325,6 +434,8 @@ private class DootahClient(
             )
 
             BundleAvailability.Ready(screens)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: BundleExecutionException) {
             loadFailure(FallbackReason.EXECUTION_FAILED, "bundle execution failed", e)
         } catch (e: Exception) {
@@ -339,6 +450,7 @@ private class DootahClient(
     ): BundleAvailability.Unavailable {
 
         Log.e(DOOTAH_LOG_TAG, "$summary, using fallback", cause)
+        recover(loadedIdentity, "initialization")
 
         currentSource = BundleSource.NATIVE_FALLBACK
         loadedScreenIds = null
@@ -361,6 +473,8 @@ private class DootahClient(
 
         val payload = try {
             produce()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: BundleExecutionException) {
             return failure(FallbackReason.EXECUTION_FAILED, "bundle execution failed", e)
         } catch (e: Exception) {
@@ -377,7 +491,23 @@ private class DootahClient(
             ui = response.ui,
             source = currentSource,
             commands = response.commands,
-        )
+        ).also { result ->
+            if (currentSource == BundleSource.REMOTE) {
+                val session = health
+                val identity = loadedIdentity
+                val ready = session?.executed()
+                result.nativeReady = {
+                    try { ready?.invoke() }
+                    catch (e: Exception) { Log.w(DOOTAH_LOG_TAG, "Health confirmation not persisted", e) }
+                }
+                result.nativeFailed = {
+                    engineLock.withLock {
+                        session?.failed()
+                        recover(identity, "readiness")
+                    }
+                }
+            }
+        }
     }
 
     private fun failure(
@@ -387,6 +517,8 @@ private class DootahClient(
     ): BundleLoadResult.Unavailable {
 
         Log.e(DOOTAH_LOG_TAG, "$summary, using fallback", cause)
+        health?.failed()
+        recover(loadedIdentity, "execution")
         currentSource = BundleSource.NATIVE_FALLBACK
 
         return BundleLoadResult.Unavailable(
@@ -395,12 +527,20 @@ private class DootahClient(
         )
     }
 
-    fun status(): DootahStatus = DootahStatus(
-        bundleVersion = store.installedBundleVersion,
-        runtimeVersion = DOOTAH_RUNTIME_VERSION,
-        source = currentSource,
-        isRemotelyDisabled = store.isRemotelyDisabled,
-    )
+    fun status(): DootahStatus {
+        val state = store.state()
+        return DootahStatus(
+            bundleVersion = store.installedBundleVersion,
+            runtimeVersion = DOOTAH_RUNTIME_VERSION,
+            source = currentSource,
+            isRemotelyDisabled = store.isRemotelyDisabled,
+            candidateVersion = state.candidate?.version,
+            activeVersion = state.active?.version,
+            lastKnownGoodVersion = state.lastKnownGood?.version,
+            activeConfirmedHealthy = state.confirmedHealthy,
+            updatesPaused = state.paused,
+        )
+    }
 
     suspend fun shutdown() = runtime.close()
 }

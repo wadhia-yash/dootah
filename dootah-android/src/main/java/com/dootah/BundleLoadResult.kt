@@ -13,7 +13,11 @@ sealed interface BundleLoadResult {
         val commands: List<BundleCommand> = emptyList(),
 
         /** How many components of each shape the bundle's source contained. */
-    ) : BundleLoadResult
+    ) : BundleLoadResult {
+        // Never supplied by JavaScript; tied to the isolate that produced this exact UI.
+        internal var nativeReady: (() -> Unit)? = null
+        internal var nativeFailed: (suspend () -> Boolean)? = null
+    }
 
     /**
      * Dootah has no usable content, so the host app must show its own UI.
@@ -41,7 +45,7 @@ enum class FallbackReason {
     /**
      * The bundle loaded, but has no implementation for this screen.
      *
-     * Ordinary and expected: a screen marked `@Bundlable` after the installed
+     * Ordinary and expected: a screen added after the installed
      * bundle was published simply has no remote version yet.
      */
     SCREEN_NOT_IN_BUNDLE,

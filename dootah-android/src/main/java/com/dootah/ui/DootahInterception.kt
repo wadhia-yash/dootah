@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +31,7 @@ import com.dootah.UpdateResult
 import com.dootah.ota.shouldReloadAfterCheck
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.drop
 
 /**
  * Marks the surface Dootah's compiler plugin generates calls to.
@@ -47,7 +49,7 @@ import kotlinx.coroutines.launch
 annotation class DootahGeneratedApi
 
 /**
- * The Dootah state backing one `@Bundlable` screen.
+ * The Dootah state backing one ordinary Compose screen.
  *
  * One instance per screen, holding everything that screen needs and nothing
  * another screen could reach: its identity, the arguments its caller passed, its
@@ -154,7 +156,7 @@ class DootahScreenState internal constructor(
         }
     }
 
-    private fun apply(result: BundleLoadResult) {
+    private suspend fun apply(result: BundleLoadResult) {
 
         content = when (result) {
 
@@ -164,8 +166,12 @@ class DootahScreenState internal constructor(
 
                 if (shortfall.isEmpty()) {
                     result.commands.forEach { command -> execute(command) }
-                    DootahContent.Bundle(result.ui)
+                    DootahContent.Bundle(result.ui).also { it.nativeReady = result.nativeReady }
                 } else {
+                    if (result.nativeFailed?.invoke() == true) {
+                        apply(Dootah.renderScreen(screenId, arguments.toJson()))
+                        return
+                    }
                     // Reported loudly. A component that quietly stops appearing
                     // is a defect nobody notices until a user does, and the
                     // cause is impossible to guess from the symptom.
@@ -226,7 +232,7 @@ class DootahScreenState internal constructor(
 }
 
 /**
- * Prepares Dootah for one `@Bundlable` screen.
+ * Prepares Dootah for one ordinary Compose screen.
  *
  * Called once per composition of an intercepted function, so the availability
  * check and the render below it observe the same state rather than two
@@ -289,6 +295,12 @@ fun rememberDootahScreen(
     val argumentsJson = arguments.toJson()
     LaunchedEffect(state, argumentsJson) { state.load() }
 
+    // Observe recovery without cancelling the operation that is loading the LKG.
+    // Keying the load effect itself by this generation interrupts sandbox startup.
+    LaunchedEffect(state) {
+        snapshotFlow { Dootah.recoveryGeneration }.drop(1).collect { state.load() }
+    }
+
     val isFocused = LocalWindowInfo.current.isWindowFocused
 
     LaunchedEffect(state, isFocused) {
@@ -348,6 +360,7 @@ fun DootahRemoteContent(state: DootahScreenState) {
             bindings = state.bindings,
             inherited = state.arguments.modifier,
             onAction = state::dispatch,
+            onReady = content.nativeReady,
         )
     }
 }

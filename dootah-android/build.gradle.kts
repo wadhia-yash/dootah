@@ -17,6 +17,7 @@ android {
 
     defaultConfig {
         minSdk = 26
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     compileOptions {
@@ -70,8 +71,11 @@ dependencies {
     implementation(libs.androidx.javascriptengine)
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.kotlinx.serialization.json)
+    implementation("com.google.crypto.tink:tink-android:1.23.0")
 
     testImplementation(libs.junit)
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
 }
 
 // The Android components are only registered once the variants are known, which

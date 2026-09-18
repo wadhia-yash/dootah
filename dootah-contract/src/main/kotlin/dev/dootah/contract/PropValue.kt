@@ -89,7 +89,9 @@ public sealed interface PropValue {
         override val kind: String get() = Kind.SHAPE
     }
 
-    /** A `Painter` for a drawable the installed app already contains. */
+    /** An APK drawable key, or `image:<sha256>` for a verified OTA raster.
+     * Image references are defined by [BundleImages] and never contain a path or URL.
+     */
     public data class PainterResourceValue(val key: String) : PropValue {
         override val kind: String get() = Kind.PAINTER_RESOURCE
     }
