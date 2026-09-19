@@ -18,6 +18,17 @@ internal enum class RejectionCode {
     UNSUPPORTED_LOCAL_TYPE,
     UNREADABLE_LOCAL_INITIALIZER,
 
+    /**
+     * A local Dootah could have carried, left to the app because something that
+     * has to stay native reads it.
+     *
+     * Kept apart from the two above because it is the only one of the three
+     * that is a choice rather than a limit: the value was describable, and a
+     * bundle holding a second copy of it that nothing updates would be worse
+     * than not holding it at all.
+     */
+    LOCAL_READ_BY_NATIVE_REGION,
+
     UNSUPPORTED_STATEMENT_IN_LAYOUT,
     UNREADABLE_LAYOUT_CALL,
     UNSUPPORTED_LAYOUT_ARGUMENT,

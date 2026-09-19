@@ -19,6 +19,12 @@ local.properties
 *.iml
 *.ipr
 *.iws
+.vscode/
+
+# --- Eclipse / VSCode Kotlin language server output ---
+# `bin/` holds the language server's own copy of the sources it has compiled.
+# It is regenerated on every edit and drifts from the real sources under src/.
+bin/
 
 # --- OS ---
 .DS_Store

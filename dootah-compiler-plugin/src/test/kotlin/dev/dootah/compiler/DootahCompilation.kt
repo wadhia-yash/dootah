@@ -98,6 +98,10 @@ class CompilationResult(
             ?.joinToString("\n") { it.readText() }
             .orEmpty()
 
+    fun installedContractFragment(): String =
+        File(reportDirectory, "contract").listFiles().orEmpty()
+            .joinToString("\n") { it.readText() }
+
     /** Why the compiler refused to bundle a screen, as the build would report it. */
     fun rejectionReport(): String? =
         File(reportDirectory, "unsupported")

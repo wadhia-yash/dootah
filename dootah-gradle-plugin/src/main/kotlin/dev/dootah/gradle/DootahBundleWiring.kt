@@ -99,6 +99,7 @@ internal fun registerBundleTask(
         task.appId.set(extension.appId)
         task.publishingServer.set(project.providers.gradleProperty("dootahServer").map { it.trimEnd('/') })
 
+        task.projectRoot.set(project.rootProject.layout.projectDirectory)
         task.outputDirectory.set(project.layout.buildDirectory.dir("dootah/out"))
     }
     val preflight = project.tasks.register("dootahPublishPreflight", dev.dootah.gradle.tasks.DootahPublishPreflight::class.java) {
@@ -106,6 +107,7 @@ internal fun registerBundleTask(
         it.server.set(project.providers.gradleProperty("dootahServer"))
         it.channel.set(project.providers.gradleProperty("dootahChannel"))
         it.rollout.set(project.providers.gradleProperty("dootahRollout").map(String::toInt))
+        it.projectRoot.set(project.rootProject.layout.projectDirectory)
     }
     // Publication always traverses extraction -> installed-contract validation -> build/sign.
     project.tasks.register("dootahPublish", dev.dootah.gradle.tasks.DootahPublishTask::class.java) {

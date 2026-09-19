@@ -47,6 +47,16 @@ abstract class DootahBundleTask @Inject constructor(
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val generatedSourceDirectory: DirectoryProperty
 
+    /**
+     * The tree the signing key must not live in, captured while configuring.
+     *
+     * Reading `project` from a task action is unsupported once the
+     * configuration cache is in play, so a developer who had built a bundle
+     * once could not build another until they cleared the cache.
+     */
+    @get:org.gradle.api.tasks.Internal
+    abstract val projectRoot: DirectoryProperty
+
     @get:org.gradle.api.tasks.InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val imageResources: ConfigurableFileCollection
@@ -90,7 +100,8 @@ abstract class DootahBundleTask @Inject constructor(
         val keyPath = System.getenv("DOOTAH_SIGNING_KEY_FILE")
             ?: throw GradleException("Set DOOTAH_SIGNING_KEY_FILE to an external PKCS#8 PEM file")
         val signingKey = File(keyPath).canonicalFile
-        if (!signingKey.isFile || signingKey.toPath().startsWith(project.rootDir.canonicalFile.toPath())) {
+        val root = projectRoot.get().asFile.canonicalFile
+        if (!signingKey.isFile || signingKey.toPath().startsWith(root.toPath())) {
             throw GradleException("Signing key must be an existing file outside the project")
         }
         require(appId.get().isNotBlank()) { "Dootah appId must not be blank" }

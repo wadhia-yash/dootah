@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -55,9 +54,6 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.util.getSimpleFunction
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
-import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
-import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
-import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
@@ -115,10 +111,16 @@ internal class InterceptionTransformer(
      * they keep missing ones: a delegated `var` read through a generated
      * accessor, a handler from a destructured `remember` bound beside a
      * reference rather than read inside it. Each was found on a real app, after
-     * shipping. So the last word is here, on the built lambda itself, where
-     * every way of reading a local looks the same.
+     * shipping. The last check runs on the built lambda itself and includes
+     * both value reads and calls to functions declared in the original body.
      */
-    private var bodyLocals: Set<IrValueDeclaration> = emptySet()
+    private var bodyScope = BodyScope(emptySet(), emptySet())
+
+    // The contract must describe bindings that survived the final scope check.
+    private val emittedAdapters = mutableSetOf<String>()
+    private val emittedCapabilities = mutableSetOf<String>()
+    private val emittedAnchors = mutableSetOf<String>()
+    private val emittedBuilders = mutableSetOf<String>()
 
     /** The identity of the function rewritten, for reporting. */
     fun transform(function: IrSimpleFunction): String? {
@@ -130,35 +132,20 @@ internal class InterceptionTransformer(
         val composable = function.annotations
             .filter { it.type.classFqName == COMPOSABLE_ANNOTATION }
 
+        // The declarations that move in front of Dootah's own code, so that
+        // everything lifted out of the body can still read them. See
+        // `splitAtPrologue`: this is what keeps one native region from costing
+        // a whole screen.
+        val split = originalBody.splitAtPrologue()
+        val prologueScope = split.prologue.declaredScope()
+
         // Without the annotation to copy there is no way to declare a lambda
         // composable, and an adapter that is not composable cannot draw
         // anything. The screen is still intercepted; it simply offers no native
         // components.
         val native = if (composable.isEmpty())
             NativeBindings(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
-        else originalBody.nativeBindings(LAYOUT_COMPOSABLES, sourceText)
-
-        // Recorded here rather than worked out again later, because this is the
-        // only place that knows both what the app registered and what it called
-        // the things it registered. A bundle is checked against this before it
-        // is allowed to publish.
-        contracts += ScreenContract(
-            id = screenId,
-            adapters = native.adapters.map { adapter ->
-                AdapterContract(
-                    id = adapter.id,
-                    supportedProps = adapter.suppliedParameters.sorted(),
-                )
-            },
-            capabilities = native.capabilities.map { capability ->
-                CapabilityContract(id = capability.id, arity = capability.arity)
-            },
-            handles = binding.natives.map { native -> native.name.asString() }.sorted(),
-            resources = native.resources.map { resource -> resource.key }.sorted(),
-            anchors = native.anchors.map { anchor -> anchor.name }.sorted(),
-            builders = native.builders.map { builder -> builder.id }.sorted(),
-            callbacks = binding.callbackIds.sorted(),
-        )
+        else originalBody.nativeBindings(LAYOUT_COMPOSABLES, sourceText, prologueScope)
 
         val builder = DeclarationIrBuilder(pluginContext, function.symbol)
         val unitType = pluginContext.irBuiltIns.unitType
@@ -167,11 +154,23 @@ internal class InterceptionTransformer(
         // and reading them afterwards would read the replacement instead.
         // Before the body is taken apart. `asExpression` adopts the statements
         // into what becomes the fallback branch, leaving nothing behind to scan.
-        bodyLocals = originalBody.localsDeclaredHere()
+        bodyScope = originalBody.declaredHere().without(prologueScope)
+        emittedAdapters.clear()
+        emittedCapabilities.clear()
+        emittedAnchors.clear()
+        emittedBuilders.clear()
+
+        originalBody.statements.clear()
+        originalBody.statements += split.body
 
         val nativeFallback = originalBody.asExpression(unitType)
 
         function.body = builder.irBlockBody {
+
+            // In front of everything, including the call that decides whether a
+            // remote implementation exists: the adapters and regions that call
+            // carries are the things that need these in scope.
+            split.prologue.forEach { statement -> +statement }
 
             val screenState = buildVariable(
                 parent = function,
@@ -202,6 +201,28 @@ internal class InterceptionTransformer(
                 elsePart = nativeFallback,
             )
         }
+
+        // Recorded here rather than worked out again later, because this is the
+        // only place that knows both what the app registered and what it called
+        // the things it registered. A bundle is checked against this before it
+        // is allowed to publish.
+        contracts += ScreenContract(
+            id = screenId,
+            adapters = native.adapters.filter { it.id in emittedAdapters }.map { adapter ->
+                AdapterContract(
+                    id = adapter.id,
+                    supportedProps = adapter.suppliedParameters.sorted(),
+                )
+            },
+            capabilities = native.capabilities.filter { it.id in emittedCapabilities }.map { capability ->
+                CapabilityContract(id = capability.id, arity = capability.arity)
+            },
+            handles = binding.natives.map { native -> native.name.asString() }.sorted(),
+            resources = native.resources.map { resource -> resource.key }.sorted(),
+            anchors = native.anchors.filter { it.name in emittedAnchors }.map { anchor -> anchor.name }.sorted(),
+            builders = native.builders.filter { it.id in emittedBuilders }.map { builder -> builder.id }.sorted(),
+            callbacks = binding.callbackIds.sorted(),
+        )
 
         return screenId
     }
@@ -288,6 +309,7 @@ internal class InterceptionTransformer(
                 parameter = parameter,
                 elements = builders.mapNotNull { builder ->
                     builderLambda(parent, builder)?.let { entries ->
+                        emittedBuilders += builder.id
                         irCall(symbols.builder).apply {
                             arguments[0] = irString(builder.id)
                             arguments[1] = entries
@@ -366,6 +388,7 @@ internal class InterceptionTransformer(
                     adapterLambda(function, adapter, composable)
                         .takeIf { content -> !content.capturesBodyLocal() }
                         ?.let { content ->
+                            emittedAdapters += adapter.id
                             irCall(symbols.adapter).apply {
                                 arguments[0] = irString(adapter.id)
                                 arguments[1] = irString(
@@ -543,22 +566,15 @@ internal class InterceptionTransformer(
         )
     }
 
-    /** Whether something about to be lifted out reads one of the body's locals. */
-    private fun IrElement.capturesBodyLocal(): Boolean {
-
-        if (bodyLocals.isEmpty()) return false
-
-        var captures = false
-
-        acceptVoid(object : IrVisitorVoid() {
-            override fun visitElement(element: IrElement) {
-                if (element is IrGetValue && element.symbol.owner in bodyLocals) captures = true
-                element.acceptChildrenVoid(this)
-            }
-        })
-
-        return captures
-    }
+    /**
+     * Check the finished copy, after argument replacement and scope rebinding.
+     * Delegated reads/writes call local accessors; they contain no IrGetValue
+     * for the delegate until JVM lowering. The same scope check used during
+     * discovery must therefore guard the copy too, including retained callbacks
+     * whose argument type has no runtime accessor. Declarations copied inside
+     * the region remain valid and are excluded by readsOutside.
+     */
+    private fun IrElement.capturesBodyLocal(): Boolean = readsOutside(bodyScope)
 
     private fun IrBuilderWithScope.readProp(
         props: IrValueParameter,
@@ -697,6 +713,7 @@ internal class InterceptionTransformer(
                     capabilityLambda(function, capability)
                         ?.takeIf { action -> !action.capturesBodyLocal() }
                         ?.let { action ->
+                            emittedCapabilities += capability.id
                             irCall(symbols.capability).apply {
                                 arguments[0] = irString(capability.id)
                                 arguments[1] = action
@@ -828,6 +845,7 @@ internal class InterceptionTransformer(
                     anchor.value.deepCopyWithSymbols()
                         .takeIf { value -> !value.capturesBodyLocal() }
                         ?.let { value ->
+                            emittedAnchors += anchor.name
                             irCall(symbols.anchor).apply {
                                 arguments[0] = irString(anchor.name)
                                 arguments[1] = value

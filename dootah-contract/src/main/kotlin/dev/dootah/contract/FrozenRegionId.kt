@@ -43,16 +43,50 @@ public object FrozenRegionId {
     public fun isFrozen(adapterId: String): Boolean = adapterId.startsWith(PREFIX)
 
     /**
+     * The name a kept region goes by when it is not a single call.
+     *
+     * An `if` that chooses between components has no callee to be named after,
+     * and it still has to be nameable: a conditional whose condition the app
+     * owns is one of the commonest reasons a region cannot be described, and
+     * before this it was the reason a whole screen stayed native instead. The
+     * text after it still tells two of them apart, which is the part that has
+     * to be right.
+     *
+     * Not a qualified name, and deliberately unspellable as one, so it can
+     * never collide with a region named after a real function.
+     */
+    public const val CONDITIONAL: String = "<conditional>"
+
+    /**
      * Reduces source text to what it means rather than how it was typed.
      *
-     * Whitespace only. Reformatting a frozen region -- a line wrapped, an
-     * argument moved onto its own line -- must not rename it, because none of
-     * that changes the code the app runs. A comment does rename it, which is a
-     * price worth paying for a rule that cannot misread a string literal
-     * containing what looks like a comment.
+     * Two reductions, and only two.
+     *
+     * Whitespace, so that reformatting a region -- a line wrapped, an argument
+     * moved onto its own line -- does not rename it: none of that changes the
+     * code the app runs. A comment does rename it, which is a price worth
+     * paying for a rule that cannot misread a string literal containing what
+     * looks like a comment.
+     *
+     * And the callee's own name, up to the bracket that opens the call. The
+     * qualified name is already the other half of the id, so nothing is lost --
+     * and the two passes disagree about how much of it their spans cover. The
+     * frontend reads `com.moriafly.salt.ui.TextButton(…)` and the backend reads
+     * `TextButton(…)` for the same call, which named the same region twice and
+     * left every bundle that used one asking the app for a region it had under
+     * the other name. Starting at the bracket is what makes the two agree by
+     * construction rather than by both happening to span the same characters.
      */
-    internal fun normalise(source: String): String =
-        source.trim().replace(WHITESPACE, " ")
+    internal fun normalise(source: String): String {
+
+        val trimmed = source.trim()
+
+        val opening = trimmed.indexOfFirst { character -> character == '(' || character == '{' }
+
+        val body = if (opening > 0) trimmed.substring(opening) else trimmed
+
+        return body.replace(WHITESPACE, " ")
+    }
 
     /**
      * A short, stable digest.

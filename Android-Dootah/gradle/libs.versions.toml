@@ -31,6 +31,8 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-javascriptengine = { group = "androidx.javascriptengine", name = "javascriptengine", version.ref = "javascriptEngine" }
 kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlin-compiler-embeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
 

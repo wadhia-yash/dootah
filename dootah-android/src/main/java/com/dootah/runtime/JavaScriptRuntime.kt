@@ -103,7 +103,11 @@ internal class JavaScriptRuntime(
 
         isolate?.let { return it }
 
-        if (!JavaScriptSandbox.isSupported()) {
+        val supported = com.dootah.DootahTrace.timed("sandbox support check") {
+            JavaScriptSandbox.isSupported()
+        }
+
+        if (!supported) {
             throw BundleExecutionException(
                 "JavaScriptSandbox is not supported on this device"
             )
@@ -111,8 +115,13 @@ internal class JavaScriptRuntime(
 
         // Always take ownership of the connected service, even if a screen leaves
         // composition while binding. A later restart can then close it normally.
-        val startedSandbox = withContext(NonCancellable) {
-            JavaScriptSandbox.createConnectedInstanceAsync(context).await().also { sandbox = it }
+        val startedSandbox = com.dootah.DootahTrace.timed("sandbox creation") {
+            withContext(NonCancellable) {
+                val connecting = com.dootah.DootahTrace.timed("sandbox bind requested") {
+                    JavaScriptSandbox.createConnectedInstanceAsync(OffMainThreadBinding(context))
+                }
+                connecting.await().also { sandbox = it }
+            }
         }
 
         if (!startedSandbox.isFeatureSupported(JavaScriptSandbox.JS_FEATURE_PROMISE_RETURN)) {
@@ -129,10 +138,14 @@ internal class JavaScriptRuntime(
             Log.w(DOOTAH_LOG_TAG, "sandbox limits evaluation size; large bundle UI may fail")
         }
 
-        val startedIsolate = createIsolate(startedSandbox)
+        val startedIsolate = com.dootah.DootahTrace.timed("isolate created") {
+            createIsolate(startedSandbox)
+        }
         isolate = startedIsolate
 
-        installNativeBridge(startedSandbox, startedIsolate)
+        com.dootah.DootahTrace.timed("native bridge installed") {
+            installNativeBridge(startedSandbox, startedIsolate)
+        }
 
         return startedIsolate
     }

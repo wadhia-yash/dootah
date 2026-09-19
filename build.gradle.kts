@@ -1,6 +1,6 @@
 // Version shared by every publishable Dootah module. Consumed via
 // rootProject.extra so the modules do not each hard-code it.
-extra["dootahVersion"] = "0.1.0-alpha.1"
+extra["dootahVersion"] = "0.1.0-alpha.16"
 
 apply(from = "gradle/alpha-publication.gradle")
 
@@ -75,6 +75,9 @@ tasks.register("dootahRealComposeCheck") {
             "Dootah did not discover the regression screen on its own. Intercepted:\n" +
                 discovered.joinToString("\n")
         }
+        require("intercepted=com.dootah.demo.ControlStripRegressionScreen" in discovered) {
+            "The delegated-state regression screen must remain intercepted."
+        }
 
         val compiled = classes.file(screen).asFile
 
@@ -84,6 +87,37 @@ tasks.register("dootahRealComposeCheck") {
         // names in it, and reading them back is the only way to tell a screen
         // that compiled from one that compiled and registered nothing.
         val text = String(compiled.readBytes(), Charsets.ISO_8859_1)
+
+        // The picker's handlers write `expanded`, a delegated state declared at
+        // the top of the screen. That declaration is part of the native
+        // prologue -- it runs before the call that registers any of this -- so
+        // the accessors the handlers call are in scope by the time the app
+        // builds them, and the app can offer the component rather than leave a
+        // hole where it was. The guarantee this replaces is the one that
+        // mattered: the task fails if `:app:compileDebugKotlin` fails, and the
+        // shape that used to be refused here is precisely the one the JVM
+        // backend rejected with `Non-mapped local declaration`.
+        //
+        // Whether a *bundle* may place it is a separate question with a
+        // separate answer -- it may not, while the bundle also holds
+        // `expanded` -- and `DelegatedLocalTest` is where that is pinned.
+        require(text.contains("com.dootah.demo.RegressionRangePicker(onConfirm|onDismissRequest)")) {
+            "The picker adapter should be registered now that the state it reads is " +
+                "declared in front of the interception point. Losing it means the " +
+                "native prologue stopped covering a delegated `var` at the top of a body."
+        }
+
+        // A region kept exactly as written, registered on a screen whose body
+        // declares state. This is the whole point of the prologue: before it,
+        // the first declaration in a screen refused every region below it, and
+        // a screen with no region left to keep stayed native in one piece.
+        require(text.contains("!com.dootah.demo.")) {
+            "No native region was registered. A screen that declares state must " +
+                "still be able to keep its own components exactly as written."
+        }
+        require(text.contains("java/lang/invoke/LambdaMetafactory")) {
+            "The real Compose regression must exercise JVM invokedynamic lambda generation."
+        }
 
         // A resource is read as a Java static field, which is a shape the
         // plugin's own fixtures cannot produce -- their `R` is Kotlin. Nothing

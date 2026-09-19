@@ -914,7 +914,7 @@ private fun FirValueParameter.isComposableContent(): Boolean {
  * every real component's content was taken for a handler, and every screen
  * built out of Material components was refused.
  */
-private fun ConeKotlinType.isComposableFunctionType(): Boolean {
+internal fun ConeKotlinType.isComposableFunctionType(): Boolean {
 
     val name = classId?.asSingleFqName()?.asString() ?: return false
 

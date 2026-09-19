@@ -201,7 +201,11 @@ abstract class DootahExtractTask @Inject constructor(
         add(jvmTarget.get())
 
         add("-classpath")
-        add(compileClasspath.files.joinToString(java.io.File.pathSeparator) { it.absolutePath })
+        // Like KotlinCompile's CLI arguments, omit optional outputs that their
+        // producer did not create (for example KSP's classes-only output).
+        // Resolve here, after all producer dependencies, not at configuration time.
+        add(compileClasspath.files.filter { it.exists() }
+            .joinToString(java.io.File.pathSeparator) { it.absolutePath })
 
         add("-d")
         add(classesOutput)

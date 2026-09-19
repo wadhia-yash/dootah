@@ -101,10 +101,47 @@ internal sealed interface LoweringResult {
 internal class ScreenLowering(
     private val function: FirNamedFunction,
     private val filePath: String,
+
+    /**
+     * Prologue declarations this run must keep native rather than describe.
+     *
+     * Empty on the first run. A name arrives here when the run before it found
+     * a region that had to stay native and could not, because it read a value
+     * the bundle had claimed -- see [demotionCandidates].
+     */
+    private val keptNative: Set<String> = emptySet(),
 ) {
 
     private val functionName = function.symbol.callableId.asSingleFqName().asString()
     private val reasons = mutableListOf<UnsupportedConstruct>()
+
+    /**
+     * The declarations the app evaluates before Dootah's own code.
+     *
+     * The same split the app's own pass makes, asked of the same body: the
+     * declarations at the top, up to the first statement that assigns to one of
+     * them. The rule and the reason for it are in `splitAtPrologue`.
+     *
+     * What it buys here is the condition below it. A region kept exactly as
+     * written is lifted in front of the body, so it may not read what the body
+     * declares -- but a prologue declaration is in front of the body too, so
+     * reading one is fine. Without this, the first `rememberLazyListState()` in
+     * a screen refused every native region under it, and a screen with no
+     * region left to keep is a screen that stays native in one piece.
+     */
+    private val prologue: Set<String> = function.body?.prologueDeclarations().orEmpty()
+
+    /**
+     * Prologue declarations a native region needed and could not have.
+     *
+     * A `var` the bundle would otherwise own, read by something that has to
+     * stay native. The two cannot both be true: a frozen region reads the app's
+     * own value, and a bundle that also kept one would be holding a second copy
+     * that nothing updates. So the bundle gives it up -- but only when the
+     * alternative is the whole screen staying native, which is what the caller
+     * decides by running lowering again with these names in [keptNative].
+     */
+    val demotionCandidates = linkedSetOf<String>()
 
     private val signature = function.screenParameters()
     private val modifierParameter = signature.modifierName()
@@ -360,6 +397,22 @@ internal class ScreenLowering(
         val name = property.name.asString()
         val type = bundleTypeOf(property.returnTypeRef.coneTypeSafe<ConeKotlinType>())
 
+        // Claimed by a native region on an earlier run. Describing it again
+        // would refuse that region again, and the screen with it.
+        if (name in keptNative) {
+            keepNative(
+                property.source?.startOffset,
+                "the local `$name`, which a region that stays native reads",
+                code = RejectionCode.LOCAL_READ_BY_NATIVE_REGION,
+                detail = name,
+                remedy = "The app keeps this value and the regions that read it. A " +
+                    "bundle cannot also hold it: there would be two of it, and only " +
+                    "one of them would change.",
+            )
+            nativeOnly(name)
+            return
+        }
+
         if (type == null) {
             keepNative(
                 property.source?.startOffset,
@@ -475,9 +528,39 @@ internal class ScreenLowering(
             }
         }
 
+        // The same last rung for the one statement that is not a call. Without
+        // it an `if` over a condition the app owns had no rung at all, and a
+        // screen ending in `if (showDialog) { … }` -- which is most screens
+        // with a dialog in them -- went native in one piece for it.
+        (statement.unwrapReturn() as? FirWhenExpression)?.let { conditional ->
+            attempt { freezeConditional(conditional) }.value?.let { region ->
+                degradeTo("a region kept exactly as written", direct.causes)
+                return listOf(region)
+            }
+        }
+
+        noteWhatANativeRegionNeeded(statement)
+
         reasons += direct.causes
 
         return null
+    }
+
+    /**
+     * Records the prologue values a region needed and could not read.
+     *
+     * Called only where the ladder has run out: the statement could not be
+     * described, could not be placed and could not be kept. The failure now
+     * travels outwards, and if it reaches the top it takes the screen with it.
+     *
+     * If what stopped the last rung was a value the bundle had claimed, the
+     * caller has a second option -- leave that value to the app and lower
+     * again. This is where it finds out there is one.
+     */
+    private fun noteWhatANativeRegionNeeded(element: FirElement) {
+        element.declarationsReadFromBody()
+            .filter { name -> name in prologue }
+            .forEach { name -> demotionCandidates += name }
     }
 
     /** Records why a region stopped short of being described. */
@@ -566,6 +649,98 @@ internal class ScreenLowering(
         components.requirements.adapters += id
 
         return BundleUi.ComponentUi(adapterId = id)
+    }
+
+    /**
+     * Keeps an `if` over components as the native code it already is.
+     *
+     * The same thing [freeze] does, for the one statement that has no callee to
+     * be named after. A conditional Dootah cannot describe -- because the app
+     * owns the condition, which is what `rememberSaveable` and a view model
+     * produce -- is still the app's own code, and the app can still draw it.
+     * The bundle's power over it is the same as over any kept region: where it
+     * goes, and whether it appears.
+     *
+     * The conditions are [freeze]'s, asked of the whole `if`, plus one: it has
+     * to draw something. An `if` with no composable in it is a piece of logic,
+     * and keeping logic as a region would run it during composition in a place
+     * the developer did not put it.
+     */
+    private fun freezeConditional(expression: FirWhenExpression): BundleUi? {
+
+        if (!expression.drawsSomething()) {
+            reject(
+                expression.sourceOffset(),
+                "an `if` with nothing to draw in it",
+                code = RejectionCode.UNSUPPORTED_STATEMENT_IN_LAYOUT,
+                detail = "conditional",
+                remedy = "A layout may contain components, and `if` / `when` choosing " +
+                    "between them.",
+            )
+            return null
+        }
+
+        if (expression.readsAnOuterReceiver()) {
+            reject(
+                expression.sourceOffset(),
+                "an `if` that reads the scope of the layout around it",
+                code = RejectionCode.COMPONENT_READS_SCOPE,
+                detail = "conditional",
+                remedy = "A native region is lifted out into a standalone lambda, so " +
+                    "it cannot read a `ColumnScope` or `RowScope` from around it. The " +
+                    "layout holding it can be kept whole instead.",
+            )
+            return null
+        }
+
+        val readFromBody = expression.declarationsReadFromBody()
+
+        if (readFromBody.isNotEmpty()) {
+            reject(
+                expression.sourceOffset(),
+                "an `if` that reads `${readFromBody.first()}` from this body",
+                code = RejectionCode.COMPONENT_READS_BODY,
+                detail = "conditional",
+                remedy = "A native region is prepared before the screen's own body " +
+                    "runs, so it cannot read something the body declares.",
+            )
+            return null
+        }
+
+        val text = expression.sourceText()
+
+        if (text == null) {
+            reject(
+                expression.sourceOffset(),
+                "an `if` whose source Dootah could not read",
+                code = RejectionCode.UNREADABLE_REGION_SOURCE,
+                detail = "conditional",
+                remedy = "Keep this screen native.",
+            )
+            return null
+        }
+
+        val id = FrozenRegionId.of(FrozenRegionId.CONDITIONAL, text)
+        components.requirements.adapters += id
+
+        return BundleUi.ComponentUi(adapterId = id)
+    }
+
+    /** Whether anything inside this draws. */
+    private fun FirElement.drawsSomething(): Boolean {
+
+        var draws = false
+
+        accept(
+            object : org.jetbrains.kotlin.fir.visitors.FirVisitorVoid() {
+                override fun visitElement(element: FirElement) {
+                    if (element is FirFunctionCall && element.isComposableCall()) draws = true
+                    element.acceptChildren(this)
+                }
+            }
+        )
+
+        return draws
     }
 
     /** The source this element was written as, for naming it by what it says. */
@@ -1103,7 +1278,7 @@ internal class ScreenLowering(
      * asks the same question of the same thing, so the two agree by
      * construction rather than by both being cautious in the same places.
      */
-    private fun FirFunctionCall.readsAnOuterReceiver(): Boolean {
+    private fun FirElement.readsAnOuterReceiver(): Boolean {
 
         val introducedHere = mutableSetOf<FirBasedSymbol<*>>()
 
@@ -1819,6 +1994,8 @@ internal class ScreenLowering(
             return region
         }
 
+        noteWhatANativeRegionNeeded(call)
+
         reasons += attempted.causes
 
         return null
@@ -1859,8 +2036,14 @@ internal class ScreenLowering(
 
     /** Marks a name as one only the Android side can read. */
     private fun nativeOnly(name: String) {
+
         nativeOnlyLocals += name
-        bodyDeclarations += name
+
+        // A prologue declaration the app keeps is evaluated in front of the
+        // body, in the same place the regions lifted out of it are, so those
+        // regions can read it. Everything else is declared inside the body and
+        // does not exist where they run.
+        if (name !in prologue) bodyDeclarations += name
     }
 
     private fun reject(
@@ -1887,6 +2070,87 @@ internal class ScreenLowering(
         val MUTABLE_STATE_OF = FqName("androidx.compose.runtime.mutableStateOf")
     }
 }
+
+/**
+ * The declarations a screen body evaluates before Dootah's own code.
+ *
+ * The extraction side of the split the app's pass makes in `splitAtPrologue`,
+ * asked of the same body and answered by the same rule: the declarations at the
+ * top, up to the first statement that assigns to one of them.
+ *
+ * The two passes read two versions of the file and need not agree exactly. This
+ * one is the cautious side of any disagreement -- a declaration the app moves
+ * and this does not is one more name a region may not read, which costs a
+ * region, while the reverse would name a region the app has not got. Hence the
+ * assignment search here descends into lambdas, where the app's own only
+ * follows what actually runs.
+ */
+private fun FirBlock.prologueDeclarations(): Set<String> {
+
+    val declared = statements
+        .filterIsInstance<FirProperty>()
+        .map { property -> property.name.asString() }
+        .toSet()
+
+    val prologue = linkedSetOf<String>()
+
+    for (statement in statements) {
+
+        if (statement is FirProperty) {
+            prologue += statement.name.asString()
+            continue
+        }
+
+        if (statement.assignsOneOf(declared)) return prologue
+    }
+
+    return prologue
+}
+
+/**
+ * Whether evaluating [this] assigns to one of the body's own declarations.
+ *
+ * A handler is not evaluating. `LaunchedEffect(key) { done = true }` and
+ * `onClick = { open = !open }` both contain an assignment and neither performs
+ * one where they are written -- one runs in a coroutine and the other on a tap,
+ * long after the declaration below them has had its value. Counting those ended
+ * the prologue at the first effect or the first button in a screen, which on a
+ * real app is the second or third line.
+ *
+ * Composable content is different: it runs as part of the composition this
+ * statement is in, so an assignment inside one does happen here. The app's own
+ * pass draws the same line, in `writesAny`.
+ */
+private fun FirElement.assignsOneOf(names: Set<String>): Boolean {
+
+    var writes = false
+
+    accept(
+        object : org.jetbrains.kotlin.fir.visitors.FirVisitorVoid() {
+
+            override fun visitElement(element: FirElement) {
+
+                if (element is FirAnonymousFunctionExpression && !element.isComposableContent()) {
+                    return
+                }
+
+                if (element is FirVariableAssignment) {
+                    val target = (element.lValue as? FirPropertyAccessExpression)?.resolvedName()
+                    if (target != null && target in names) writes = true
+                }
+
+                element.acceptChildren(this)
+            }
+        }
+    )
+
+    return writes
+}
+
+/** Whether this lambda is drawn by the composition rather than kept for later. */
+private fun FirAnonymousFunctionExpression.isComposableContent(): Boolean =
+    anonymousFunction.typeRef.coneTypeSafe<ConeKotlinType>()
+        ?.isComposableFunctionType() == true
 
 private fun FirFunctionCall.isComposable(): Boolean =
     calleeReference.toResolvedCallableSymbol()

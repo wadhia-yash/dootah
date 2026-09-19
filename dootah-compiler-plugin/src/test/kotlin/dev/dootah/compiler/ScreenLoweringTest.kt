@@ -1,5 +1,6 @@
 package dev.dootah.compiler
 
+import dev.dootah.contract.FrozenRegionId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -126,19 +127,26 @@ class ScreenLoweringTest {
         assertTrue(generated, inherited in 1..<padding)
     }
 
+    /**
+     * A computed size keeps the text native, and nothing else.
+     *
+     * The size is the app's own and stays that way. What the bundle loses is
+     * the one text that reads it; what it keeps is the layout around it, which
+     * is where an update to this screen would go.
+     */
     @Test
-    fun `refuses a computed size`() {
+    fun `keeps a text with a computed size native`() {
 
-        val rejection = reject(
+        val (generated, kept) = keptNative(
             screen(
                 body = """Text("x", modifier = Modifier.padding(spacing.dp))""",
                 prelude = "val spacing = 8",
             )
         )
 
-        // Both reasons are reported, and the one naming what the developer
-        // wrote comes first.
-        assertTrue(rejection, rejection.contains("Write a size as a literal"))
+        assertTrue(kept, kept.contains("Write a size as a literal"))
+        assertTrue(generated, generated.contains(FrozenRegionId.PREFIX))
+        assertTrue(generated, generated.contains("ColumnNode("))
     }
 
     // ---- values and logic ----------------------------------------------
@@ -1157,9 +1165,9 @@ class ScreenLoweringTest {
     }
 
     @Test
-    fun `refuses a click handler that calls something other than a callback`() {
+    fun `keeps a click handler that calls something other than a callback native`() {
 
-        val rejection = reject(
+        val (generated, kept) = keptNative(
             SourceFile(
                 name = "Screen.kt",
                 contents = """
@@ -1186,7 +1194,14 @@ class ScreenLoweringTest {
             )
         )
 
-        assertTrue(rejection, rejection.contains("only through the screen's own callback"))
+        // The button keeps the handler it was written with -- `checkout()` is
+        // the app's own function and never becomes remote -- and the counter
+        // beside it goes native with it, because a bundle holding a second copy
+        // of a value the app's own button writes would hold one nothing
+        // updates. The `Column` is still the bundle's.
+        assertTrue(kept, kept.contains("only through the screen's own callback"))
+        assertTrue(generated, generated.contains(FrozenRegionId.PREFIX))
+        assertTrue(generated, generated.contains("ColumnNode("))
     }
 
 

@@ -39,12 +39,14 @@ internal class BundleEngine(
 
         runtime.restart()
 
-        runtime.evaluate(
-            """
-            $bundleSource
-            "loaded";
-            """.trimIndent()
-        )
+        com.dootah.DootahTrace.timed("bundle evaluation") {
+            runtime.evaluate(
+                """
+                $bundleSource
+                "loaded";
+                """.trimIndent()
+            )
+        }
 
         requireExport(SCREEN_IDS_FUNCTION)
         requireExport(RENDER_FUNCTION)

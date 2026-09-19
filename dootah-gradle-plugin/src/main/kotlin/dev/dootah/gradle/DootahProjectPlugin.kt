@@ -152,7 +152,7 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
 
     private companion object {
         /** Used when running from a build output that carries no jar manifest. */
-        const val FALLBACK_VERSION = "0.1.0-alpha.1"
+        const val FALLBACK_VERSION = "0.1.0-alpha.3"
 
         const val DEBUG_COMPILE_TASK = "compileDebugKotlin"
         const val EXTRACT_TASK = "dootahExtract"

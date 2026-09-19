@@ -30,12 +30,24 @@ abstract class DootahPublishPreflight : DefaultTask() {
     @get:Input abstract val server: Property<String>
     @get:Input abstract val channel: Property<String>
     @get:Input abstract val rollout: Property<Int>
+
+    /**
+     * The tree the signing key must not live in, captured while configuring.
+     *
+     * Reading `project` from a task action is unsupported once the configuration
+     * cache is in play, and this task is the last step before a publication: a
+     * developer who had published once could not publish again until they
+     * cleared the cache.
+     */
+    @get:Internal abstract val projectRoot: DirectoryProperty
+
     @TaskAction fun check() {
         PublicationClient.validateServer(server.get())
         PublicationClient.validateControls(channel.get(), rollout.get())
         PublicationClient(server.get(), System.getenv("DOOTAH_PUBLISH_TOKEN") ?: "")
+        val root = projectRoot.get().asFile.canonicalFile
         val key = System.getenv("DOOTAH_SIGNING_KEY_FILE")?.let { File(it).canonicalFile }
-        require(key != null && key.isFile && !key.toPath().startsWith(project.rootDir.canonicalFile.toPath())) {
+        require(key != null && key.isFile && !key.toPath().startsWith(root.toPath())) {
             "Set DOOTAH_SIGNING_KEY_FILE to an existing external PKCS#8 PEM key"
         }
         require(ContractJson.readContract(contractFile.get().asFile.readText()).screens.isNotEmpty()) { "A recorded installed-app contract is required for publication" }

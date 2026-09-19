@@ -20,6 +20,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -150,7 +151,7 @@ fun ControlStripRegressionScreen(
     // it contains no mention of it at all -- and one lifted out into an adapter
     // would read a local that does not exist yet, which the JVM backend refuses
     // with an assertion naming nothing Dootah did.
-    var expanded by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = modifier) {
         Text("History")
@@ -158,6 +159,18 @@ fun ControlStripRegressionScreen(
         ControlStripBody(model = model, onClear = onClear, isActive = isActive)
 
         RegressionBadge(label = if (expanded) "expanded" else "collapsed")
+
+        // The two-argument callback stays native. Its generated delegated-state
+        // accessors must never escape into an adapter above this declaration.
+        if (expanded) {
+            RegressionRangePicker(
+                onDismissRequest = { expanded = false },
+                onConfirm = { _, _ ->
+                    model.setActive(true)
+                    expanded = false
+                },
+            )
+        }
 
         Text("Taps: $taps")
 
@@ -207,4 +220,10 @@ fun ControlStripBody(
 @Composable
 fun RegressionBadge(label: String) {
     Text(label)
+}
+
+@Composable
+fun RegressionRangePicker(onDismissRequest: () -> Unit, onConfirm: (Long, Long) -> Unit) {
+    Button(onClick = onDismissRequest) { Text("Dismiss range") }
+    Button(onClick = { onConfirm(0L, 1L) }) { Text("Confirm range") }
 }

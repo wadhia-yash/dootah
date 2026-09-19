@@ -36,7 +36,7 @@ class PublicAnnotationApiTest {
     @Test
     fun `public documentation has no legacy opt-in annotation references`() {
         val docs = repository.listFiles().orEmpty().filter { it.extension == "md" } +
-            listOf("examples", "validation").flatMap { directory ->
+            listOf("docs", "examples", "validation").flatMap { directory ->
                 repository.resolve(directory).walkTopDown()
                     .filter { it.isFile && it.extension == "md" }.toList()
             }

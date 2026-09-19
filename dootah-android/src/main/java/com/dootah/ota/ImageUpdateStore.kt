@@ -243,11 +243,44 @@ internal class ImageUpdateStore(
         return bytes
     }
 
-    @Synchronized fun delete() { if (activeFile.exists() && !activeFile.delete()) error("Cannot delete update record") }
+    @Synchronized fun delete() {
+        cached = null
+        cachedFrom = null
+        if (activeFile.exists() && !activeFile.delete()) error("Cannot delete update record")
+    }
+
+    /**
+     * The last state read, and the file it was read from.
+     *
+     * Reading the state is not cheap: it parses the record and verifies the
+     * publisher's signature over every proof in it -- the active update, the
+     * last known good, the candidate and each retained version, up to eight
+     * Ed25519 verifications. On a mid-range device that is tens of milliseconds
+     * of pure computation.
+     *
+     * It was being done on every call, and `status()` calls it, and every
+     * intercepted screen asks for the status when it finishes rendering. An app
+     * with forty screens therefore verified a few hundred signatures during its
+     * first composition, on the main thread, and was killed for not responding.
+     *
+     * A file that has not changed cannot have a different state, so it is read
+     * once. Identified by the file's length and modification time rather than
+     * only by this object's own writes, so a record replaced by another process
+     * -- an operator command, a second process of the same app -- is noticed
+     * rather than served from a stale copy.
+     */
+    private var cached: State? = null
+    private var cachedFrom: Pair<Long, Long>? = null
 
     /** Runtime-9 signing records migrate as unconfirmed active, never inferred healthy. */
     @Synchronized fun state(): State {
         if (!activeFile.isFile) return State()
+        val stamp = activeFile.length() to activeFile.lastModified()
+        cached?.let { if (cachedFrom == stamp) return it }
+        return read().also { cached = it; cachedFrom = stamp }
+    }
+
+    private fun read(): State {
         val properties = Properties().apply { activeFile.inputStream().use { load(it) } }
         fun update(prefix: String): Update? {
             val version = properties.getProperty(prefix + "version") ?: return null
@@ -312,6 +345,11 @@ internal class ImageUpdateStore(
     }
 
     private fun save(state: State) {
+        // Before the write, not after: a failed write must not leave the cache
+        // describing a record that is no longer there, and two writes within
+        // one clock tick must not look like no write at all.
+        cached = null
+        cachedFrom = null
         val record = buildString {
             append("stateSchema=4\nhealthy=${state.confirmedHealthy}\npaused=${state.paused}\n")
             state.attempt?.let { append("attempt=$it\n") }

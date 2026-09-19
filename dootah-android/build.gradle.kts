@@ -74,6 +74,8 @@ dependencies {
     implementation("com.google.crypto.tink:tink-android:1.23.0")
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
 }

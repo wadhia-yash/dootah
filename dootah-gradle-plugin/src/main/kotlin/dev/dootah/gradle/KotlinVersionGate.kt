@@ -47,4 +47,4 @@ internal fun composeDeclaredFirstMessage(): String =
  */
 internal val DOOTAH_VERSION: String
     get() = DootahProjectPlugin::class.java.`package`?.implementationVersion
-        ?: "0.1.0-alpha.1"
+        ?: "0.1.0-alpha.3"

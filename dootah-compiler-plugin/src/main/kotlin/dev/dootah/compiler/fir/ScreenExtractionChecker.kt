@@ -24,6 +24,62 @@ import java.io.File
  * answer: whatever it accepts here is what a published bundle will describe, and
  * whatever it accepts there is what the installed APK can render.
  */
+/**
+ * Lowers one screen, giving up a described value when that is what it costs to
+ * keep a region rather than the whole screen.
+ *
+ * A screen is lowered once. If it came out rejected -- nothing publishable, the
+ * app keeps its native body -- and something in it was refused for reading a
+ * value the bundle had claimed, the claim is the cheaper thing to drop: lowering
+ * runs again with that value left to the app, and the region that needed it can
+ * then be kept exactly as written.
+ *
+ * Only on rejection, which is what keeps this from taking anything away. A
+ * screen that lowered is already deciding more than the alternative would, so
+ * there is nothing to trade. The loop ends when the run stops asking for names
+ * it has not already been given, and there are only so many to give.
+ */
+internal fun lowerScreen(
+    function: FirNamedFunction,
+    filePath: String,
+    screenId: String,
+): LoweringResult {
+
+    var keptNative = emptySet<String>()
+
+    // Why the first run could not describe the screen, carried forward.
+    //
+    // Once a value is left to the app, everything that reads it is native too,
+    // and the reason the *last* run reports is that read rather than the thing
+    // that started it. A developer who wrote `checkout()` in a click handler
+    // needs to be told about `checkout()`, not about the counter beside it.
+    var firstRefusal = emptyList<UnsupportedConstruct>()
+
+    while (true) {
+
+        val lowering = ScreenLowering(function, filePath, keptNative)
+        val result = lowering.lower(screenId)
+
+        if (result !is LoweringResult.Rejected) return result.withEarlierRefusal(firstRefusal)
+
+        if (keptNative.isEmpty()) firstRefusal = result.reasons
+
+        val wanted = lowering.demotionCandidates - keptNative
+        if (wanted.isEmpty()) return result
+
+        keptNative = keptNative + wanted
+    }
+}
+
+/** Adds the reasons an earlier run gave to what this one kept native. */
+private fun LoweringResult.withEarlierRefusal(
+    earlier: List<UnsupportedConstruct>,
+): LoweringResult = when {
+    earlier.isEmpty() -> this
+    this is LoweringResult.Lowered -> copy(degraded = earlier + degraded)
+    else -> this
+}
+
 internal class ScreenExtractionChecker(
     private val reportDirectory: File,
     private val generatedDirectory: File?,
@@ -56,7 +112,8 @@ internal class ScreenExtractionChecker(
         }
 
         val body = declaration.body ?: return
-        val screenId = declaration.dootahScreenId()
+        val filePath = context.containingFilePath
+        val screenId = declaration.dootahScreenId(filePath)
 
         // An observation of the resolved body, kept separate from the lowering.
         // It records what the compiler saw rather than what could be bundled,
@@ -68,12 +125,13 @@ internal class ScreenExtractionChecker(
             body = body.inspectScreenBody(),
         )
 
-        val lowering = ScreenLowering(
-            function = declaration,
-            filePath = context.containingFilePath ?: "unknown",
-        )
-
-        when (val result = lowering.lower(screenId)) {
+        when (
+            val result = lowerScreen(
+                function = declaration,
+                filePath = filePath ?: "unknown",
+                screenId = screenId,
+            )
+        ) {
 
             is LoweringResult.Lowered -> {
                 // Nothing to generate into during a validation-only run.

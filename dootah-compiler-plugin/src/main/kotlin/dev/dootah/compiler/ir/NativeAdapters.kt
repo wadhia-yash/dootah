@@ -18,6 +18,9 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrContainerExpression
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
+import org.jetbrains.kotlin.ir.expressions.IrSetValue
+import org.jetbrains.kotlin.ir.expressions.IrWhen
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.expressions.IrGetField
@@ -189,6 +192,14 @@ internal class NativeBindings(
 internal fun IrBody.nativeBindings(
     layouts: Set<FqName>,
     sourceText: String = "",
+
+    /**
+     * The declarations moved in front of the interception point.
+     *
+     * They are evaluated before anything registered here is built, so reading
+     * one is not the problem below describes -- see `splitAtPrologue`.
+     */
+    prologue: BodyScope = BodyScope(emptySet(), emptySet()),
 ): NativeBindings {
 
     val adapters = LinkedHashMap<String, NativeAdapter>()
@@ -197,7 +208,7 @@ internal fun IrBody.nativeBindings(
     val anchors = LinkedHashMap<String, NativeAnchor>()
     val builders = LinkedHashMap<String, NativeBuilder>()
 
-    val declaredInBody = declaredHere()
+    val declaredInBody = declaredHere().without(prologue)
 
     acceptVoid(object : IrVisitorVoid() {
 
@@ -215,6 +226,11 @@ internal fun IrBody.nativeBindings(
                 (element.statements.lastOrNull() as? IrCall)
                     ?.recordFrozen(adapters, declaredInBody, sourceText, region = element)
             }
+
+            // And for an `if` that chooses between components. It is a region
+            // like any other -- the app's own code, kept as written -- and the
+            // only thing it lacks is a callee to be named after.
+            if (element is IrWhen) element.recordFrozenConditional(adapters, declaredInBody, sourceText)
 
             if (element is IrCall && element.isComponent(layouts, declaredInBody)) {
 
@@ -434,13 +450,86 @@ private fun IrCall.recordFrozen(
 }
 
 /**
+ * Registers an `if` over components as a region the app draws as written.
+ *
+ * The same thing `recordFrozen` does for a call, for the one shape that has no
+ * call to hang off. A conditional whose condition the app owns -- `if
+ * (showDialog) { … }`, where `showDialog` is a `rememberSaveable` -- cannot be
+ * described, cannot be placed, and until this could not be kept either, so the
+ * ladder ran out and the screen went native in one piece. It is the app's own
+ * code either way; all that was missing was a name for it.
+ *
+ * Named by its text under [FrozenRegionId.CONDITIONAL], and the extraction pass
+ * derives the same name from the same text. Editing the branch renames it, and
+ * a bundle published from the edited source is refused rather than drawing the
+ * old one -- which is exactly how every other kept region behaves.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrWhen.recordFrozenConditional(
+    adapters: MutableMap<String, NativeAdapter>,
+    declaredInBody: BodyScope,
+    sourceText: String,
+) {
+
+    if (sourceText.isEmpty()) return
+
+    // An `if` used as a value is read, not placed. Only one used as a statement
+    // is a region, and only one that draws something is worth keeping.
+    if (!type.isUnit()) return
+
+    val template = firstComposableCall() ?: return
+
+    if (readsOutside(declaredInBody)) return
+
+    val text = sourceText.textOf(this) ?: return
+    val id = FrozenRegionId.of(FrozenRegionId.CONDITIONAL, text)
+
+    adapters.getOrPut(id) {
+        NativeAdapter(
+            id = id,
+            // Only its offsets are used: a frozen adapter draws [region].
+            template = template,
+            suppliedParameters = emptySet(),
+            frozen = true,
+            region = this,
+        )
+    }
+}
+
+/** The first composable call inside this, for its offsets. */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrElement.firstComposableCall(): IrCall? {
+
+    var found: IrCall? = null
+
+    acceptVoid(object : IrVisitorVoid() {
+        override fun visitElement(element: IrElement) {
+            if (found != null) return
+            if (element is IrCall &&
+                element.symbol.owner.hasAnnotation(COMPOSABLE_ANNOTATION) &&
+                element.symbol.owner.returnType.isUnit()
+            ) {
+                found = element
+                return
+            }
+            element.acceptChildrenVoid(this)
+        }
+    })
+
+    return found
+}
+
+/**
  * Whether this element reads a name declared in the body around it.
  *
  * Shared by everything that gets lifted out of the body: an action, a frozen
  * region, the parts of a component call that survive being copied.
  */
 @OptIn(UnsafeDuringIrConstructionAPI::class)
-private fun IrElement.readsOutside(declaredInBody: BodyScope): Boolean {
+internal fun IrElement.readsOutside(
+    declaredInBody: BodyScope,
+    skipped: Set<IrExpression> = emptySet(),
+): Boolean {
 
     val outer = declaredHere().let { own ->
         BodyScope(
@@ -454,36 +543,17 @@ private fun IrElement.readsOutside(declaredInBody: BodyScope): Boolean {
     acceptVoid(object : IrVisitorVoid() {
         override fun visitElement(element: IrElement) {
 
+            if (element in skipped) return
             if (element is IrGetValue && element.symbol.owner in outer.values) reads = true
+            if (element is IrSetValue && element.symbol.owner in outer.values) reads = true
             if (element is IrCall && element.symbol.owner in outer.functions) reads = true
+            if (element is IrFunctionReference && element.symbol.owner in outer.functions) reads = true
 
             element.acceptChildrenVoid(this)
         }
     })
 
     return reads
-}
-
-/**
- * Every value this body declares for itself.
- *
- * The screen's own parameters are deliberately absent: they exist wherever the
- * screen does, so an adapter may read them. Only what the body introduces is out
- * of reach of something lifted above it.
- */
-internal fun IrBody.localsDeclaredHere(): Set<IrValueDeclaration> {
-
-    val locals = mutableSetOf<IrValueDeclaration>()
-
-    acceptVoid(object : IrVisitorVoid() {
-        override fun visitElement(element: IrElement) {
-            if (element is IrVariable) locals += element
-            if (element is IrFunction) locals += element.parameters
-            element.acceptChildrenVoid(this)
-        }
-    })
-
-    return locals
 }
 
 /** The source this call was written as, by the offsets it carries. */
@@ -782,40 +852,11 @@ private fun IrCall.suppliedArgumentIndices(): Set<Int> =
 @OptIn(UnsafeDuringIrConstructionAPI::class)
 private fun IrExpression.readsOuter(declaredInBody: BodyScope, replaced: Set<Int>): Boolean {
 
-    val outer = declaredHere().let { own ->
-        BodyScope(
-            values = declaredInBody.values - own.values,
-            functions = declaredInBody.functions - own.functions,
-        )
-    }
-
     val skipped = (this as? IrCall)
         ?.let { call -> replaced.mapNotNullTo(mutableSetOf()) { call.arguments.getOrNull(it) } }
         .orEmpty()
 
-    var readsOuter = false
-
-    acceptVoid(object : IrVisitorVoid() {
-        override fun visitElement(element: IrElement) {
-
-            if (element in skipped) return
-
-            if (element is IrGetValue && element.symbol.owner in outer.values) {
-                readsOuter = true
-            }
-
-            // A read through something the body declared beside it. This is the
-            // only way the read is invisible above: the expression holds a call
-            // and never mentions the variable.
-            if (element is IrCall && element.symbol.owner in outer.functions) {
-                readsOuter = true
-            }
-
-            element.acceptChildrenVoid(this)
-        }
-    })
-
-    return readsOuter
+    return readsOutside(declaredInBody, skipped)
 }
 
 /**
@@ -826,7 +867,7 @@ private fun IrExpression.readsOuter(declaredInBody: BodyScope, replaced: Set<Int
  * left to read -- and the read is not a compile error but an assertion inside
  * the JVM backend, thrown long after Dootah has finished and naming none of it.
  */
-private class BodyScope(
+internal class BodyScope(
     val values: Set<IrValueDeclaration>,
     val functions: Set<IrSimpleFunction>,
 )
@@ -841,7 +882,7 @@ private class BodyScope(
  * variable sees a component that mentions nothing at all, lifts it out, and
  * leaves a read of a local that does not exist yet.
  */
-private fun IrElement.declaredHere(): BodyScope {
+internal fun IrElement.declaredHere(): BodyScope {
 
     val values = mutableSetOf<IrValueDeclaration>()
     val functions = mutableSetOf<IrSimpleFunction>()

@@ -25,6 +25,8 @@ dependencies {
     // The Kotlin Gradle plugin API supplies KotlinCompilerPluginSupportPlugin,
     // which is how a compiler plugin attaches to a host project's compilation.
     compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin-api:${libs.versions.kotlin.get()}")
+    // KotlinCompile exposes the Java source provider separately from JVM sources.
+    compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:${libs.versions.kotlin.get()}")
 
     // The include/exclude rules are parsed by the compiler plugin from a string
@@ -50,3 +52,17 @@ gradlePlugin {
 }
 
 // TestKit uses withPluginClasspath(); no implicit Maven Local publication is needed.
+
+val extractionTestCompiler by configurations.creating
+val extractionTestKotlinPlugin by configurations.creating
+dependencies {
+    extractionTestCompiler(project(":dootah-compiler-plugin"))
+    extractionTestKotlinPlugin("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}")
+}
+tasks.test {
+    inputs.files(extractionTestCompiler, extractionTestKotlinPlugin)
+    doFirst {
+        systemProperty("dootah.extraction.compiler", extractionTestCompiler.asPath)
+        systemProperty("dootah.extraction.kotlinPlugin", extractionTestKotlinPlugin.asPath)
+    }
+}

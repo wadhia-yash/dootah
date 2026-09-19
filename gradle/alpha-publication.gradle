@@ -20,6 +20,24 @@ def licenseUrl = providers.gradleProperty('dootahLicenseUrl')
 def repositoryDirectory = providers.gradleProperty('dootahTestRepository')
     .map { file(it) }.orElse(layout.buildDirectory.dir('alpha-repository').map { it.asFile })
 
+// A release coordinate may already be captured by a consumer's configuration
+// cache. Replacing its bytes cannot invalidate that consumer's task graph.
+def immutableCandidate = tasks.register('checkAlphaCandidateIsNew') {
+    group = 'publishing'
+    description = 'Refuses to overwrite any existing local alpha release coordinate'
+    doLast {
+        sdkModules.each { moduleName ->
+            project(":${moduleName}").extensions.getByType(PublishingExtension)
+                .publications.withType(MavenPublication).each { publication ->
+                    def coordinate = "${publication.groupId.replace('.', '/')}/${publication.artifactId}/${publication.version}"
+                    if (new File(repositoryDirectory.get(), coordinate).exists()) {
+                        throw new GradleException("Alpha coordinate already exists: ${coordinate}. Choose a new dootahVersion; release versions are immutable.")
+                    }
+                }
+        }
+    }
+}
+
 sdkModules.each { project(":${it}").pluginManager.apply('signing') }
 project(':dootah-server').pluginManager.apply('signing')
 
@@ -79,6 +97,9 @@ gradle.projectsEvaluated {
             name = 'AlphaTest'
             url = repositoryDirectory.get().toURI()
         }
+        sdk.tasks.withType(PublishToMavenRepository).configureEach {
+            if (repository.name == 'AlphaTest') dependsOn immutableCandidate
+        }
         def sources = sdk.fileTree('src') {
             include 'main/**/*.kt', 'main/**/*.java', 'jsMain/**/*.kt', 'commonMain/**/*.kt'
         }
@@ -90,7 +111,7 @@ gradle.projectsEvaluated {
         def referenceDir = sdk.layout.buildDirectory.dir('alpha-reference')
         def reference = sdk.tasks.register('alphaReference') {
             inputs.files(sources)
-            inputs.file(rootProject.file('ALPHA_DISTRIBUTION.md'))
+            inputs.file(rootProject.file('docs/ALPHA_DISTRIBUTION.md'))
             inputs.property('description', descriptions[moduleName])
             outputs.dir(referenceDir)
             doLast {
@@ -111,7 +132,7 @@ gradle.projectsEvaluated {
                     '</title><h1>' + moduleName + '</h1><p>' + descriptions[moduleName] +
                     '</p><p>Source and KDoc reference. Kotlin declarations and their documentation are shown together.</p>' +
                     '<ul>' + links.join('\n') + '</ul><h2>Alpha integration guide</h2><pre>' +
-                    escape(rootProject.file('ALPHA_DISTRIBUTION.md').getText('UTF-8')) + '</pre>'
+                    escape(rootProject.file('docs/ALPHA_DISTRIBUTION.md').getText('UTF-8')) + '</pre>'
             }
         }
         def sourceJar = sdk.tasks.register('alphaSourcesJar', Jar) {

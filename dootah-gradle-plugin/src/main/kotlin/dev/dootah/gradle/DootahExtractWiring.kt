@@ -2,7 +2,7 @@ package dev.dootah.gradle
 
 import dev.dootah.gradle.tasks.DootahExtractTask
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /**
  * KSP is deliberately left out of the extraction pass.
@@ -41,7 +41,7 @@ internal fun registerExtractTask(
     )
 
     val extension = project.extensions.getByType(DootahExtension::class.java)
-    val compileTask = project.tasks.named(compileTaskName, KotlinJvmCompile::class.java)
+    val compileTask = project.tasks.named(compileTaskName, KotlinCompile::class.java)
 
     project.tasks.register("dootahExtract", DootahExtractTask::class.java) { task ->
 
@@ -53,6 +53,10 @@ internal fun registerExtractTask(
         task.dependsOn(compileTask)
 
         task.sources.from(compileTask.map { it.sources })
+        // KotlinCompile.sources is Kotlin-only. Java sources (including AGP and
+        // KSP generated Java) are a separate provider used for symbol resolution.
+        // Keep the provider intact so variant generation runs before extraction.
+        task.sources.from(compileTask.map { it.javaSources })
         task.compileClasspath.from(compileTask.map { it.libraries })
         task.compilerPluginClasspath.from(
             compileTask.map { compile ->

@@ -10,6 +10,7 @@ package com.dootah.ui
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Composer
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.InternalComposeApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
@@ -25,12 +26,15 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import com.dootah.BundleLoadResult
 import com.dootah.DOOTAH_LOG_TAG
 import com.dootah.Dootah
+import com.dootah.DootahFirstFrame
 import com.dootah.DootahStatus
+import com.dootah.DootahTrace
 import com.dootah.FallbackReason
 import com.dootah.UpdateResult
 import com.dootah.ota.shouldReloadAfterCheck
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.drop
 
 /**
@@ -99,6 +103,27 @@ class DootahScreenState internal constructor(
     var content: DootahContent by mutableStateOf(DootahContent.Loading)
         private set
 
+    /**
+     * Whether this screen is still working out what it draws.
+     *
+     * While it is, the screen draws nothing rather than the implementation that
+     * shipped in the APK -- because if Dootah is about to replace that
+     * implementation, drawing it is showing the user the version the update
+     * removed and then taking it away in front of them. Two toolbar buttons
+     * appeared for half a second before every launch did exactly that.
+     *
+     * Only ever true when a bundle on this device is expected to serve this
+     * screen, and never for longer than the screen's share of
+     * [DootahConfig.firstFrameHoldMillis]. A screen the bundle turns out not to
+     * implement, a load that fails, a Dootah that is not there at all: each
+     * ends this immediately, and the app's own implementation draws. Blank is a
+     * moment, never an outcome.
+     */
+    var isDeciding: Boolean by mutableStateOf(Dootah.willServe(screenId))
+        private set
+
+    internal fun decided() { isDeciding = false }
+
     var status: DootahStatus by mutableStateOf(Dootah.status())
         private set
 
@@ -115,6 +140,7 @@ class DootahScreenState internal constructor(
     suspend fun load() {
         apply(Dootah.renderScreen(screenId, arguments.toJson()))
         loadedBundleVersion = status.bundleVersion
+        if (content is DootahContent.Bundle) DootahTrace.firstRemoteFrame(screenId)
     }
 
     /**
@@ -157,6 +183,9 @@ class DootahScreenState internal constructor(
     }
 
     private suspend fun apply(result: BundleLoadResult) {
+
+        DootahFirstFrame.settled(this)
+        isDeciding = false
 
         content = when (result) {
 
@@ -255,6 +284,8 @@ fun rememberDootahScreen(
 
     val scope = rememberCoroutineScope()
 
+    DootahTrace.firstInterceptedComposable(screenId)
+
     val state = remember(screenId, scope) {
         DootahScreenState(
             screenId = screenId,
@@ -288,6 +319,28 @@ fun rememberDootahScreen(
             "$screenId does not draw Compose UI; keeping its native implementation",
         )
         return state
+    }
+
+    // Composed, and with nothing to draw yet. Declared here rather than when the
+    // load begins, because the load begins after this composition and the frame
+    // this screen would be stale in is the one this composition produces.
+    //
+    // A screen that leaves before it ever loaded settles by leaving. Without
+    // that, one list row scrolled away mid-load would keep the first frame
+    // waiting for something that is never coming.
+    DisposableEffect(state) {
+        DootahFirstFrame.awaiting(state)
+        onDispose { DootahFirstFrame.settled(state) }
+    }
+
+    // The budget on drawing nothing. Whatever happens to the load -- it hangs,
+    // the isolate dies, the device is out of memory -- the screen's own
+    // implementation is on screen by the end of this.
+    if (state.isDeciding) {
+        LaunchedEffect(state) {
+            delay(Dootah.firstFrameHoldMillis)
+            state.decided()
+        }
     }
 
     // Re-rendered whenever the caller's arguments change, so a remote screen
@@ -331,15 +384,23 @@ private fun providesWindowInfo(composer: Composer): Boolean = try {
 }
 
 /**
- * Whether Dootah has a remote implementation ready for this screen.
+ * Whether the screen's own implementation should stay out of the way.
  *
- * False while loading and false on every failure path, so the native body -- the
- * implementation that shipped in the APK -- is what renders unless Dootah has
- * something usable to put in its place.
+ * True when Dootah has remote content ready, and also for the moment in which a
+ * bundle already on the device is expected to serve this screen and has not
+ * said so yet. In that moment the screen draws nothing: [DootahRemoteContent]
+ * has nothing to draw either, which is the point. Drawing the installed
+ * implementation there means drawing the version an update has already removed,
+ * and replacing it a moment later in front of the user.
+ *
+ * False on every failure path and once Dootah is known to have nothing, so the
+ * implementation that shipped in the APK is what renders unless Dootah has, or
+ * is about to have, something to put in its place.
  */
 @DootahGeneratedApi
 fun hasRemoteImplementation(state: DootahScreenState): Boolean =
-    state.content is DootahContent.Bundle
+    state.content is DootahContent.Bundle ||
+        (state.content is DootahContent.Loading && state.isDeciding)
 
 /**
  * Renders the remote implementation for a screen.

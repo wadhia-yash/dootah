@@ -11,15 +11,25 @@ import com.dootah.ota.BundleDownloader
 import com.dootah.ota.BundleExecutionException
 import com.dootah.ota.BundleStore
 import com.dootah.ota.BundleUpdater
+import com.dootah.ota.CoalescedCheck
 import com.dootah.ota.DOOTAH_RUNTIME_VERSION
 import com.dootah.runtime.BundleEngine
 import com.dootah.runtime.JavaScriptRuntime
 import com.dootah.ui.BundleCommand
 import com.dootah.ui.BundleResponse
 import com.dootah.ui.BundleUiParser
+import android.os.SystemClock
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /**
  * The entry point for integrating Dootah into an Android app.
@@ -49,10 +59,36 @@ object Dootah {
         synchronized(this) {
             if (client != null) return
 
-            client = DootahClient(
-                applicationContext = context.applicationContext,
-                config = config,
-            )
+            DootahTrace.begin("initialize")
+
+            val started = DootahTrace.timed("client built") {
+                DootahClient(
+                    applicationContext = context.applicationContext,
+                    config = config,
+                )
+            }
+
+            client = started
+
+            // The active bundle is on this device already. Reading it needs no
+            // server, so nothing here waits for one: the local artifact is
+            // loaded and the isolate is started now, in the background, while
+            // the app is still putting its first activity together.
+            //
+            // Started here rather than from the first intercepted screen
+            // because by then the main thread is at its busiest, and the
+            // sandbox's connection is delivered on it -- which is how a load
+            // that takes tens of milliseconds of work came to take eighteen
+            // seconds of waiting.
+            // Neither of these may take a host app down. They run inside
+            // Application.onCreate, before the app has drawn anything, and both
+            // are improvements on a path that works without them.
+            try {
+                started.prime()
+                DootahFirstFrame.install(context.applicationContext, config.firstFrameHoldMillis)
+            } catch (e: Exception) {
+                Log.w(DOOTAH_LOG_TAG, "could not start from the local bundle", e)
+            }
 
             Log.i(
                 DOOTAH_LOG_TAG,
@@ -134,6 +170,36 @@ object Dootah {
     suspend fun shutdown() {
         client?.shutdown()
     }
+
+    /**
+     * Whether a bundle on this device is expected to draw these screens.
+     *
+     * Read by [DootahFirstFrame] to decide whether the first frame is worth
+     * waiting for at all. False when there is nothing on disk, which is what
+     * makes an app with no active bundle start at native speed, and false again
+     * the moment loading that bundle fails.
+     */
+    internal fun expectsLocalBundle(): Boolean = client?.expectsLocalBundle() ?: false
+
+    /** Whether the local load started at [initialize] is still running. */
+    internal fun isLoadingLocalBundle(): Boolean = client?.isLoadingLocalBundle() ?: false
+
+    /**
+     * Whether a bundle on this device is expected to draw [screenId].
+     *
+     * The question a screen asks before drawing the implementation that shipped
+     * in the APK. If Dootah is about to replace it, drawing it is drawing the
+     * version the update removed, and taking it away again a moment later is
+     * exactly what an over-the-air update should never look like.
+     *
+     * False when nothing local is expected, false once the loaded bundle is
+     * known not to implement this screen, and true only while the answer is
+     * still being worked out.
+     */
+    internal fun willServe(screenId: String): Boolean = client?.willServe(screenId) ?: false
+
+    /** How long a screen may draw nothing while Dootah decides. */
+    internal val firstFrameHoldMillis: Long get() = client?.firstFrameHoldMillis ?: 0L
 
     /**
      * Forgetting to initialize is a programming error, but it must not take a
@@ -221,8 +287,63 @@ private class DootahClient(
      */
     private val engineLock = Mutex()
 
-    /** Serialises update checks; see [checkForUpdate]. */
+    /** Serialises the operator actions, which must not overlap a check. */
     private val updateLock = Mutex()
+
+    /**
+     * Where Dootah's own work happens, which is never the caller's thread.
+     *
+     * Every entry point here is called from composition, so the caller's
+     * dispatcher is Compose's -- the main thread, inside the frame callback.
+     * Reading the bundle off disk, evaluating it, and parsing the UI it returns
+     * were therefore competing with the frames they exist to produce, and the
+     * sandbox's connection, which is delivered on the main thread, could not
+     * arrive until the app had finished starting.
+     */
+    private val work = Dispatchers.Default
+
+    private val scope = CoroutineScope(SupervisorJob() + work)
+
+    /** The local load started at [prime], joined by whoever needs it first. */
+    private var priming: Job? = null
+
+    /**
+     * Loads whatever is already on this device, without asking anyone.
+     *
+     * Local state first and network never: the manifest check is a separate
+     * concern that runs later and on its own. An app that has an active bundle
+     * and no connectivity starts from that bundle at the same speed as one that
+     * is online.
+     */
+    fun prime() {
+
+        if (!store.hasDownloadedBundle()) {
+            DootahTrace.mark("no active bundle on disk; the app's own implementation renders")
+            return
+        }
+
+        expected = true
+        priming = scope.launch {
+            val availability = engineLock.withLock { ensureLoaded() }
+            if (availability is BundleAvailability.Unavailable) expected = false
+        }
+    }
+
+    /** Set while a bundle on disk is still expected to draw something. */
+    @Volatile
+    private var expected: Boolean = false
+
+    fun expectsLocalBundle(): Boolean = expected
+
+    fun isLoadingLocalBundle(): Boolean = priming?.isCompleted == false
+
+    val firstFrameHoldMillis: Long get() = config.firstFrameHoldMillis
+
+    fun willServe(screenId: String): Boolean {
+        if (!expected) return false
+        val screens = loadedScreenIds ?: return true
+        return screenId in screens
+    }
 
     /** The screens the loaded bundle implements, or null when nothing is loaded. */
     private var loadedScreenIds: List<String>? = null
@@ -247,9 +368,22 @@ private class DootahClient(
      * Serialised here rather than deduplicated, so the second caller still gets
      * a truthful answer -- it simply finds there is nothing left to do.
      */
-    suspend fun checkForUpdate(): UpdateResult = updateLock.withLock {
+    suspend fun checkForUpdate(): UpdateResult = checks.run()
 
-        val result = updater.checkForUpdate()
+    /** The one check every screen asking at the same moment shares. */
+    private val checks = CoalescedCheck(
+        scope = scope,
+        quietPeriodMillis = config.updateCheckIntervalMillis,
+        now = SystemClock::elapsedRealtime,
+        check = ::runCheck,
+    )
+
+    // Under the same lock as rollback and resume, so an operator action and a
+    // check can never both be deciding which bundle is installed.
+    private suspend fun runCheck(): UpdateResult = updateLock.withLock {
+
+        DootahTrace.mark("network check start")
+        val result = DootahTrace.timed("network check end") { updater.checkForUpdate() }
 
         // A new bundle on disk makes the loaded one stale. Dropped rather than
         // reloaded here: the next screen to render loads it, and reloading now
@@ -258,30 +392,34 @@ private class DootahClient(
             engineLock.withLock { health?.failed(); loadedScreenIds = null }
         }
 
-        result
+        return result
     }
 
-    suspend fun rollbackTo(version: Int, reason: String): ManualRollbackResult = updateLock.withLock {
-        engineLock.withLock {
-            try {
-                val target = store.rollbackTo(version, reason)
-                health?.failed()
-                health = null
-                loadedIdentity = null
-                loadedScreenIds = null
-                currentSource = BundleSource.NATIVE_FALLBACK
-                Dootah.recovered()
-                ManualRollbackResult.Applied(target.version)
-            } catch (e: Exception) {
-                Log.w(DOOTAH_LOG_TAG, "Manual rollback rejected", e)
-                ManualRollbackResult.Rejected(e.message ?: "Rollback rejected")
+    suspend fun rollbackTo(version: Int, reason: String): ManualRollbackResult = withContext(work) {
+        updateLock.withLock {
+            engineLock.withLock {
+                try {
+                    val target = store.rollbackTo(version, reason)
+                    health?.failed()
+                    health = null
+                    loadedIdentity = null
+                    loadedScreenIds = null
+                    currentSource = BundleSource.NATIVE_FALLBACK
+                    Dootah.recovered()
+                    ManualRollbackResult.Applied(target.version)
+                } catch (e: Exception) {
+                    Log.w(DOOTAH_LOG_TAG, "Manual rollback rejected", e)
+                    ManualRollbackResult.Rejected(e.message ?: "Rollback rejected")
+                }
             }
         }
     }
 
-    suspend fun resumeUpdates(): Boolean = updateLock.withLock {
-        try { store.resumeUpdates(); true }
-        catch (e: Exception) { Log.w(DOOTAH_LOG_TAG, "Resume rejected", e); false }
+    suspend fun resumeUpdates(): Boolean = withContext(work) {
+        updateLock.withLock {
+            try { store.resumeUpdates(); true }
+            catch (e: Exception) { Log.w(DOOTAH_LOG_TAG, "Resume rejected", e); false }
+        }
     }
 
     fun history(): DootahUpdateHistory = store.state().let { state ->
@@ -290,9 +428,17 @@ private class DootahClient(
         }, state.paused)
     }
 
-    suspend fun renderScreen(screenId: String, argumentsJson: String): BundleLoadResult = engineLock.withLock {
-        renderLocked(screenId, argumentsJson)
-    }
+    suspend fun renderScreen(screenId: String, argumentsJson: String): BundleLoadResult =
+        withContext(work) {
+
+            DootahTrace.detail("waited for the engine: $screenId") { engineLock.lock() }
+
+            try {
+                DootahTrace.detail("rendered $screenId") { renderLocked(screenId, argumentsJson) }
+            } finally {
+                engineLock.unlock()
+            }
+        }
 
     private suspend fun renderLocked(screenId: String, argumentsJson: String): BundleLoadResult {
         val before = Dootah.recoveryGeneration
@@ -306,16 +452,19 @@ private class DootahClient(
             renderLocked(screenId, argumentsJson) else result
     }
 
-    suspend fun dispatchAction(screenId: String, action: String, argumentsJson: String): BundleLoadResult = engineLock.withLock {
-        val before = Dootah.recoveryGeneration
-        val result = when (val availability = ensureLoaded()) {
-            is BundleAvailability.Unavailable -> availability.asResult()
-            is BundleAvailability.Ready -> availability.requiring(screenId)
-                ?: respond { engine.dispatch(screenId, action, argumentsJson) }
+    suspend fun dispatchAction(screenId: String, action: String, argumentsJson: String): BundleLoadResult =
+        withContext(work) {
+            engineLock.withLock {
+                val before = Dootah.recoveryGeneration
+                val result = when (val availability = ensureLoaded()) {
+                    is BundleAvailability.Unavailable -> availability.asResult()
+                    is BundleAvailability.Ready -> availability.requiring(screenId)
+                        ?: respond { engine.dispatch(screenId, action, argumentsJson) }
+                }
+                if (result is BundleLoadResult.Unavailable && Dootah.recoveryGeneration != before)
+                    renderLocked(screenId, argumentsJson) else result
+            }
         }
-        if (result is BundleLoadResult.Unavailable && Dootah.recoveryGeneration != before)
-            renderLocked(screenId, argumentsJson) else result
-    }
 
     private fun recover(identity: String?, reason: String): Boolean {
         if (identity == null) return false
@@ -401,12 +550,14 @@ private class DootahClient(
         health = null
         val bundleSource = try {
             if (isRemote) {
-                val selected = store.prepareForLoad()
+                val selected = DootahTrace.timed("active metadata read") { store.prepareForLoad() }
                     ?: return loadFailure(FallbackReason.NO_BUNDLE_AVAILABLE, "No remote recovery", IllegalStateException("Using APK fallback"))
                 remoteIdentity = selected.identity
             }
             loadedIdentity = remoteIdentity
-            if (isRemote) store.readDownloadedBundle() else store.readAssetBundle()
+            DootahTrace.timed("active artifact read") {
+                if (isRemote) store.readDownloadedBundle() else store.readAssetBundle()
+            }
         } catch (e: Exception) {
             recover(remoteIdentity, "payload")
             Log.w(DOOTAH_LOG_TAG, "no bundle available, using fallback", e)
@@ -418,7 +569,7 @@ private class DootahClient(
         }
 
         return try {
-            val screens = engine.load(bundleSource)
+            val screens = DootahTrace.timed("remote registry ready") { engine.load(bundleSource) }
 
             currentSource = if (isRemote) BundleSource.REMOTE else BundleSource.ASSET
             loadedScreenIds = screens
