@@ -18,7 +18,11 @@ class PublicationGateTest {
             extensions.create('dootah', dev.dootah.gradle.DootahExtension)
             configurations.create('dootahKotlinCompiler')
             tasks.register('fixtureExtract')
-            dev.dootah.gradle.DootahBundleWiringKt.registerBundleTask(project, 'fixtureExtract', layout.projectDirectory.dir('generated'))
+            tasks.register('fixtureCompile')
+            dev.dootah.gradle.DootahBundleWiringKt.registerBundleTask(project, 'fixtureExtract',
+                layout.projectDirectory.dir('generated'), 'fixtureCompile',
+                layout.buildDirectory.dir('dootah/reports/debug/contract'),
+                fileTree('src/main/res') { include 'drawable*/**' })
         """.trimIndent())
         dir.resolve("generated").mkdirs()
         dir.resolve("build/dootah/extract/requirements").mkdirs()

@@ -72,11 +72,17 @@ tasks.register("dootahRealComposeCheck") {
             .orEmpty()
             .filter { it.startsWith("intercepted=") }
 
-        require("intercepted=com.dootah.demo.ToolboxRegressionScreen" in discovered) {
+        // By qualified name: a screen is identified by the declaration it is,
+        // parameters included, so naming one here would restate the demo's own
+        // signature and rename this check every time the demo gains an argument.
+        fun intercepted(qualifiedName: String) =
+            discovered.any { line -> line.startsWith("intercepted=$qualifiedName(") }
+
+        require(intercepted("com.dootah.demo.ToolboxRegressionScreen")) {
             "Dootah did not discover the regression screen on its own. Intercepted:\n" +
                 discovered.joinToString("\n")
         }
-        require("intercepted=com.dootah.demo.ControlStripRegressionScreen" in discovered) {
+        require(intercepted("com.dootah.demo.ControlStripRegressionScreen")) {
             "The delegated-state regression screen must remain intercepted."
         }
 

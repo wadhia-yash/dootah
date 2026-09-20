@@ -42,6 +42,18 @@ abstract class DootahExtension {
     abstract val appId: Property<String>
 
     /**
+     * The build variant Dootah extracts from, records a contract for, and publishes.
+     *
+     * Unset is the ordinary case: a module that builds one debug variant needs
+     * no answer, and Dootah takes it. A module with flavours builds several, and
+     * because the bundle and the contract it is checked against must come from
+     * the same app, Dootah asks rather than picks -- name the variant you ship
+     * from, such as `"genericDebug"`. `-PdootahVariant=` overrides this for one
+     * build without editing the build file.
+     */
+    abstract val variant: Property<String>
+
+    /**
      * Directory for Dootah compiler reports.
      *
      * Present so builds and tests can inspect what the compiler observed.

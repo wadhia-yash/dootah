@@ -19,6 +19,9 @@ internal fun registerBundleTask(
     project: Project,
     extractTaskName: String,
     generatedSourceDirectory: org.gradle.api.file.Directory,
+    compileTaskName: String,
+    contractFragments: org.gradle.api.provider.Provider<org.gradle.api.file.Directory>,
+    imageResources: org.gradle.api.file.FileTree,
 ) {
 
     val bundleCompiler = project.configurations.maybeCreate("dootahBundleCompiler").apply {
@@ -43,11 +46,10 @@ internal fun registerBundleTask(
     )
 
     val extension = project.extensions.getByType(DootahExtension::class.java)
-    val imageResources = project.fileTree("src/main/res") { it.include("drawable*/**") }
 
-    // Where the app's own compilation left its account of what it can be asked
-    // for, and where the developer keeps the copy that outlives this build.
-    val fragments = project.layout.buildDirectory.dir("dootah/reports/contract")
+    // Where the selected variant's own compilation left its account of what it
+    // can be asked for, and where the developer keeps the copy that outlives
+    // this build.
     val recorded = project.layout.projectDirectory.file("dootah/contract.json")
 
     val record = project.tasks.register(
@@ -56,7 +58,13 @@ internal fun registerBundleTask(
     ) { task ->
         task.group = "dootah"
         task.description = "Records what the app you are about to ship can be asked for"
-        task.fragmentsDirectory.set(fragments)
+
+        // Through the variant's own compilation, because that compilation is
+        // what writes the fragments. Asking for the record without building
+        // first used to fail on a directory that was never going to be there.
+        task.dependsOn(compileTaskName)
+
+        task.fragmentsDirectory.set(contractFragments)
         task.contractFile.set(recorded)
     }
 

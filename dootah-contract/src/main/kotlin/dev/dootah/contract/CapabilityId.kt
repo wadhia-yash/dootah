@@ -26,6 +26,19 @@ package dev.dootah.contract
  */
 public object CapabilityId {
 
+    /**
+     * A constant as both passes render it.
+     *
+     * Here rather than in either compiler pass because the two meet constants in
+     * different shapes: the app's own compilation is handed the folded value,
+     * and the extraction pass is handed the name the value was written under.
+     * Rendering is the one thing they must do identically.
+     */
+    public fun literal(value: Any?): String = when (value) {
+        is String -> "\"" + value + "\""
+        else -> value.toString()
+    }
+
     public fun of(statements: List<Statement>): String =
         statements.joinToString(STATEMENT_SEPARATOR) { statement -> statement.render() }
 

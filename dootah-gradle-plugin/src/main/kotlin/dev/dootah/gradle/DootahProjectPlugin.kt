@@ -50,17 +50,42 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         gateKotlinVersion(target)
         addRuntimeDependencies(target)
 
-        // Milestone 1 wires the debug variant only. Per-variant registration
-        // follows once the bundle build is in place.
-        target.afterEvaluate { evaluated ->
-            if (evaluated.tasks.findByName(DEBUG_COMPILE_TASK) != null) {
+        wireVariants(target)
+    }
 
-                val generatedSources = evaluated.layout.buildDirectory
-                    .dir(GENERATED_SOURCES_PATH).get()
+    /**
+     * Wires the workflow to a variant of the host module.
+     *
+     * An Android module is asked what it builds, through the variant API, and
+     * the answer decides which compilation Dootah reads. That question is asked
+     * from inside [org.gradle.api.plugins.PluginContainer.withId] so that this
+     * project's `afterEvaluate` is registered after the Android plugin's own --
+     * which is what puts it after variant creation, in either declaration order.
+     *
+     * A module with no Android variants keeps the wiring Dootah has always had:
+     * the `debug` compilation, where one exists.
+     */
+    private fun wireVariants(target: Project) {
 
-                registerExtractTask(evaluated, DEBUG_COMPILE_TASK, generatedSources)
-                registerBundleTask(evaluated, EXTRACT_TASK, generatedSources)
+        val variants = mutableListOf<DootahVariant>()
+        var wired = false
+
+        ANDROID_PLUGIN_IDS.forEach { pluginId ->
+            target.plugins.withId(pluginId) {
+                if (wired) return@withId
+                wired = true
+                collectAndroidVariants(target, variants)
+                target.afterEvaluate { evaluated -> registerDootahWorkflow(evaluated, variants) }
             }
+        }
+
+        target.afterEvaluate { evaluated ->
+            if (wired) return@afterEvaluate
+            if (evaluated.tasks.findByName(DEBUG_COMPILE_TASK) == null) return@afterEvaluate
+            registerDootahWorkflow(
+                evaluated,
+                listOf(DootahVariant(name = DEBUG_COMPILATION, buildType = DEBUG_COMPILATION)),
+            )
         }
     }
 
@@ -128,10 +153,18 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         val project = kotlinCompilation.project
         val extension = project.extensions.getByType(DootahExtension::class.java)
 
-        val reportDirectory = extension.reportDirectory.orElse(
-            project.layout.buildDirectory.dir("dootah/reports")
-                .map { it.asFile.absolutePath }
-        )
+        // Per compilation: a flavoured module compiles the same screens once per
+        // variant, and the contract has to describe one app rather than their union.
+        val reportDirectory = reportDirectoryFor(project, extension, kotlinCompilation.name)
+
+        // Declared as something this compilation produces, because it is. The
+        // compiler writes the app's contract there as a side effect, and until
+        // Gradle was told so, deleting `build/dootah` left the compilation
+        // up to date with its report gone -- and `dootahRecordContract` then
+        // failed on a missing directory, naming a path and no way out of it.
+        kotlinCompilation.compileTaskProvider.configure { task ->
+            task.outputs.dir(reportDirectory).withPropertyName("dootahReport")
+        }
 
         return project.provider {
             listOf(
@@ -151,11 +184,9 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         DOOTAH_VERSION
 
     private companion object {
+        /** The compilation a module with no Android variants is wired to, as it always was. */
+        const val DEBUG_COMPILATION = "debug"
         const val DEBUG_COMPILE_TASK = "compileDebugKotlin"
-        const val EXTRACT_TASK = "dootahExtract"
-
-        /** Where the compiler writes bundle Kotlin, and the bundle task reads it. */
-        const val GENERATED_SOURCES_PATH = "dootah/generated/jsMain/kotlin"
     }
 }
 

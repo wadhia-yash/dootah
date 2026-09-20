@@ -769,9 +769,7 @@ class ComponentLowering(
             val property = target.calleeReference.toResolvedCallableSymbol()?.name?.asString()
                 ?: return null
 
-            val receiver = (target.explicitReceiver as? SourcePropertyAccessExpression)
-                ?.calleeReference?.toResolvedCallableSymbol()?.name?.asString()
-                ?: return null
+            val receiver = target.explicitReceiver?.receiverName() ?: return null
 
             val value = capabilityArgument(statement.rValue, parameterNames) ?: return null
 
@@ -783,8 +781,13 @@ class ComponentLowering(
             val member = statement.calleeReference.toResolvedCallableSymbol()?.name?.asString()
                 ?: return null
 
-            val receiver = (statement.explicitReceiver as? SourcePropertyAccessExpression)
-                ?.calleeReference?.toResolvedCallableSymbol()?.name?.asString()
+            // An explicit receiver the other pass would name differently makes the
+            // whole statement unnameable, rather than one rendered without it.
+            // Dropping it silently rendered `A.set(x)` and `B.set(x)` as one
+            // `set(x)`, which is an action the app has two of and the bundle
+            // cannot tell apart.
+            val written = statement.explicitReceiver
+            val receiver = if (written == null) null else written.receiverName() ?: return null
 
             val arguments = statement.arguments.map { argument ->
                 capabilityArgument(argument, parameterNames) ?: return null
@@ -811,22 +814,56 @@ class ComponentLowering(
     ): CapabilityId.Argument? {
 
         (expression as? SourceLiteralExpression)?.value?.let { value ->
-            return CapabilityId.Literal(
-                when (value) {
-                    is String -> "\"$value\""
-                    else -> value.toString()
-                }
-            )
+            return CapabilityId.Literal(CapabilityId.literal(value))
         }
 
         val access = expression as? SourcePropertyAccessExpression ?: return null
-        val name = access.calleeReference.toResolvedCallableSymbol()?.name?.asString() ?: return null
+        val symbol = access.calleeReference.toResolvedCallableSymbol() ?: return null
+
+        // A constant is a value to the app's own pass, which never sees the name.
+        if (symbol.isFolded()) return symbol.constantText()?.let(CapabilityId::Literal)
+
+        val name = symbol.name.asString()
 
         val index = parameterNames.indexOf(name)
         if (index >= 0) return CapabilityId.Parameter(index)
 
         return CapabilityId.Read(name)
     }
+
+    /**
+     * A receiver as both passes name it.
+     *
+     * The name where the source reads one, and the value where it reads a
+     * constant: a `const val` is folded into its value before the app's own
+     * pass runs, so by then the name is gone and the value is the only thing
+     * left for the two to agree on.
+     */
+    private fun SourceExpression.receiverName(): String? {
+
+        val access = this as? SourcePropertyAccessExpression ?: return null
+        val symbol = access.calleeReference.toResolvedCallableSymbol() ?: return null
+
+        if (symbol.isFolded()) return symbol.constantText()
+
+        return symbol.name.asString()
+    }
+
+    /** Whether every reference to this is replaced by its value before IR. */
+    private fun SourceCallableSymbol.isFolded(): Boolean =
+        (this as? SourcePropertySymbol)?.isConst == true
+
+    /**
+     * The value a constant folds to, rendered as a literal.
+     *
+     * Null for a constant whose value is not written as a literal -- an
+     * expression over other constants, say. The app's pass sees the computed
+     * value and this one cannot compute it, so neither of them should name it.
+     */
+    private fun SourceCallableSymbol.constantText(): String? =
+        ((declaration as? SourceProperty)?.initializer as? SourceLiteralExpression)
+            ?.value
+            ?.let { value -> CapabilityId.literal(value) }
 
     private fun SourcePropertyAccessExpression.callbackParameterName(): String? {
 

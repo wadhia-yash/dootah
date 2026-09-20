@@ -42,7 +42,19 @@ interface SourceCallableSymbol : SourceSymbol {
     val declaration: SourceElement
     val resolvedAnnotationClassIds: List<SourceClassId>
 }
-interface SourcePropertySymbol : SourceCallableSymbol { val isLocal: Boolean }
+interface SourcePropertySymbol : SourceCallableSymbol {
+    val isLocal: Boolean
+
+    /**
+     * Whether the compiler replaces every reference to this with its value.
+     *
+     * The one fact the IR pass cannot recover. A `const val` is folded away
+     * before that pass runs, so it sees a literal where this pass sees a name,
+     * and a capability named after the name would never match the one the app
+     * registered. Knowing it is const is what lets both passes name the value.
+     */
+    val isConst: Boolean
+}
 interface SourceReceiverParameterSymbol : SourceSymbol { val containingDeclarationSymbol: SourceSymbol }
 interface SourceReference {
     val callableSymbol: SourceCallableSymbol?

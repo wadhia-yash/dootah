@@ -121,4 +121,88 @@ class PublicationTest {
         var restarted=new PublicationStore(catalog,mapper,dir.resolve("objects").toString(),origin);
         assertEquals("existing",restarted.register(r).get("status"));assertEquals(1,catalog.read().size());
     }
+
+    @Test void unconfiguredPublisherRejectsValidUploadedReleaseUntilTrustedKeyIsProvisioned() throws Exception {
+        var configured = mapper.readTree(catalog.path().toFile());
+        var unconfigured = configured.deepCopy();
+        ((ObjectNode) unconfigured.get("publishers")).remove("example.app");
+        mapper.writeValue(catalog.path().toFile(), unconfigured);
+        var before = state();
+        var request = release(2, 100);
+        api.perform(put("/publish/artifacts/" + hash).header("Authorization", "Bearer " + token).content(bundle))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("stored"));
+        api.perform(put("/publish/artifacts/" + imageHash).header("Authorization", "Bearer " + token).content(image))
+                .andExpect(status().isOk());
+        api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(request.toString()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("PUBLISHER_NOT_CONFIGURED"))
+                .andExpect(jsonPath("$.message").value("No publisher public key is configured for appId 'example.app'; configure publishers[appId] in the server catalog with the trusted public key"));
+        assertArrayEquals(before, state());
+        // Explicit operator trust configuration, never auto-enrollment from a publish request.
+        mapper.writeValue(catalog.path().toFile(), configured);
+        api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(request.toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("registered"));
+        api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(request.toString()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("existing"));
+        assertEquals(1, catalog.read().size());
+    }
+
+    @Test void malformedJsonReturnsSafeDeterministicReason() throws Exception {
+        var before = state();
+        for (String body : List.of("{\"secret\": \"" + token + "\", broken", "{} {}", "{\"channel\":1,\"channel\":2}")) {
+            var response = api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(body))
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("MALFORMED_METADATA"))
+                    .andReturn().getResponse().getContentAsString();
+            assertFalse(response.contains(token));
+            assertFalse(response.contains("secret"));
+        }
+        for (String body : List.of("", "null", "[]")) {
+            api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(body))
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("INVALID_RELEASE_METADATA"));
+        }
+        assertArrayEquals(before, state());
+    }
+
+    @Test void invalidFieldsNameTheConstraintWithoutEchoingSubmittedValues() throws Exception {
+        var before = state();
+        var invalid = release(0, 100);
+        api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(invalid.toString()))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("bundleVersion must be a positive integer"));
+        invalid = release(2, 101);
+        api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(invalid.toString()))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("rolloutPercent must be between 0 and 100"));
+        invalid = release(2, 100).put("channel", token);
+        api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(invalid.toString()))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.message").value("channel must be development, staging or production"));
+        assertArrayEquals(before, state());
+    }
+
+    @Test void missingArtifactAndInvalidSignatureHaveDistinctReasons() throws Exception {
+        var request = release(2, 100);
+        api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(request.toString()))
+                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("ARTIFACT_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Artifact sha256 " + hash + " does not exist; upload it before registering the release"));
+        uploadAll();
+        ((ObjectNode) request.get("manifest")).put("enabled", false);
+        api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(request.toString()))
+                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("SIGNATURE_INVALID"));
+        assertTrue(catalog.read().isEmpty());
+    }
+
+    @Test void conflictsReturnActionableReasonAndPreserveOriginalRelease() throws Exception {
+        uploadAll(); store.register(release(2, 100)); var before = state();
+        bundle = ("// dootah-images:" + imageHash + "\nchanged;").getBytes(); hash = PublicationStore.digest(bundle); uploadAll();
+        api.perform(post("/publish/releases").header("Authorization", "Bearer " + token).content(release(2, 100).toString()))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("IMMUTABLE_PUBLICATION_CONFLICT"))
+                .andExpect(jsonPath("$.message").value("bundleVersion 2 already exists for this app/runtime/channel with different signed content; use a new bundleVersion"));
+        assertArrayEquals(before, state());
+    }
+
+    @Test void rejectedAuthenticationDoesNotRevealPublisherValidation() throws Exception {
+        var root = mapper.readTree(catalog.path().toFile()); ((ObjectNode) root.get("publishers")).removeAll();
+        mapper.writeValue(catalog.path().toFile(), root);
+        var response = api.perform(post("/publish/releases").header("Authorization", "Bearer wrong").content(release(2, 100).toString()))
+                .andExpect(status().isUnauthorized()).andReturn().getResponse().getContentAsString();
+        assertFalse(response.contains("PUBLISHER_NOT_CONFIGURED"));
+    }
 }

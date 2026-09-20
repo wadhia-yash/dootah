@@ -32,12 +32,15 @@ class CompilationResult(
     /** The extraction pass's record for one screen, or null when it found none. */
     fun extractionReport(screenId: String): String? {
 
-        val flattened = screenId.map { character ->
-            if (character.isLetterOrDigit() || character == '-') character else '_'
-        }.joinToString("")
+        val flattened = dev.dootah.compiler.generate.sanitizeForIdentifier(screenId)
 
-        return File(reportDirectory, "extract/$flattened.txt")
-            .takeIf { it.exists() }
+        // By prefix, because a screen is identified by its declaration -- the
+        // qualified name *and* the parameters declared with it -- and a test
+        // naming a fixture should not have to restate the fixture's signature.
+        return File(reportDirectory, "extract")
+            .listFiles()
+            .orEmpty()
+            .firstOrNull { file -> file.name.startsWith(flattened) && file.extension == "txt" }
             ?.readText()
     }
 

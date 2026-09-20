@@ -168,6 +168,7 @@ internal class SourceProjection {
         when (value) {
             is FirPropertySymbol -> object : Callable(value), SourcePropertySymbol {
                 override val isLocal get() = value.isLocal
+                override val isConst get() = (value.fir as? FirProperty)?.status?.isConst == true
             }
             is FirCallableSymbol<*> -> Callable(value)
             else -> receiverOwner(value)?.let { owner ->

@@ -15,10 +15,10 @@ import org.junit.rules.TemporaryFolder
  * between that and drawing the wrong screen is the two happening to need
  * different components.
  *
- * A fully qualified name is enough for a function that is visible by it. A
- * `private` one is not: two files in a package may each declare
- * `private fun StatItem(…)` and Kotlin is perfectly happy, because they cannot
- * see each other. Found on a real application, which had exactly that.
+ * A fully qualified name is enough for neither. Two files in a package may each
+ * declare `private fun StatItem(…)`, because they cannot see each other, and a
+ * package may declare `fun FormatPage(…)` twice over as long as the parameters
+ * differ. Both were found on real applications.
  */
 class ScreenIdentityTest {
 
@@ -68,12 +68,63 @@ class ScreenIdentityTest {
 
         // Qualified by the file that declares it, which is the thing that tells
         // them apart, and by a character no Kotlin name can contain.
-        assertTrue(ids.toString(), ids.any { it == "com.example.StatItem#Left.kt" })
-        assertTrue(ids.toString(), ids.any { it == "com.example.StatItem#Right.kt" })
+        assertTrue(ids.toString(), ids.any { it == "com.example.StatItem()#Left.kt" })
+        assertTrue(ids.toString(), ids.any { it == "com.example.StatItem()#Right.kt" })
+    }
+
+    /**
+     * Two public composables of one name, which Kotlin resolves by their
+     * parameters.
+     *
+     * Seal declares `FormatPage(videoInfo, …)` and `FormatPage(state, …)` in one
+     * package. Under a shared name the app intercepted both and recorded one,
+     * and either function would have drawn the other's bundle.
+     */
+    @Test
+    fun `two public overloads of one name are two screens`() {
+
+        val result = compileWithDootah(
+            workingDirectory = temporaryFolder.newFolder(),
+            mode = "extract",
+            sources = listOf(SourceFile("Overloads.kt", """
+                package com.example
+
+                import androidx.compose.foundation.layout.Column
+                import androidx.compose.material3.Text
+                import androidx.compose.runtime.Composable
+
+                @Composable
+                fun Detail(title: String) {
+                    Column {
+                        Text(title)
+                        Text("by title")
+                    }
+                }
+
+                @Composable
+                fun Detail(number: Int, label: String) {
+                    Column {
+                        Text(label)
+                        Text("by number")
+                    }
+                }
+            """.trimIndent())),
+        )
+
+        assertTrue("compilation failed: ${result.messages}", result.succeeded)
+
+        val ids = result.generatedSources()
+            .filterKeys { it.startsWith("DootahScreen_") }
+            .values
+            .mapNotNull { source -> SCREEN_ID.find(source)?.groupValues?.get(1) }
+            .filter { id -> id.startsWith("com.example.Detail") }
+
+        assertEquals("both overloads should be described: $ids", 2, ids.size)
+        assertEquals("they must not share a name: $ids", 2, ids.toSet().size)
     }
 
     @Test
-    fun `a public screen is named by its qualified name alone`() {
+    fun `a public screen is named by the declaration it is`() {
 
         val result = compileWithDootah(
             workingDirectory = temporaryFolder.newFolder(),
@@ -99,7 +150,9 @@ class ScreenIdentityTest {
 
         val generated = result.generatedScreen()
 
-        assertTrue(generated, generated.contains(""""com.example.Visible""""))
+        // The parameters it declares, because they are what tells one
+        // declaration of a name from another.
+        assertTrue(generated, generated.contains(""""com.example.Visible()""""))
     }
 
     private companion object {

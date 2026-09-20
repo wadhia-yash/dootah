@@ -493,8 +493,11 @@ internal class InterceptionTransformer(
             val name = parameter.name.asString()
 
             if (name !in adapter.suppliedParameters) return@forEach
-            if (call.arguments.getOrNull(index) == null) return@forEach
 
+            // Whether or not the call this adapter was built from passed it.
+            // Another call in the same screen did, which is what puts it in the
+            // set -- and a parameter left as a default here is one the app
+            // registered and then could not be given.
             call.arguments[index] =
                 argumentFor(lambda, props, parameter, name, composable) ?: return@forEach
         }

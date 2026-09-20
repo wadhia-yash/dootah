@@ -26,6 +26,8 @@ import org.jetbrains.kotlin.ir.expressions.IrGetField
 import org.jetbrains.kotlin.ir.expressions.IrGetObjectValue
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrReturn
+import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
+import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classFqName
@@ -223,6 +225,11 @@ internal fun IrBody.nativeBindings(
             if (element is IrContainerExpression) {
                 (element.statements.lastOrNull() as? IrCall)
                     ?.recordFrozen(adapters, declaredInBody, sourceText, region = element)
+
+                // And for the block a `when` with a subject was lowered into,
+                // for the same reason.
+                (element.statements.lastOrNull() as? IrWhen)
+                    ?.recordFrozenConditional(adapters, declaredInBody, sourceText, region = element)
             }
 
             // And for an `if` that chooses between components. It is a region
@@ -467,6 +474,18 @@ private fun IrWhen.recordFrozenConditional(
     adapters: MutableMap<String, NativeAdapter>,
     declaredInBody: BodyScope,
     sourceText: String,
+    /**
+     * What is kept and named, where that is more than this `when` itself.
+     *
+     * A `when` with a subject is lowered into a block that declares the subject
+     * once and then branches on the temporary. The `when` alone reads a name the
+     * block declares, so asking about the `when` refused every one of them --
+     * while the extraction pass, reading source, where there is no temporary,
+     * kept them happily and named a region the app had not registered. The block
+     * is the region: it declares the temporary it reads, and its text is the
+     * `when` as it was written.
+     */
+    region: IrExpression = this,
 ) {
 
     if (sourceText.isEmpty()) return
@@ -477,9 +496,9 @@ private fun IrWhen.recordFrozenConditional(
 
     val template = firstComposableCall() ?: return
 
-    if (readsOutside(declaredInBody)) return
+    if (region.readsOutside(declaredInBody)) return
 
-    val text = sourceText.textOf(this) ?: return
+    val text = sourceText.textOf(region) ?: return
     val id = FrozenRegionId.of(FrozenRegionId.CONDITIONAL, text)
 
     adapters.getOrPut(id) {
@@ -489,7 +508,7 @@ private fun IrWhen.recordFrozenConditional(
             template = template,
             suppliedParameters = emptySet(),
             frozen = true,
-            region = this,
+            region = region,
         )
     }
 }
@@ -586,11 +605,24 @@ private fun IrCall.record(
 
     val existing = adapters[id]
 
-    // The call with the most arguments wins: it is the only one whose shape has
-    // somewhere to put each of them.
-    if (existing == null || supplied.size > existing.suppliedParameters.size) {
-        adapters[id] = NativeAdapter(id = id, template = this, suppliedParameters = supplied)
-    }
+    // Every parameter any call in this screen supplied, together.
+    //
+    // A screen calls `Text(text, textAlign)` in one place and
+    // `Text(text, modifier)` in another; a bundle places both and needs an
+    // adapter that takes all three. Keeping one call's parameters registered
+    // only the ones that call happened to pass, so the other placement asked the
+    // app for an argument it had refused to accept -- and which of the two won
+    // depended on the order the tree was walked.
+    //
+    // The call with the most arguments is still the one the adapter is built
+    // from, because a copy of a real call is what keeps the defaults this one
+    // does not pass arranged the way the frontend arranged them.
+    val union = supplied + existing?.suppliedParameters.orEmpty()
+
+    val template = if (existing == null || supplied.size > existing.suppliedParameters.size) this
+    else existing.template
+
+    adapters[id] = NativeAdapter(id = id, template = template, suppliedParameters = union)
 
     for (parameter in declared) {
 
@@ -756,13 +788,16 @@ private fun IrElement.capabilityStatement(
     parameterNames: List<String>,
 ): CapabilityId.Statement? {
 
-    val call = this as? IrCall ?: return null
+    val call = discardedValue() as? IrCall ?: return null
     val owner = call.symbol.owner
     val name = owner.name.asString()
 
-    val receiver = call.arguments.getOrNull(0)?.let { argument ->
-        (argument as? IrGetValue)?.symbol?.owner?.name?.asString()
-    }
+    // An explicit receiver the other pass would name differently makes the whole
+    // statement unnameable, rather than one rendered without it. Dropping it
+    // rendered `A.set(x)` and `B.set(x)` as one `set(x)`, which is an action the
+    // app has two of and the bundle cannot tell apart.
+    val written = call.writtenReceiver()
+    val receiver = if (written == null) null else written.receiverName() ?: return null
 
     val supplied = owner.declaredParameters()
         .mapNotNull { parameter -> call.arguments.getOrNull(parameter.indexInParameters) }
@@ -793,19 +828,107 @@ private fun IrExpression.capabilityArgument(
     parameterNames: List<String>,
 ): CapabilityId.Argument? {
 
-    (this as? IrConst)?.let { constant ->
-        val value = constant.value
-        return CapabilityId.Literal(
-            if (value is String) "\"$value\"" else value.toString()
-        )
-    }
+    (this as? IrConst)?.let { constant -> return CapabilityId.Literal(CapabilityId.literal(constant.value)) }
 
-    val name = (this as? IrGetValue)?.symbol?.owner?.name?.asString() ?: return null
+    val name = readName() ?: return null
 
     val index = parameterNames.indexOf(name)
 
     return if (index >= 0) CapabilityId.Parameter(index) else CapabilityId.Read(name)
 }
+
+/**
+ * A statement with the wrapping that throws its value away taken off.
+ *
+ * A handler is `() -> Unit`, so a statement in one that produces a value has
+ * that value discarded -- and the discarding reaches this pass as a node of its
+ * own, wrapped around the call. `view.slightHapticFeedback()` returns the
+ * boolean `performHapticFeedback` returns, and with the wrapper in the way this
+ * pass saw no call at all and registered no action for the handler, while the
+ * extraction pass -- reading source, where there is no wrapper -- went on
+ * naming one.
+ */
+private fun IrElement.discardedValue(): IrElement {
+
+    var current: IrElement = this
+
+    while (true) {
+        current = when {
+            current is IrReturn -> current.value
+            current is IrTypeOperatorCall &&
+                current.operator == IrTypeOperator.IMPLICIT_COERCION_TO_UNIT -> current.argument
+            else -> return current
+        }
+    }
+}
+
+/**
+ * The receiver the source wrote in front of the dot.
+ *
+ * The extension receiver before the dispatch receiver, because that is the one
+ * the source names: `view.tap()`, where `tap` is declared inside an object, is
+ * handed the object as its dispatch receiver and `view` as its extension. Taking
+ * the first argument reported the object, and the other pass -- which reads the
+ * source -- reported `view`.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrCall.writtenReceiver(): IrExpression? {
+
+    val parameters = symbol.owner.parameters
+
+    fun of(kind: IrParameterKind): IrExpression? = parameters
+        .indexOfFirst { parameter -> parameter.kind == kind }
+        .takeIf { index -> index >= 0 }
+        ?.let { index -> arguments.getOrNull(index) }
+
+    return of(IrParameterKind.ExtensionReceiver) ?: of(IrParameterKind.DispatchReceiver)
+}
+
+/**
+ * A receiver as both passes name it.
+ *
+ * The name where the source reads one, and the value where it reads a constant:
+ * a `const val` is folded into its value before this pass runs, so by then the
+ * name is gone and the value is the only thing left for the two to agree on.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrExpression.receiverName(): String? {
+
+    (this as? IrConst)?.let { constant -> return CapabilityId.literal(constant.value) }
+
+    return readName()
+}
+
+/**
+ * The name of the value or property this expression reads.
+ *
+ * A property reaches this pass as a call to its getter, including a delegated
+ * local -- `var name by remember { ... }` is read through an accessor and not
+ * as a value at all. The other pass sees the property either way, so a handler
+ * that reads one has to be nameable here too or the app registers no action for
+ * a handler the bundle goes on asking for.
+ */
+@OptIn(UnsafeDuringIrConstructionAPI::class)
+private fun IrExpression.readName(): String? {
+
+    val name = when (this) {
+        is IrGetValue -> symbol.owner.name.asString()
+        is IrGetField -> symbol.owner.name.asString()
+        is IrCall -> symbol.owner.name.asString()
+            .takeIf { it.startsWith(GETTER_PREFIX) }
+            ?.removePrefix(GETTER_PREFIX)
+            ?.removeSuffix(GETTER_SUFFIX)
+        else -> null
+    } ?: return null
+
+    // `$this`, `<this>` and the rest of the compiler's own names. The source has
+    // no such word in it, so the other pass can never produce one.
+    return name.takeUnless { it.startsWith("$") || it.startsWith("<") }
+}
+
+private const val GETTER_PREFIX = "<get-"
+
+private const val GETTER_SUFFIX = ">"
 
 private fun IrElement.producesNothing(): Boolean {
 

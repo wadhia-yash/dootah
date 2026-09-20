@@ -67,7 +67,7 @@ internal class PublicationClient(
             require(bytes.size <= 65536) { "Oversized metadata" }
             return mapper.readValue(bytes, Map::class.java) ?: error("Invalid server metadata")
         }
-        private fun request(method: String, url: String, bytes: ByteArray, token: String): ByteArray {
+        internal fun request(method: String, url: String, bytes: ByteArray, token: String): ByteArray {
             val connection = URI(url).toURL().openConnection() as HttpURLConnection
             try {
                 connection.requestMethod = method; connection.instanceFollowRedirects = false
@@ -76,9 +76,33 @@ internal class PublicationClient(
                 connection.setRequestProperty("Content-Type", if (method == "POST") "application/json" else "application/octet-stream")
                 connection.doOutput = true; connection.setFixedLengthStreamingMode(bytes.size)
                 connection.outputStream.use { it.write(bytes) }
-                check(connection.responseCode == 200) { "Publication failed: HTTP ${connection.responseCode}; retry the same command" }
+                val status = connection.responseCode
+                if (status != 200) {
+                    val error = connection.errorStream?.use { it.readNBytes(65537) } ?: byteArrayOf()
+                    throw IllegalStateException(rejectionMessage(status, error, token))
+                }
                 return connection.inputStream.use { it.readNBytes(65537) }.also { require(it.size <= 65536) { "Oversized server response" } }
             } finally { connection.disconnect() }
+        }
+        private fun rejectionMessage(status: Int, body: ByteArray, token: String): String {
+            // Only the bounded error envelope is useful. Proxy HTML and parser errors can echo credentials.
+            val error = runCatching { json(body) }.getOrNull()
+            val code = error?.get("code") as? String
+            val message = error?.get("message") as? String
+            if (code != null && code.matches(Regex("[A-Z_]{1,80}")) && !message.isNullOrBlank() && message.length <= 512) {
+                val safe = message.replace(token, "[redacted]").map { if (it.isISOControl()) ' ' else it }.joinToString("")
+                return "Publication rejected: $code: $safe (HTTP $status)"
+            }
+            val advice = when (status) {
+                401, 403 -> "Check DOOTAH_PUBLISH_TOKEN and the server's publisher authorization."
+                400 -> "Check release metadata and the server's publisher/catalog configuration; the server returned no usable rejection reason."
+                404 -> "Check the publication endpoint and uploaded artifacts."
+                409 -> "An immutable publication conflicts with existing content; check bundleVersion and release identity."
+                429 -> "Retry the same publication after the server's rate limit clears."
+                in 500..599 -> "The server is unavailable; retry the same publication after it recovers."
+                else -> "Check the publication endpoint and server logs."
+            }
+            return "Publication failed: HTTP $status. $advice"
         }
     }
 }

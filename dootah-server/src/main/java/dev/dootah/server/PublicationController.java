@@ -2,6 +2,9 @@ package dev.dootah.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -12,9 +15,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.security.MessageDigest;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 public class PublicationController {
+    private static final Logger log = LoggerFactory.getLogger(PublicationController.class);
     private final PublicationStore store;
     private final ObjectMapper mapper;
     private final String token;
@@ -30,8 +36,9 @@ public class PublicationController {
     }
     private JsonNode metadata(HttpServletRequest request) throws Exception {
         byte[] bytes = request.getInputStream().readNBytes(65537);
-        PublicationStore.require(bytes.length <= 65536);
-        return mapper.readTree(bytes);
+        PublicationRejection.require(bytes.length <= 65536, "METADATA_TOO_LARGE", "Publication metadata exceeds 65536 bytes");
+        return mapper.reader().with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
+                .with(JsonParser.Feature.STRICT_DUPLICATE_DETECTION).readTree(bytes);
     }
     @PutMapping("/publish/artifacts/{hash}")
     public Map<String, String> upload(@PathVariable("hash") String hash, HttpServletRequest request) throws Exception {
@@ -52,9 +59,30 @@ public class PublicationController {
                 .header("Cache-Control", "public, max-age=31536000, immutable").body(store.download(hash));
     }
     @ExceptionHandler(PublicationStore.Conflict.class)
-    public ResponseEntity<Void> conflict() { return ResponseEntity.status(409).build(); }
+    public ResponseEntity<Map<String, String>> conflict(PublicationStore.Conflict error) {
+        return rejection(409, "IMMUTABLE_PUBLICATION_CONFLICT", error.getMessage());
+    }
+    @ExceptionHandler(PublicationRejection.class)
+    public ResponseEntity<Map<String, String>> rejected(PublicationRejection error) {
+        return rejection(400, error.code(), error.getMessage());
+    }
+    @ExceptionHandler(JsonProcessingException.class)
+    public ResponseEntity<Map<String, String>> malformed() {
+        return rejection(400, "MALFORMED_METADATA", "Publication metadata must be one valid JSON object with no duplicate fields");
+    }
     @ExceptionHandler({IllegalArgumentException.class, java.security.GeneralSecurityException.class})
-    public ResponseEntity<Void> invalid() { return ResponseEntity.badRequest().build(); }
+    public ResponseEntity<Map<String, String>> invalid() {
+        // Parser/crypto exceptions may contain submitted data. Only deliberate diagnostics are public.
+        return rejection(400, "INVALID_PUBLICATION", "Publication metadata, publisher key or signature is invalid");
+    }
     @ExceptionHandler(NoSuchFileException.class)
-    public ResponseEntity<Void> missing() { return ResponseEntity.status(404).build(); }
+    public ResponseEntity<Map<String, String>> missing(NoSuchFileException error) {
+        if (error instanceof PublicationStore.MissingArtifact artifact)
+            return rejection(404, "ARTIFACT_NOT_FOUND", "Artifact sha256 " + artifact.hash + " does not exist; upload it before registering the release");
+        return rejection(404, "PUBLICATION_STORAGE_UNAVAILABLE", "Publication storage is missing; check the server catalog and artifact configuration");
+    }
+    private ResponseEntity<Map<String, String>> rejection(int status, String code, String message) {
+        log.warn("Publication rejected: {}: {}", code, message);
+        return ResponseEntity.status(status).body(Map.of("code", code, "message", message));
+    }
 }

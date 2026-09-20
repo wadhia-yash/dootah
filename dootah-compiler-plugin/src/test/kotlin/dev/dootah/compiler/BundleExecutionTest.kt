@@ -1,5 +1,7 @@
 package dev.dootah.compiler
 
+import dev.dootah.contract.AdapterId
+
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 import org.junit.Assert.assertEquals
@@ -34,12 +36,12 @@ class BundleExecutionTest {
 
         assertTrue(
             bundle.screenIds,
-            bundle.screenIds.contains("com.example.CartScreen") &&
-                bundle.screenIds.contains("com.example.ProfileScreen"),
+            bundle.screenIds.contains(bundle.screenId("com.example.CartScreen")) &&
+                bundle.screenIds.contains(bundle.screenId("com.example.ProfileScreen")),
         )
 
-        val cart = bundle.render("com.example.CartScreen", """{"unitPrice":100}""")
-        val profile = bundle.render("com.example.ProfileScreen", PROFILE_ARGUMENTS)
+        val cart = bundle.render(bundle.screenId("com.example.CartScreen"), """{"unitPrice":100}""")
+        val profile = bundle.render(bundle.screenId("com.example.ProfileScreen"), PROFILE_ARGUMENTS)
 
         assertTrue(cart, cart.contains("Total: 100"))
         assertTrue(profile, profile.contains("Hello Ada"))
@@ -54,17 +56,17 @@ class BundleExecutionTest {
 
         val bundle = buildBundle(twoScreens())
 
-        bundle.render("com.example.CartScreen", """{"unitPrice":100}""")
-        bundle.render("com.example.ProfileScreen", PROFILE_ARGUMENTS)
+        bundle.render(bundle.screenId("com.example.CartScreen"), """{"unitPrice":100}""")
+        bundle.render(bundle.screenId("com.example.ProfileScreen"), PROFILE_ARGUMENTS)
 
-        val afterOneTap = bundle.act("com.example.CartScreen", "add", """{"unitPrice":100}""")
+        val afterOneTap = bundle.act(bundle.screenId("com.example.CartScreen"), "add", """{"unitPrice":100}""")
         assertTrue(afterOneTap, afterOneTap.contains("Total: 200"))
 
-        val afterTwoTaps = bundle.act("com.example.CartScreen", "add", """{"unitPrice":100}""")
+        val afterTwoTaps = bundle.act(bundle.screenId("com.example.CartScreen"), "add", """{"unitPrice":100}""")
         assertTrue(afterTwoTaps, afterTwoTaps.contains("Total: 300"))
 
         // The other screen declares `quantity` too, and it has not moved.
-        val profile = bundle.render("com.example.ProfileScreen", PROFILE_ARGUMENTS)
+        val profile = bundle.render(bundle.screenId("com.example.ProfileScreen"), PROFILE_ARGUMENTS)
         assertTrue(profile, profile.contains("Visits: 1"))
     }
 
@@ -73,10 +75,10 @@ class BundleExecutionTest {
 
         val bundle = buildBundle(twoScreens())
 
-        bundle.render("com.example.CartScreen", """{"unitPrice":100}""")
-        bundle.act("com.example.CartScreen", "add", """{"unitPrice":100}""")
+        bundle.render(bundle.screenId("com.example.CartScreen"), """{"unitPrice":100}""")
+        bundle.act(bundle.screenId("com.example.CartScreen"), "add", """{"unitPrice":100}""")
 
-        val rerendered = bundle.render("com.example.CartScreen", """{"unitPrice":100}""")
+        val rerendered = bundle.render(bundle.screenId("com.example.CartScreen"), """{"unitPrice":100}""")
 
         assertTrue(rerendered, rerendered.contains("Total: 200"))
     }
@@ -86,7 +88,7 @@ class BundleExecutionTest {
 
         val bundle = buildBundle(twoScreens())
 
-        val response = bundle.act("com.example.CartScreen", "checkout", """{"unitPrice":100}""")
+        val response = bundle.act(bundle.screenId("com.example.CartScreen"), "checkout", """{"unitPrice":100}""")
 
         assertTrue(
             response,
@@ -109,7 +111,7 @@ class BundleExecutionTest {
 
         val bundle = buildBundle(twoScreens())
 
-        val response = bundle.act("com.example.CartScreen", "open", """{"unitPrice":100}""")
+        val response = bundle.act(bundle.screenId("com.example.CartScreen"), "open", """{"unitPrice":100}""")
 
         assertTrue(
             response,
@@ -124,7 +126,7 @@ class BundleExecutionTest {
 
         val bundle = buildBundle(twoScreens())
 
-        val response = bundle.render("com.example.Missing", "{}")
+        val response = bundle.render("com.example.Missing()", "{}")
 
         assertTrue(response, response.contains("unknownScreen"))
     }
@@ -134,9 +136,9 @@ class BundleExecutionTest {
 
         val bundle = buildBundle(twoScreens())
 
-        val premium = bundle.render("com.example.ProfileScreen", """{"name":"Ada","premium":true}""")
+        val premium = bundle.render(bundle.screenId("com.example.ProfileScreen"), """{"name":"Ada","premium":true}""")
         val standard =
-            bundle.render("com.example.ProfileScreen", """{"name":"Ada","premium":false}""")
+            bundle.render(bundle.screenId("com.example.ProfileScreen"), """{"name":"Ada","premium":false}""")
 
         assertTrue(premium, premium.contains("Premium member"))
         assertTrue(standard, standard.contains("Standard member"))
@@ -155,7 +157,7 @@ class BundleExecutionTest {
 
         val bundle = buildBundle(siblingScreen())
 
-        val rendered = bundle.render("com.example.ToolbarScreen", """{"label":"Undo"}""")
+        val rendered = bundle.render(bundle.screenId("com.example.ToolbarScreen"), """{"label":"Undo"}""")
 
         assertTrue(rendered, rendered.contains(""""type":"fragment""""))
         assertTrue(rendered, rendered.contains("Undo"))
@@ -333,6 +335,8 @@ class BundleExecutionTest {
  * accumulates exactly as it does inside a long-lived isolate while the test
  * needs nothing more than a process per assertion.
  */
+private val QUOTED = Regex("\"([^\"]+)\"")
+
 private class BundleSession(
     private val bundle: File,
     private val workingDirectory: TemporaryFolder,
@@ -341,6 +345,21 @@ private class BundleSession(
     private val calls = mutableListOf<String>()
 
     val screenIds: String get() = evaluate("screenIds()")
+
+    /**
+     * The id this bundle gave a screen, found by the screen's qualified name.
+     *
+     * A screen is identified by its declaration, parameters included, so a test
+     * that knows which fixture it means should not also have to restate that
+     * fixture's signature every time the fixture gains an argument.
+     */
+    fun screenId(qualifiedName: String): String {
+
+        val ids = QUOTED.findAll(screenIds).map { match -> match.groupValues[1] }.toList()
+
+        return ids.singleOrNull { id -> AdapterId.qualifiedNameOf(id) == qualifiedName }
+            ?: error("no single screen named $qualifiedName in $ids")
+    }
 
     fun render(screenId: String, argumentsJson: String): String =
         evaluate("renderScreen(${literal(screenId)}, ${literal(argumentsJson)})")

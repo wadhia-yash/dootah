@@ -35,6 +35,11 @@ dependencies {
     // KotlinCompile exposes the Java source provider separately from JVM sources.
     compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.20")
     compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:2.0.20")
+    // The Android variant API, which is how Dootah learns what a module builds.
+    // compileOnly and deliberately the oldest supported line: the host app's own
+    // Android plugin supplies these classes, so only members present across the
+    // supported AGP range may be used.
+    compileOnly("com.android.tools.build:gradle-api:8.7.2")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.0.20")
 
     // The include/exclude rules are parsed by the compiler plugin from a string
@@ -108,6 +113,16 @@ backendMatrixForTests.stringPropertyNames().sorted().forEach { family ->
             systemProperty("dootah.test.kgp.$compilerVersion", kgp.asPath)
         }
     }
+}
+
+// A real Android Gradle plugin, so variant discovery is proven against AGP's own
+// variant API rather than against a stand-in for it. Loaded separately, as an app
+// loads it, because Dootah compiles against that API but never ships it.
+val androidGradlePlugin = configurations.create("androidVariantTestAgp")
+dependencies.add(androidGradlePlugin.name, "com.android.tools.build:gradle:9.4.0")
+tasks.test {
+    inputs.files(androidGradlePlugin)
+    doFirst { systemProperty("dootah.test.agp", androidGradlePlugin.asPath) }
 }
 
 // A real Kotlin release deliberately outside the matrix, so the version gate's

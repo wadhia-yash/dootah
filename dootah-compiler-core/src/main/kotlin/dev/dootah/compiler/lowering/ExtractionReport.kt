@@ -1,5 +1,6 @@
 package dev.dootah.compiler.lowering
 
+import dev.dootah.compiler.generate.sanitizeForIdentifier
 import dev.dootah.compiler.source.*
 import java.io.File
 
@@ -27,13 +28,8 @@ fun writeExtractionReport(
         body.literals.forEach { add("literal=$it") }
     }
 
-    File(directory, "${screenId.toFileName()}.txt")
+    File(directory, "${sanitizeForIdentifier(screenId)}.txt")
         .writeText(lines.joinToString("\n", postfix = "\n"))
 }
 
 const val EXTRACTION_DIRECTORY = "extract"
-
-/** Screen ids are free-form, so they are flattened before use as a file name. */
-private fun String.toFileName(): String =
-    map { character -> if (character.isLetterOrDigit() || character == '-') character else '_' }
-        .joinToString("")

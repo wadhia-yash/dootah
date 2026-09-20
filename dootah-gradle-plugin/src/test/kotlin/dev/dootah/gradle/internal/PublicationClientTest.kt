@@ -8,6 +8,9 @@ import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import com.sun.net.httpserver.HttpServer
+import java.net.InetSocketAddress
+import java.net.URI
 
 class PublicationClientTest {
     @get:Rule val temp = TemporaryFolder()
@@ -78,5 +81,55 @@ class PublicationClientTest {
         assertThrows(IllegalArgumentException::class.java){PublicationClient(origin,"")}
         val dir=fixture();assertThrows(IllegalArgumentException::class.java){client().publish(dir,"unknown",100)}
         assertThrows(IllegalArgumentException::class.java){client().publish(dir,"production",101)};assertTrue(calls.isEmpty())
+    }
+
+    /** Exercise the real HTTP error stream through the existing transport seam; production still requires HTTPS. */
+    private fun rejectedByServer(status: Int, body: String): String {
+        val directory = fixture()
+        val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/") { exchange ->
+            exchange.requestBody.use { it.readBytes() }
+            val registration = exchange.requestMethod == "POST"
+            val response = if (registration) body else "{\"status\":\"stored\",\"sha256\":\"${exchange.requestURI.path.substringAfterLast('/')}\"}"
+            val bytes = response.toByteArray()
+            exchange.sendResponseHeaders(if (registration) status else 200, bytes.size.toLong())
+            exchange.responseBody.use { it.write(bytes) }
+        }
+        server.start()
+        try {
+            val client = PublicationClient(origin, token) { method, url, bytes, auth ->
+                PublicationClient.request(method, "http://127.0.0.1:${server.address.port}${URI(url).path}", bytes, auth)
+            }
+            return assertThrows(IllegalStateException::class.java) { client.publish(directory, "production", 100) }.message!!
+        } finally { server.stop(0) }
+    }
+
+    @Test fun `HTTP rejection surfaces publisher configuration reason`() {
+        val message = rejectedByServer(400, """{"code":"PUBLISHER_NOT_CONFIGURED","message":"No publisher public key is configured for appId 'example.app'; configure publishers[appId] in the server catalog with the trusted public key"}""")
+        assertTrue(message, message.contains("PUBLISHER_NOT_CONFIGURED"))
+        assertTrue(message, message.contains("example.app"))
+        assertTrue(message, message.contains("configure publishers[appId]"))
+        assertTrue(message, message.contains("HTTP 400"))
+        assertFalse(message, message.contains("retry the same command"))
+    }
+
+    @Test fun `HTTP errors ignore proxy bodies and redact credentials in structured reasons`() {
+        val malformed = rejectedByServer(400, "<html>Authorization: Bearer $token</html>")
+        assertTrue(malformed, malformed.contains("server returned no usable rejection reason"))
+        assertFalse(malformed, malformed.contains(token))
+        assertFalse(malformed, malformed.contains("html"))
+        val structured = rejectedByServer(400, """{"code":"INVALID_PUBLICATION","message":"Invalid $token\nvalue"}""")
+        assertFalse(structured, structured.contains(token))
+        assertFalse(structured, structured.contains('\n'))
+        assertTrue(structured, structured.contains("[redacted]"))
+    }
+
+    @Test fun `HTTP auth and conflict errors do not suggest blind retries`() {
+        val auth = rejectedByServer(401, "")
+        assertTrue(auth, auth.contains("DOOTAH_PUBLISH_TOKEN"))
+        val conflict = rejectedByServer(409, """{"code":"IMMUTABLE_PUBLICATION_CONFLICT","message":"bundleVersion 2 already exists; use a new bundleVersion"}""")
+        assertTrue(conflict, conflict.contains("use a new bundleVersion"))
+        val oversized = rejectedByServer(400, "x".repeat(65537))
+        assertTrue(oversized, oversized.contains("no usable rejection reason"))
     }
 }

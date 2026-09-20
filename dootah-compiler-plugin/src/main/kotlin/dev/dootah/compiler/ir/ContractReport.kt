@@ -1,6 +1,7 @@
 package dev.dootah.compiler.ir
 
 import dev.dootah.compiler.compat.*
+import dev.dootah.compiler.generate.sanitizeForIdentifier
 import dev.dootah.contract.ContractJson
 import dev.dootah.contract.InstalledContract
 import dev.dootah.contract.ScreenContract
@@ -33,10 +34,6 @@ internal fun writeContractFragment(
         screens = listOf(screen),
     )
 
-    File(directory, "${sanitizeForFileName(screen.id)}.json")
+    File(directory, "${sanitizeForIdentifier(screen.id)}.json")
         .writeText(ContractJson.write(contract))
 }
-
-/** A screen id as a file name, by the same rule the other reports use. */
-private fun sanitizeForFileName(id: String): String =
-    id.map { character -> if (character.isLetterOrDigit()) character else '_' }.joinToString("")
