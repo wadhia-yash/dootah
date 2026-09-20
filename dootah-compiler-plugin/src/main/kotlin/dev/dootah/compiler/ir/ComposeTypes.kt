@@ -1,5 +1,6 @@
 package dev.dootah.compiler.ir
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import dev.dootah.contract.BuilderScopes
 import dev.dootah.contract.ComposeFunctionTypes

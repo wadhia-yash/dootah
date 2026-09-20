@@ -1,6 +1,6 @@
 // Version shared by every publishable Dootah module. Consumed via
 // rootProject.extra so the modules do not each hard-code it.
-extra["dootahVersion"] = "0.1.0-alpha.16"
+extra["dootahVersion"] = providers.gradleProperty("dootahVersion").getOrElse("0.1.0-alpha.17")
 
 apply(from = "gradle/alpha-publication.gradle")
 
@@ -22,6 +22,7 @@ tasks.register("publishDootahToMavenLocal") {
         ":dootah-annotations:publishToMavenLocal",
         ":dootah-contract:publishToMavenLocal",
         ":dootah-compiler-plugin:publishToMavenLocal",
+        ":dootah-compiler-core:publishToMavenLocal",
         ":dootah-gradle-plugin:publishToMavenLocal",
         ":dootah-bundle-runtime:publishToMavenLocal",
         ":dootah-android:publishToMavenLocal",
@@ -153,4 +154,14 @@ tasks.register<Copy>("buildBundle") {
     rename {
         "bundle.js"
     }
+}
+
+/** Every declared compiler ABI runs the same regression suite. */
+tasks.register("dootahCompilerMatrixCheck") {
+    group = "verification"
+    dependsOn(subprojects.filter { it.name.startsWith("dootah-compiler-plugin") }.map { "${it.path}:test" })
+    dependsOn(":dootah-compiler-core:test", ":dootah-gradle-plugin:test", "dootahRealComposeCheck")
+}
+tasks.named("publishDootahToMavenLocal") {
+    dependsOn(subprojects.filter { it.name.startsWith("dootah-compiler-plugin-kotlin-") }.map { "${it.path}:publishToMavenLocal" })
 }

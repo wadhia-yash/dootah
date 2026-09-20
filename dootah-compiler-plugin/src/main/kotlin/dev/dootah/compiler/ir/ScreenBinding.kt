@@ -1,6 +1,6 @@
 package dev.dootah.compiler.ir
 
-import org.jetbrains.kotlin.ir.declarations.IrParameterKind
+import dev.dootah.compiler.compat.*
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI

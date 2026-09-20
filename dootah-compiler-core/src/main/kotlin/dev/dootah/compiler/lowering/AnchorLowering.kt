@@ -1,0 +1,125 @@
+package dev.dootah.compiler.lowering
+
+import dev.dootah.compiler.source.*
+import dev.dootah.contract.AnchorId
+import dev.dootah.contract.Dimension
+
+/**
+ * Reads a length the app owns, as the name the app will answer to.
+ *
+ * `Arrangement.spacedBy(MaterialTheme.padding.small)` is the commonest thing in
+ * a real app that a screen cannot bundle, and the reason is thin: the gap is the
+ * app's spacing scale rather than a literal. Two ways out are worse than the
+ * problem. Refusing the screen loses a whole layout over a number. Reading the
+ * number at build time and shipping `8.dp` forks the app's spacing: the app
+ * retunes its scale in a later release and every bundled screen keeps the old
+ * value, visibly out of step with the native ones beside it.
+ *
+ * So nothing is read. The chain is written down as a name, the APK registers the
+ * same name against its own expression, and the value never leaves the app.
+ *
+ * ## What counts
+ *
+ * A chain of plain property reads rooted at a named object or companion, whose
+ * type is `Dp`. `MaterialTheme.padding.small` qualifies; a call, an argument, a
+ * local, or arithmetic does not. The line is not about difficulty -- it is that
+ * both compilations have to arrive at the same name from two versions of the
+ * source, and a chain of resolved property symbols is something they can. A call
+ * would have to agree about its arguments too, and a local does not survive
+ * being lifted out of the body at all.
+ */
+object AnchorLowering {
+
+    /** `androidx.compose.ui.unit.Dp`, the only type that may be anchored yet. */
+    private const val DP_TYPE = "androidx/compose/ui/unit/Dp"
+
+    /**
+     * The anchor name for this expression, or null when it cannot be one.
+     *
+     * Walks receivers outward and reverses, the way a modifier chain is read:
+     * the name is the chain as written, so it reads back in a build failure as
+     * the thing the developer would search for.
+     */
+    fun read(expression: SourceExpression): String? {
+
+        if (!expression.isDp()) return null
+
+        val path = mutableListOf<String>()
+        var current: SourceExpression? = expression
+
+        while (true) {
+
+            when (val node = current) {
+
+                // The root: an object, a companion, or a class whose member this
+                // is. Its fully qualified name is what makes the chain
+                // unambiguous -- `Padding.small` alone stops meaning one thing
+                // the moment a second class has a `small`.
+                is SourceResolvedQualifier -> {
+                    val root = node.classId?.asSingleFqName()?.asString() ?: return null
+                    if (path.isEmpty()) return null
+                    return AnchorId.of(root, path.asReversed().toList())
+                }
+
+                is SourcePropertyAccessExpression -> {
+
+                    val symbol = node.calleeReference.toResolvedCallableSymbol() ?: return null
+
+                    path += symbol.name.asString()
+
+                    node.explicitReceiver?.let { receiver ->
+                        current = receiver
+                        return@let
+                    } ?: return topLevelName(symbol, path)
+                }
+
+                // A call, a literal, a local read: none of them is a name the
+                // other compilation could arrive at independently.
+                else -> return null
+            }
+        }
+    }
+
+    /**
+     * The name of a property read with no receiver, when it has one.
+     *
+     * A top-level `val` and a local `val` are written the same way and are not
+     * the same thing: one has a package and is nameable from anywhere, the other
+     * exists only inside the body and does not survive being lifted out of it.
+     * The callable id is what separates them, which is the same test the rest of
+     * lowering uses to tell a local from a declaration.
+     */
+    private fun topLevelName(symbol: SourceCallableSymbol, path: List<String>): String? {
+
+        // A parameter reads exactly like a top-level property and is not one.
+        // It carries a callable id with the enclosing package and no class, so
+        // the id alone cannot tell them apart -- but only one of them is a
+        // declaration the app's own build can register, and naming the other
+        // would produce a name nothing on the device answers to.
+        if (symbol !is SourcePropertySymbol) return null
+
+        // And a local `val` reads the same way again. It happens to carry no
+        // package, so the check below would refuse it anyway -- but a local is
+        // refused because it is a local, not because of how its id is shaped,
+        // and saying so is what keeps that true if the shape changes.
+        if (symbol.isLocal) return null
+
+        val id = symbol.callableId ?: return null
+
+        // A member read without a receiver is an implicit `this`, which is a
+        // different thing from a top-level name and is not one either pass can
+        // resolve from the other's source.
+        if (id.classId != null) return null
+
+        val packageName = id.packageName.takeIf { !it.isRoot }?.asString() ?: return null
+
+        return AnchorId.of(packageName, path.asReversed().toList())
+    }
+
+    /** The dimension this expression is, when it is one the app owns. */
+    fun dimension(expression: SourceExpression): Dimension? =
+        read(expression)?.let { anchor -> Dimension.anchored(anchor) }
+
+    private fun SourceExpression.isDp(): Boolean =
+        runCatching { resolvedType?.classId?.asString() }.getOrNull() == DP_TYPE
+}

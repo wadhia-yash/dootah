@@ -70,8 +70,8 @@ class BuilderVocabularyGoldenTest {
     @Test
     fun `FIR lowering reads the vocabulary from the contract`() {
 
-        val lowering = source("dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/fir/ScreenLowering.kt")
-        val components = source("dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/fir/ComponentLowering.kt")
+        val lowering = source("dootah-compiler-core/src/main/kotlin/dev/dootah/compiler/lowering/ScreenLowering.kt")
+        val components = source("dootah-compiler-core/src/main/kotlin/dev/dootah/compiler/lowering/ComponentLowering.kt")
 
         assertTrue(
             "lowering does not ask the contract which calls declare an entry",
@@ -109,7 +109,7 @@ class BuilderVocabularyGoldenTest {
     @Test
     fun `the generator emits every entry kind`() {
 
-        val source = source("dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/generate/BundleSourceWriter.kt")
+        val source = source("dootah-compiler-core/src/main/kotlin/dev/dootah/compiler/generate/BundleSourceWriter.kt")
 
         assertTrue("the generator never emits an item", "EntryNode.Item(" in source)
         assertTrue("the generator never emits a region", "EntryNode.Region(" in source)

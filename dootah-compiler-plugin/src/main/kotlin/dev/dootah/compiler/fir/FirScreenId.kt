@@ -1,8 +1,8 @@
 package dev.dootah.compiler.fir
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.compiler.identity.screenIdOf
 import org.jetbrains.kotlin.descriptors.Visibilities
-import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 
 /**
  * The identity extraction and interception have to agree on.

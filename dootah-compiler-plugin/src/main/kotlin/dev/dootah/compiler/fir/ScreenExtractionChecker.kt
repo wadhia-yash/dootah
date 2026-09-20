@@ -1,5 +1,7 @@
 package dev.dootah.compiler.fir
 
+import dev.dootah.compiler.compat.*
+import dev.dootah.compiler.lowering.*
 import dev.dootah.contract.Eligibility
 import dev.dootah.contract.ScreenEligibility
 import dev.dootah.contract.ScreenFilter
@@ -7,7 +9,6 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.checkers.MppCheckerKind
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirDeclarationChecker
-import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import java.io.File
 
 /**
@@ -39,55 +40,13 @@ import java.io.File
  * there is nothing to trade. The loop ends when the run stops asking for names
  * it has not already been given, and there are only so many to give.
  */
-internal fun lowerScreen(
-    function: FirNamedFunction,
-    filePath: String,
-    screenId: String,
-): LoweringResult {
-
-    var keptNative = emptySet<String>()
-
-    // Why the first run could not describe the screen, carried forward.
-    //
-    // Once a value is left to the app, everything that reads it is native too,
-    // and the reason the *last* run reports is that read rather than the thing
-    // that started it. A developer who wrote `checkout()` in a click handler
-    // needs to be told about `checkout()`, not about the counter beside it.
-    var firstRefusal = emptyList<UnsupportedConstruct>()
-
-    while (true) {
-
-        val lowering = ScreenLowering(function, filePath, keptNative)
-        val result = lowering.lower(screenId)
-
-        if (result !is LoweringResult.Rejected) return result.withEarlierRefusal(firstRefusal)
-
-        if (keptNative.isEmpty()) firstRefusal = result.reasons
-
-        val wanted = lowering.demotionCandidates - keptNative
-        if (wanted.isEmpty()) return result
-
-        keptNative = keptNative + wanted
-    }
-}
-
-/** Adds the reasons an earlier run gave to what this one kept native. */
-private fun LoweringResult.withEarlierRefusal(
-    earlier: List<UnsupportedConstruct>,
-): LoweringResult = when {
-    earlier.isEmpty() -> this
-    this is LoweringResult.Lowered -> copy(degraded = earlier + degraded)
-    else -> this
-}
-
 internal class ScreenExtractionChecker(
     private val reportDirectory: File,
     private val generatedDirectory: File?,
     private val filter: ScreenFilter,
-) : FirDeclarationChecker<FirNamedFunction>(MppCheckerKind.Common) {
+) : BackendScreenChecker() {
 
-    context(context: CheckerContext, reporter: DiagnosticReporter)
-    override fun check(declaration: FirNamedFunction) {
+    override fun inspect(declaration: FirNamedFunction, context: CheckerContext) {
 
         val shape = declaration.composableShape(context)
 
@@ -122,12 +81,12 @@ internal class ScreenExtractionChecker(
             reportDirectory = reportDirectory,
             screenId = screenId,
             functionName = shape.fqName,
-            body = body.inspectScreenBody(),
+            body = SourceProjection().element(body).inspectScreenBody(),
         )
 
         when (
             val result = lowerScreen(
-                function = declaration,
+                function = SourceProjection().element(declaration) as dev.dootah.compiler.source.SourceNamedFunction,
                 filePath = filePath ?: "unknown",
                 screenId = screenId,
             )

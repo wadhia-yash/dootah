@@ -43,7 +43,14 @@ android {
     }
 }
 
+kotlin.compilerOptions {
+    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+}
+
 dependencies {
+    // Public SDK metadata and dependencies must be readable by the oldest supported compiler.
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.20")
     // `api` for what appears in this module's own public signatures: a screen's
     // Modifier, and the composable lambdas a generated call site passes in. A
     // host app already has both, but a consumer should not have to know that to
@@ -70,7 +77,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.javascriptengine)
     implementation(libs.kotlinx.coroutines.guava)
-    implementation(libs.kotlinx.serialization.json)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
     implementation("com.google.crypto.tink:tink-android:1.23.0")
 
     testImplementation(libs.junit)

@@ -1,12 +1,12 @@
 package dev.dootah.compiler.fir
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import dev.dootah.compiler.DOOTAH_NATIVE_ANNOTATION
 import dev.dootah.compiler.PREVIEW_ANNOTATION_NAME
 import dev.dootah.contract.ComposableShape
 import dev.dootah.contract.ComposeFunctionTypes
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
-import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
@@ -52,11 +52,9 @@ private fun FirNamedFunction.isSuppressedBy(context: CheckerContext): Boolean {
 
     if (hasAnnotationNamed(DOOTAH_NATIVE_ANNOTATION)) return true
 
-    val enclosing = context.containingDeclarations
-        .filterIsInstance<FirRegularClassSymbol>()
-        .flatMap { it.fir.annotations }
+    val enclosing = context.enclosingClassAnnotations()
 
-    val file = context.containingFileSymbol?.fir?.annotations.orEmpty()
+    val file = context.fileAnnotations()
 
     return (enclosing + file).any { annotation ->
         annotation.fqName() == DOOTAH_NATIVE_ANNOTATION

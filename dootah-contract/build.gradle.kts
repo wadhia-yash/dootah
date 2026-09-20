@@ -13,8 +13,8 @@ kotlin {
     // therefore carries no third-party dependency at all -- a serialisation
     // library here would be a classpath risk in the first of those.
     compilerOptions {
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
-        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
     jvmToolchain(17)
@@ -26,6 +26,7 @@ java {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.0.20")
     testImplementation(libs.junit)
 }
 

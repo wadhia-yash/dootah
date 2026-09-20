@@ -4,7 +4,8 @@ import org.gradle.plugins.signing.SigningExtension
 
 // SDK artifacts only. The server is an application distribution, not a Maven library.
 def sdkModules = ['dootah-annotations', 'dootah-contract', 'dootah-compiler-plugin',
-                  'dootah-gradle-plugin', 'dootah-bundle-runtime', 'dootah-android']
+                  'dootah-gradle-plugin', 'dootah-bundle-runtime', 'dootah-android', 'dootah-compiler-core'] +
+                  subprojects.findAll { it.name.startsWith('dootah-compiler-plugin-kotlin-') }.collect { it.name }
 def descriptions = [
     'dootah-annotations': 'Optional DootahNative opt-out for automatic Compose discovery',
     'dootah-contract': 'Shared Dootah compiler, native runtime and update contracts',
@@ -13,6 +14,8 @@ def descriptions = [
     'dootah-bundle-runtime': 'Kotlin/JS runtime library used when building Dootah OTA bundles',
     'dootah-android': 'Native Compose rendering and verified, persistent Android OTA updates',
 ]
+descriptions['dootah-compiler-core'] = 'Compiler-independent Dootah semantic lowering and bundle generation'
+sdkModules.findAll { it.startsWith('dootah-compiler-plugin-kotlin-') }.each { descriptions[it] = 'Versioned Kotlin compiler ABI adapter for Dootah' }
 def projectUrl = providers.gradleProperty('dootahProjectUrl').orElse('https://github.com/wadhia-yash/dootah')
 def scmUrl = providers.gradleProperty('dootahScmUrl').orElse(projectUrl)
 def licenseName = providers.gradleProperty('dootahLicenseName')
@@ -100,8 +103,9 @@ gradle.projectsEvaluated {
         sdk.tasks.withType(PublishToMavenRepository).configureEach {
             if (repository.name == 'AlphaTest') dependsOn immutableCandidate
         }
-        def sources = sdk.fileTree('src') {
+        def sources = sdk.fileTree(moduleName.startsWith('dootah-compiler-plugin') ? rootProject.file('dootah-compiler-plugin/src') : sdk.file('src')) {
             include 'main/**/*.kt', 'main/**/*.java', 'jsMain/**/*.kt', 'commonMain/**/*.kt'
+            if (moduleName.startsWith('dootah-compiler-plugin')) include "backend-${moduleName.contains('-kotlin-') ? moduleName.split('-kotlin-')[1] : '2.3'}/**/*.kt"
         }
         // This JS-only library has no commonMain declarations. Include its JS
         // source in the root publication as well as the platform sources JAR.
@@ -121,7 +125,7 @@ gradle.projectsEvaluated {
                 def escape = { String value -> value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;') }
                 def links = []
                 sources.files.sort { a, b -> a.path <=> b.path }.each { source ->
-                    def relative = sdk.relativePath(source)
+                    def relative = (moduleName.startsWith('dootah-compiler-plugin') ? rootProject.project(':dootah-compiler-plugin') : sdk).relativePath(source)
                     def output = new File(destination, relative + '.html')
                     output.parentFile.mkdirs()
                     output.text = '<!doctype html><meta charset="utf-8"><title>' + escape(relative) +

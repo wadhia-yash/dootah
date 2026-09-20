@@ -1,11 +1,11 @@
 package dev.dootah.compiler
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.compiler.fir.DootahFirExtensionRegistrar
 import dev.dootah.compiler.ir.DootahIrExtension
 import dev.dootah.contract.ScreenFilter
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -20,13 +20,14 @@ import java.io.File
  * between them would put bundle generation inside the app build, where
  * incremental compilation does not track it.
  */
-class DootahCompilerPluginRegistrar : CompilerPluginRegistrar() {
-
-    override val pluginId: String = DOOTAH_PLUGIN_ID
+class DootahCompilerPluginRegistrar : BackendRegistrar() {
 
     override val supportsK2: Boolean = true
 
     override fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration) {
+        // Fail here, where the jar is named, rather than deeper in a pass that
+        // was compiled against a different compiler ABI.
+        BackendAbi.verify(org.jetbrains.kotlin.config.KotlinCompilerVersion.VERSION)
 
         val messageCollector = configuration.get(
             CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY,

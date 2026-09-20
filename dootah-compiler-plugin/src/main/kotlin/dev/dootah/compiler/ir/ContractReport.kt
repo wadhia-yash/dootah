@@ -1,5 +1,6 @@
 package dev.dootah.compiler.ir
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.contract.ContractJson
 import dev.dootah.contract.InstalledContract
 import dev.dootah.contract.ScreenContract

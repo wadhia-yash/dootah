@@ -1,5 +1,6 @@
 package dev.dootah.compiler.ir
 
+import dev.dootah.compiler.compat.*
 import java.io.File
 
 internal const val INTERCEPTION_REPORT_NAME = "dootah-ordering.txt"

@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 private const val COMPOSE_PLUGIN_ID = "org.jetbrains.kotlin.plugin.compose"
 
 private const val DOOTAH_GROUP = "dev.dootah"
-private const val COMPILER_PLUGIN_ARTIFACT = "dootah-compiler-plugin"
 private const val ANNOTATIONS_ARTIFACT = "dootah-annotations"
 private const val RUNTIME_ARTIFACT = "dootah-android"
 
@@ -25,6 +24,8 @@ private const val RUNTIME_ARTIFACT = "dootah-android"
  * of Kotlin or Compose semantics; that all lives in the compiler plugin.
  */
 class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
+
+    private var backend: CompilerBackend? = null
 
     override fun apply(target: Project) {
 
@@ -80,7 +81,7 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
 
     private fun gateKotlinVersion(target: Project) {
         target.plugins.withType(KotlinBasePlugin::class.java) { kotlinPlugin ->
-            verifyKotlinVersion(kotlinPlugin.pluginVersion)
+            backend = selectCompilerBackend(kotlinPlugin.pluginVersion)
         }
     }
 
@@ -116,7 +117,7 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
 
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
         groupId = DOOTAH_GROUP,
-        artifactId = COMPILER_PLUGIN_ARTIFACT,
+        artifactId = requireNotNull(backend) { "Dootah cannot select a compiler backend before Kotlin is applied" }.artifactId,
         version = pluginVersion(),
     )
 
@@ -147,13 +148,9 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
      * must stay in lockstep with.
      */
     private fun pluginVersion(): String =
-        DootahProjectPlugin::class.java.`package`?.implementationVersion
-            ?: FALLBACK_VERSION
+        DOOTAH_VERSION
 
     private companion object {
-        /** Used when running from a build output that carries no jar manifest. */
-        const val FALLBACK_VERSION = "0.1.0-alpha.3"
-
         const val DEBUG_COMPILE_TASK = "compileDebugKotlin"
         const val EXTRACT_TASK = "dootahExtract"
 

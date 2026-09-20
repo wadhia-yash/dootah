@@ -1,5 +1,6 @@
 package dev.dootah.compiler.ir
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.contract.RuntimeVersion
 import dev.dootah.contract.ScreenFilter
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension

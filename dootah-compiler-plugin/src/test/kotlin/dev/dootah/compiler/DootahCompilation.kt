@@ -226,7 +226,7 @@ fun compileWithDootah(
     // extensions in, which is exactly what these tests need to control.
     // The contract travels with the plugin: a real build resolves it from the
     // plugin's POM, and these tests pass it explicitly for the same reason.
-    val dootahJars = listOf(requiredJar("dootah.plugin.jar"), requiredJar("dootah.contract.jar"))
+    val dootahJars = listOf(requiredJar("dootah.plugin.jar")) + System.getProperty("dootah.contract.jar").split(File.pathSeparator).map(::File)
     val pluginClasspath =
         if (dootahFirst) dootahJars + extraPluginClasspath
         else extraPluginClasspath + dootahJars
@@ -900,4 +900,4 @@ private fun requiredJar(property: String): File {
  * and the real optional native opt-out annotation this module already depends on.
  */
 private fun testCompileClasspath(): String =
-    System.getProperty("java.class.path")
+    System.getProperty("dootah.fixture.classpath")

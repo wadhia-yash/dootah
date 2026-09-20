@@ -1,5 +1,6 @@
 package dev.dootah.compiler.ir
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.compiler.COMPOSER_CLASS
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.types.classFqName

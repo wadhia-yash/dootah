@@ -1,6 +1,6 @@
 package dev.dootah.compiler.ir
 
-import org.jetbrains.kotlin.backend.common.extensions.DeclarationFinder
+import dev.dootah.compiler.compat.*
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol

@@ -37,7 +37,7 @@ internal fun registerExtractTask(
 
     project.dependencies.add(
         KOTLIN_COMPILER_CONFIGURATION,
-        "org.jetbrains.kotlin:kotlin-compiler-embeddable:$SUPPORTED_KOTLIN_VERSION",
+        "org.jetbrains.kotlin:kotlin-compiler-embeddable:${hostCompilerBackend(project).compilerVersion}",
     )
 
     val extension = project.extensions.getByType(DootahExtension::class.java)

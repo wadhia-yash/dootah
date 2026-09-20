@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.File
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     `maven-publish`
@@ -5,6 +8,30 @@ plugins {
 
 group = "dev.dootah"
 version = rootProject.extra["dootahVersion"] as String
+
+val backendFamily = project.name.substringAfter("-kotlin-", "2.3")
+val backendMatrix = Properties().apply {
+    rootProject.file("gradle/compiler-backends.properties").inputStream().use { load(it) }
+}
+val backendVersion = backendMatrix.getProperty(backendFamily).split(",").first()
+kotlin.sourceSets.named("main") {
+    kotlin.srcDir(rootProject.file("dootah-compiler-plugin/src/main/kotlin"))
+    kotlin.srcDir(rootProject.file("dootah-compiler-plugin/src/backend-$backendFamily/kotlin"))
+}
+sourceSets.named("main") {
+    // The service a backend advertises is part of its ABI: which registration
+    // interface the running compiler orders plugins by differs by line, so the
+    // service file lives with the adapter rather than with the shared code.
+    resources.setSrcDirs(
+        listOf(
+            rootProject.file("dootah-compiler-plugin/src/main/resources"),
+            rootProject.file("dootah-compiler-plugin/src/backend-$backendFamily/resources"),
+        )
+    )
+}
+kotlin.sourceSets.named("test") {
+    kotlin.srcDir(rootProject.file("dootah-compiler-plugin/src/test/kotlin"))
+}
 
 kotlin {
     jvmToolchain(17)
@@ -42,24 +69,29 @@ val contractJar: Configuration by configurations.creating {
 }
 
 // The Kotlin/JS standard library, as the klib a bundle compiles against.
+val fixtureClasspath by configurations.creating
+
 val jsStdlib: Configuration by configurations.creating {
     isCanBeConsumed = false
     isCanBeResolved = true
 }
 
 dependencies {
+    fixtureClasspath("org.jetbrains.kotlin:kotlin-stdlib:$backendVersion")
     contractJar(project(":dootah-contract"))
-    jsStdlib("org.jetbrains.kotlin:kotlin-stdlib-js:${libs.versions.kotlin.get()}@klib")
+    contractJar(project(":dootah-compiler-core"))
+    jsStdlib("org.jetbrains.kotlin:kotlin-stdlib-js:$backendVersion@klib")
     // Fixtures compile against the real annotation, not a stub of it.
     implementation(project(":dootah-contract"))
+    implementation(project(":dootah-compiler-core"))
     testImplementation(project(":dootah-annotations"))
     // compileOnly on purpose: the host compiler supplies these classes at run
     // time. Bundling them would put a second copy of the compiler onto the
     // compiler's own classpath.
-    compileOnly(libs.kotlin.compiler.embeddable)
+    compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:$backendVersion")
 
     testImplementation(libs.junit)
-    testImplementation(libs.kotlin.compiler.embeddable)
+    testImplementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$backendVersion")
 }
 
 publishing {
@@ -90,11 +122,12 @@ tasks.test {
     // will actually ship beside -- not with a stand-in.
     val runtimeSources = rootProject.file("dootah-bundle-runtime/src/jsMain/kotlin")
     inputs.dir(runtimeSources)
-    inputs.files(jsStdlib)
+    inputs.files(jsStdlib, fixtureClasspath)
 
     jvmArgumentProviders.add(
         CommandLineArgumentProvider {
             listOf(
+                "-Ddootah.fixture.classpath=${fixtureClasspath.asPath}${File.pathSeparator}${annotationJar.get().asFile.absolutePath}",
                 "-Ddootah.plugin.jar=${pluginJar.get().asFile.absolutePath}",
                 "-Ddootah.annotations.jar=${annotationJar.get().asFile.absolutePath}",
                 "-Ddootah.repository=${rootProject.projectDir.absolutePath}",
@@ -105,4 +138,17 @@ tasks.test {
         }
     )
     useJUnit()
+}
+
+val backendMetadata = tasks.register("generateBackendMetadata") {
+    val destination = layout.buildDirectory.file("generated/backend-resources/dev/dootah/backend-versions.txt")
+    inputs.property("versions", backendMatrix.getProperty(backendFamily))
+    outputs.file(destination)
+    doLast {
+        destination.get().asFile.apply { parentFile.mkdirs(); writeText(backendMatrix.getProperty(backendFamily)) }
+    }
+}
+tasks.processResources {
+    dependsOn(backendMetadata)
+    from(layout.buildDirectory.dir("generated/backend-resources"))
 }

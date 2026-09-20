@@ -94,11 +94,7 @@ class ExtractionInputsTest {
                 }
             }
         """)
-        val classpath = javaClass.classLoader.getResource("plugin-under-test-metadata.properties")!!
-            .openStream().use { stream ->
-                java.util.Properties().apply { load(stream) }
-                    .getProperty("implementation-classpath").split(File.pathSeparator).map(::File)
-            } + System.getProperty("dootah.extraction.kotlinPlugin").split(File.pathSeparator).map(::File)
+        val classpath = dootahPluginClasspath() + kotlinGradlePluginClasspath("dootah.extraction.kotlinPlugin")
         val result = GradleRunner.create().withProjectDir(root).withPluginClasspath(classpath)
             .withArguments("dootahExtract", "--no-configuration-cache", "--stacktrace",
                 "-PtestCompiler=${System.getProperty("dootah.extraction.compiler")}")

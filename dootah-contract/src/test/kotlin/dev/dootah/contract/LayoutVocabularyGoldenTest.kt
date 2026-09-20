@@ -116,7 +116,7 @@ class LayoutVocabularyGoldenTest {
     @Test
     fun `FIR lowering reads the vocabulary from the contract`() {
 
-        val source = source("dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/fir/LayoutLowering.kt")
+        val source = source("dootah-compiler-core/src/main/kotlin/dev/dootah/compiler/lowering/LayoutLowering.kt")
 
         listOf(
             "Alignments.HORIZONTAL", "Alignments.VERTICAL", "Alignments.BOX",
@@ -133,7 +133,7 @@ class LayoutVocabularyGoldenTest {
     @Test
     fun `the generator emits every layout argument`() {
 
-        val source = source("dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/generate/BundleSourceWriter.kt")
+        val source = source("dootah-compiler-core/src/main/kotlin/dev/dootah/compiler/generate/BundleSourceWriter.kt")
 
         PARAMETERS.forEach { parameter ->
             assertTrue("the generator never emits $parameter", parameter in source)
@@ -278,7 +278,7 @@ class LayoutVocabularyGoldenTest {
         // which is the half a number-only implementation would silently drop.
         val carriesTheType = mapOf(
             "the compiler's model" to
-                ("dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/model/BundleUi.kt"
+                ("dootah-compiler-core/src/main/kotlin/dev/dootah/compiler/model/BundleUi.kt"
                     to "Dimension"),
             "the JS modifier model" to
                 ("dootah-bundle-runtime/src/jsMain/kotlin/ui/BundleModifier.kt"
@@ -291,7 +291,7 @@ class LayoutVocabularyGoldenTest {
 
         val handlesTheName = mapOf(
             "the generator" to
-                "dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/generate/BundleSourceWriter.kt",
+                "dootah-compiler-core/src/main/kotlin/dev/dootah/compiler/generate/BundleSourceWriter.kt",
             "the JS serializer" to
                 "dootah-bundle-runtime/src/jsMain/kotlin/ui/BundleSerializer.kt",
             "the Android parser" to
@@ -325,7 +325,7 @@ class LayoutVocabularyGoldenTest {
     fun `both compilations build an anchor name through the contract`() {
 
         listOf(
-            "dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/fir/AnchorLowering.kt",
+            "dootah-compiler-core/src/main/kotlin/dev/dootah/compiler/lowering/AnchorLowering.kt",
             "dootah-compiler-plugin/src/main/kotlin/dev/dootah/compiler/ir/NativeAdapters.kt",
         ).forEach { path ->
             assertTrue(

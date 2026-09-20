@@ -14,7 +14,7 @@ class KotlinVersionGateTest {
 
     @Test
     fun `accepts the supported version`() {
-        verifyKotlinVersion(SUPPORTED_KOTLIN_VERSION)
+        compilerBackends.forEach { verifyKotlinVersion(it.compilerVersion) }
     }
 
     @Test
@@ -27,8 +27,26 @@ class KotlinVersionGateTest {
 
             val message = expected.message!!
 
-            assertTrue(message, message.contains(SUPPORTED_KOTLIN_VERSION))
+            assertTrue(message, compilerBackends.all { message.contains(it.compilerVersion) })
             assertTrue(message, message.contains("2.4.10"))
+        }
+    }
+
+    @Test
+    fun `selects different artifacts at the same release automatically`() {
+        org.junit.Assert.assertEquals("dootah-compiler-plugin-kotlin-2.0", selectCompilerBackend("2.0.20").artifactId)
+        org.junit.Assert.assertEquals("dootah-compiler-plugin", selectCompilerBackend("2.3.20").artifactId)
+    }
+
+    @Test
+    fun `rejects unverified patches prereleases malformed and future versions`() {
+        listOf("2.0.21", "2.3.21", "2.3.20-RC", "2.0", "", "3.0.0").forEach { version ->
+            try {
+                selectCompilerBackend(version)
+                fail("Unverified compiler accepted: $version")
+            } catch (expected: GradleException) {
+                assertTrue(expected.message!!, expected.message!!.contains("no verified compiler backend"))
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package dev.dootah.compiler.ir
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import dev.dootah.contract.AdapterId
 import dev.dootah.contract.AnchorId
@@ -7,7 +8,6 @@ import dev.dootah.contract.CapabilityId
 import dev.dootah.contract.ResourceKey
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrContainerExpression
-import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.expressions.IrSetValue
@@ -34,7 +33,6 @@ import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.hasAnnotation
-import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import dev.dootah.contract.FrozenRegionId
@@ -637,6 +635,15 @@ private fun IrCall.record(
         if (argument.readsOutside(declaredInBody)) continue
 
         val lambda = (argument as? IrFunctionExpression)?.function ?: continue
+
+        // A suspend handler stays exactly as written. Its body is copied into
+        // an ordinary adapter function, and a suspend call has no continuation
+        // there: the JVM backend refuses the result with `has no continuation`,
+        // long after Dootah has finished and with nothing naming Dootah in it.
+        // A navigation drawer's `onDismissRequest = { drawerState.close() }` is
+        // the everyday shape, and keeping the component native is the same
+        // answer this loop gives every other handler it cannot lift.
+        if (lambda.isSuspend) continue
 
         // An empty handler reaches IR as a synthetic Unit, which does nothing
         // rather than being something this cannot name. The extraction pass

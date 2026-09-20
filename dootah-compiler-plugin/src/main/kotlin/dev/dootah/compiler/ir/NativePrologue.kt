@@ -1,5 +1,6 @@
 package dev.dootah.compiler.ir
 
+import dev.dootah.compiler.compat.*
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrLocalDelegatedProperty
@@ -11,7 +12,6 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.expressions.IrSetValue
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
-import org.jetbrains.kotlin.ir.visitors.IrVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 
@@ -102,16 +102,35 @@ internal fun IrBlockBody.splitAtPrologue(): SplitBody {
     )
 }
 
-/** Everything [this] run of statements declares, as a scope to subtract. */
+/**
+ * Declarations made visible at the interception point by moving these roots.
+ *
+ * This is deliberately not [declaredHere]: moving `val content = { ... }`
+ * makes `content` visible, not the parameters, locals, receivers or functions
+ * inside its initializer. Those declarations still belong to their nested
+ * scopes. Treating them as prologue declarations lets a lifted region capture
+ * a parameter whose owning lambda was left behind, producing `No mapping for
+ * symbol` during JVM code generation. Copying cannot repair that reference:
+ * its declaration is outside the copied region.
+ *
+ * A delegated property's storage and accessors are declarations in the same
+ * scope as the property. Their bodies and parameters, like every initializer's
+ * nested declarations, stay private to their respective owners.
+ */
 internal fun List<IrStatement>.declaredScope(): BodyScope {
 
     val values = mutableSetOf<IrValueDeclaration>()
     val functions = mutableSetOf<IrSimpleFunction>()
 
     forEach { statement ->
-        statement.declaredHere().let { own ->
-            values += own.values
-            functions += own.functions
+        when (statement) {
+            is IrValueDeclaration -> values += statement
+            is IrLocalDelegatedProperty -> {
+                statement.delegate?.let { values += it }
+                statement.getter?.let { functions += it }
+                statement.setter?.let { functions += it }
+            }
+            else -> Unit
         }
     }
 

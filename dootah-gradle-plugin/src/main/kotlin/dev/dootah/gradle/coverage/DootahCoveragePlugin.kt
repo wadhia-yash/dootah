@@ -1,6 +1,6 @@
 package dev.dootah.gradle.coverage
 
-import dev.dootah.gradle.SUPPORTED_KOTLIN_VERSION
+import dev.dootah.gradle.BUNDLE_KOTLIN_VERSION
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -40,7 +40,7 @@ class DootahCoveragePlugin : Plugin<Project> {
 
         target.dependencies.add(
             COMPILER_CONFIGURATION,
-            "org.jetbrains.kotlin:kotlin-compiler-embeddable:$SUPPORTED_KOTLIN_VERSION",
+            "org.jetbrains.kotlin:kotlin-compiler-embeddable:$BUNDLE_KOTLIN_VERSION",
         )
 
         // Dootah's own Compose plugin, not the app's.
@@ -61,7 +61,7 @@ class DootahCoveragePlugin : Plugin<Project> {
         target.dependencies.add(
             COMPOSE_PLUGIN_CONFIGURATION,
             "org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:" +
-                SUPPORTED_KOTLIN_VERSION,
+                BUNDLE_KOTLIN_VERSION,
         )
 
         // Named rather than resolved: coverage has to run against a Dootah built

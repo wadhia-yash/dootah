@@ -1,11 +1,11 @@
 package dev.dootah.compiler.fir
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.contract.ScreenFilter
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.DeclarationCheckers
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirDeclarationChecker
 import org.jetbrains.kotlin.fir.analysis.extensions.FirAdditionalCheckersExtension
-import org.jetbrains.kotlin.fir.declarations.FirNamedFunction
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
 import java.io.File
 

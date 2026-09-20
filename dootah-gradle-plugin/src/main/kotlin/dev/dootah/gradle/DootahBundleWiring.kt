@@ -21,6 +21,12 @@ internal fun registerBundleTask(
     generatedSourceDirectory: org.gradle.api.file.Directory,
 ) {
 
+    val bundleCompiler = project.configurations.maybeCreate("dootahBundleCompiler").apply {
+        isCanBeConsumed = false
+        isCanBeResolved = true
+    }
+    project.dependencies.add(bundleCompiler.name, "org.jetbrains.kotlin:kotlin-compiler-embeddable:$BUNDLE_KOTLIN_VERSION")
+
     val bundleRuntime = project.configurations
         .maybeCreate(BUNDLE_RUNTIME_CONFIGURATION).apply {
             isCanBeConsumed = false
@@ -29,7 +35,7 @@ internal fun registerBundleTask(
 
     project.dependencies.add(
         BUNDLE_RUNTIME_CONFIGURATION,
-        "org.jetbrains.kotlin:kotlin-stdlib-js:$SUPPORTED_KOTLIN_VERSION@klib",
+        "org.jetbrains.kotlin:kotlin-stdlib-js:$BUNDLE_KOTLIN_VERSION@klib",
     )
     project.dependencies.add(
         BUNDLE_RUNTIME_CONFIGURATION,
@@ -89,7 +95,7 @@ internal fun registerBundleTask(
         task.generatedSourceDirectory.set(generatedSourceDirectory)
         task.imageResources.from(imageResources)
         task.kotlinCompilerClasspath.from(
-            project.configurations.getByName(KOTLIN_COMPILER_CONFIGURATION)
+            bundleCompiler
         )
         task.bundleRuntimeClasspath.from(bundleRuntime)
 

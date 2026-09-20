@@ -1,5 +1,6 @@
 package dev.dootah.compiler.ir
 
+import dev.dootah.compiler.compat.*
 import dev.dootah.compiler.COMPOSABLE_ANNOTATION
 import dev.dootah.compiler.DOOTAH_NATIVE_ANNOTATION
 import dev.dootah.compiler.PREVIEW_ANNOTATION_NAME
@@ -7,7 +8,6 @@ import dev.dootah.contract.ComposableShape
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrParameterKind
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
 import org.jetbrains.kotlin.ir.types.classFqName
