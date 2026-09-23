@@ -13,10 +13,24 @@ val backendFamily = project.name.substringAfter("-kotlin-", "2.3")
 val backendMatrix = Properties().apply {
     rootProject.file("gradle/compiler-backends.properties").inputStream().use { load(it) }
 }
-val backendVersion = backendMatrix.getProperty(backendFamily).split(",").first()
+val adapterDefinitions = Properties().apply {
+    rootProject.file("gradle/compiler-adapters.properties").inputStream().use { load(it) }
+}
+val (backendVersion, adapterSource, annotationSource) = adapterDefinitions.getProperty(backendFamily).split(",")
+// Matrix probes change the host compiler, never the adapter's compile classpath.
+// Probe jars are deliberately unpublishable: passing tests must precede promotion.
+val probeVersion = providers.gradleProperty("dootahCompatibilityProbe").orNull
+val testCompilerVersion = probeVersion ?: backendVersion
+if (probeVersion != null) {
+    tasks.withType<org.gradle.api.publish.maven.tasks.AbstractPublishToMaven>().configureEach {
+        doFirst { error("Compatibility probe artifacts cannot be published") }
+    }
+}
 kotlin.sourceSets.named("main") {
     kotlin.srcDir(rootProject.file("dootah-compiler-plugin/src/main/kotlin"))
-    kotlin.srcDir(rootProject.file("dootah-compiler-plugin/src/backend-$backendFamily/kotlin"))
+    adapterSource.split('+').forEach { kotlin.srcDir(rootProject.file("dootah-compiler-plugin/src/backend-$it/kotlin")) }
+    kotlin.srcDir(rootProject.file("dootah-compiler-plugin/src/$annotationSource/kotlin"))
+    kotlin.srcDir(rootProject.file("dootah-compiler-plugin/src/backend-common/kotlin"))
 }
 sourceSets.named("main") {
     // The service a backend advertises is part of its ABI: which registration
@@ -25,7 +39,7 @@ sourceSets.named("main") {
     resources.setSrcDirs(
         listOf(
             rootProject.file("dootah-compiler-plugin/src/main/resources"),
-            rootProject.file("dootah-compiler-plugin/src/backend-$backendFamily/resources"),
+            rootProject.file("dootah-compiler-plugin/src/backend-${adapterSource.substringBefore('+')}/resources"),
         )
     )
 }
@@ -47,6 +61,11 @@ kotlin {
         // reaching past symbols. Reading them is the job: a checker is handed
         // the declaration, and there is no symbol-level view of a body.
         optIn.add("org.jetbrains.kotlin.fir.symbols.SymbolInternals")
+        // The legacy argument bridge restores parameter indices explicitly.
+        // Transitional compilers retain that API but require an opt-in.
+        if (adapterSource.contains("scalar-modern")) {
+            optIn.add("org.jetbrains.kotlin.ir.declarations.DelicateIrParameterIndexSetter")
+        }
 
         // The FIR checker API declares its receivers as context parameters,
         // so implementing it requires the language feature.
@@ -70,6 +89,8 @@ val contractJar: Configuration by configurations.creating {
 
 // The Kotlin/JS standard library, as the klib a bundle compiles against.
 val fixtureClasspath by configurations.creating
+val composeCompiler by configurations.creating
+val composeRuntime by configurations.creating
 
 val jsStdlib: Configuration by configurations.creating {
     isCanBeConsumed = false
@@ -77,10 +98,12 @@ val jsStdlib: Configuration by configurations.creating {
 }
 
 dependencies {
-    fixtureClasspath("org.jetbrains.kotlin:kotlin-stdlib:$backendVersion")
+    composeCompiler("org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:$testCompilerVersion")
+    composeRuntime("org.jetbrains.compose.runtime:runtime-desktop:1.7.3")
+    fixtureClasspath("org.jetbrains.kotlin:kotlin-stdlib:$testCompilerVersion")
     contractJar(project(":dootah-contract"))
     contractJar(project(":dootah-compiler-core"))
-    jsStdlib("org.jetbrains.kotlin:kotlin-stdlib-js:$backendVersion@klib")
+    jsStdlib("org.jetbrains.kotlin:kotlin-stdlib-js:$testCompilerVersion@klib")
     // Fixtures compile against the real annotation, not a stub of it.
     implementation(project(":dootah-contract"))
     implementation(project(":dootah-compiler-core"))
@@ -91,7 +114,7 @@ dependencies {
     compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:$backendVersion")
 
     testImplementation(libs.junit)
-    testImplementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$backendVersion")
+    testImplementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$testCompilerVersion")
 }
 
 publishing {
@@ -122,11 +145,16 @@ tasks.test {
     // will actually ship beside -- not with a stand-in.
     val runtimeSources = rootProject.file("dootah-bundle-runtime/src/jsMain/kotlin")
     inputs.dir(runtimeSources)
-    inputs.files(jsStdlib, fixtureClasspath)
+    inputs.files(jsStdlib, fixtureClasspath, composeCompiler, composeRuntime)
 
     jvmArgumentProviders.add(
         CommandLineArgumentProvider {
             listOf(
+                "-Ddootah.backend.ordering=${adapterDefinitions.getProperty(backendFamily).split(',').last()}",
+                "-Ddootah.backend.family=$backendFamily",
+                "-Ddootah.backend.probe=${probeVersion.orEmpty()}",
+                "-Ddootah.compose.compiler=${composeCompiler.asPath}",
+                "-Ddootah.compose.runtime=${composeRuntime.asPath}",
                 "-Ddootah.fixture.classpath=${fixtureClasspath.asPath}${File.pathSeparator}${annotationJar.get().asFile.absolutePath}",
                 "-Ddootah.plugin.jar=${pluginJar.get().asFile.absolutePath}",
                 "-Ddootah.annotations.jar=${annotationJar.get().asFile.absolutePath}",
@@ -142,10 +170,11 @@ tasks.test {
 
 val backendMetadata = tasks.register("generateBackendMetadata") {
     val destination = layout.buildDirectory.file("generated/backend-resources/dev/dootah/backend-versions.txt")
-    inputs.property("versions", backendMatrix.getProperty(backendFamily))
+    val versions = probeVersion ?: backendMatrix.getProperty(backendFamily, "")
+    inputs.property("versions", versions)
     outputs.file(destination)
     doLast {
-        destination.get().asFile.apply { parentFile.mkdirs(); writeText(backendMatrix.getProperty(backendFamily)) }
+        destination.get().asFile.apply { parentFile.mkdirs(); writeText(versions) }
     }
 }
 tasks.processResources {

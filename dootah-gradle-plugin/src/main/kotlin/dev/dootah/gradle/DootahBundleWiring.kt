@@ -65,6 +65,10 @@ internal fun registerBundleTask(
         task.dependsOn(compileTaskName)
 
         task.fragmentsDirectory.set(contractFragments)
+        task.sourceRoot.set(project.layout.projectDirectory)
+        task.currentSources.from(project.tasks.named(compileTaskName).map {
+            (it as org.jetbrains.kotlin.gradle.tasks.KotlinCompile).sources
+        })
         task.contractFile.set(recorded)
     }
 

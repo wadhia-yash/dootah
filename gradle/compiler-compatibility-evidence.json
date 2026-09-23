@@ -1,0 +1,161 @@
+{
+  "candidates": [
+    "2.0.20",
+    "2.0.21",
+    "2.1.0",
+    "2.1.10",
+    "2.1.20",
+    "2.1.21",
+    "2.2.0",
+    "2.2.10",
+    "2.2.20",
+    "2.2.21",
+    "2.3.0",
+    "2.3.10",
+    "2.3.20",
+    "2.3.21",
+    "2.4.0",
+    "2.4.10",
+    "2.4.20"
+  ],
+  "schema": 1,
+  "sourceSha256": "642a771f046232b99e444a93b82a0dbc81197daff3e3f5dc66eae1c56f71bb8a",
+  "verified": {
+    "2.0.20": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.0",
+      "compiledAgainst": "2.0.20",
+      "family": "2.0",
+      "implementationSha256": "1dc03f063fa3e40a45f66ccda5c4c7900401faa9cf4325746c7453134665110b",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.0.21": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.0",
+      "compiledAgainst": "2.0.20",
+      "family": "2.0",
+      "implementationSha256": "1dc03f063fa3e40a45f66ccda5c4c7900401faa9cf4325746c7453134665110b",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.1.0": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.1",
+      "compiledAgainst": "2.1.0",
+      "family": "2.1",
+      "implementationSha256": "b68b751ba92fbbb4072ab38c07be1255a92b63059a5d2619573fed88b646c788",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.1.10": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.1",
+      "compiledAgainst": "2.1.0",
+      "family": "2.1",
+      "implementationSha256": "b68b751ba92fbbb4072ab38c07be1255a92b63059a5d2619573fed88b646c788",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.1.20": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.1",
+      "compiledAgainst": "2.1.0",
+      "family": "2.1",
+      "implementationSha256": "b68b751ba92fbbb4072ab38c07be1255a92b63059a5d2619573fed88b646c788",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.1.21": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.1",
+      "compiledAgainst": "2.1.0",
+      "family": "2.1",
+      "implementationSha256": "b68b751ba92fbbb4072ab38c07be1255a92b63059a5d2619573fed88b646c788",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.2.0": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.2",
+      "compiledAgainst": "2.2.20",
+      "family": "2.2",
+      "implementationSha256": "a3f243a24872391610ae6edd8e304886c61a1cf279084efe469450d7b2e2186a",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.2.10": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.2",
+      "compiledAgainst": "2.2.20",
+      "family": "2.2",
+      "implementationSha256": "a3f243a24872391610ae6edd8e304886c61a1cf279084efe469450d7b2e2186a",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.2.20": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.2",
+      "compiledAgainst": "2.2.20",
+      "family": "2.2",
+      "implementationSha256": "a3f243a24872391610ae6edd8e304886c61a1cf279084efe469450d7b2e2186a",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.2.21": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.2",
+      "compiledAgainst": "2.2.20",
+      "family": "2.2",
+      "implementationSha256": "a3f243a24872391610ae6edd8e304886c61a1cf279084efe469450d7b2e2186a",
+      "ordering": "class-path",
+      "tests": 168
+    },
+    "2.3.0": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.2",
+      "compiledAgainst": "2.2.20",
+      "family": "2.2",
+      "implementationSha256": "a3f243a24872391610ae6edd8e304886c61a1cf279084efe469450d7b2e2186a",
+      "ordering": "explicit",
+      "tests": 168
+    },
+    "2.3.10": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.2",
+      "compiledAgainst": "2.2.20",
+      "family": "2.2",
+      "implementationSha256": "a3f243a24872391610ae6edd8e304886c61a1cf279084efe469450d7b2e2186a",
+      "ordering": "explicit",
+      "tests": 168
+    },
+    "2.3.20": {
+      "artifact": "dootah-compiler-plugin",
+      "compiledAgainst": "2.3.20",
+      "family": "2.3",
+      "implementationSha256": "1ef5a54112bee3d376c760f0cbd6c60548c45aeda53650743d0254d8dbb89625",
+      "ordering": "explicit",
+      "tests": 168
+    },
+    "2.3.21": {
+      "artifact": "dootah-compiler-plugin",
+      "compiledAgainst": "2.3.20",
+      "family": "2.3",
+      "implementationSha256": "1ef5a54112bee3d376c760f0cbd6c60548c45aeda53650743d0254d8dbb89625",
+      "ordering": "explicit",
+      "tests": 168
+    },
+    "2.4.0": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.4",
+      "compiledAgainst": "2.4.0",
+      "family": "2.4",
+      "implementationSha256": "cf7d05467abe782277fbecd16d7ddbc0c5be47ec49dd411185afbe81ba905cbd",
+      "ordering": "explicit",
+      "tests": 168
+    },
+    "2.4.10": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.4",
+      "compiledAgainst": "2.4.0",
+      "family": "2.4",
+      "implementationSha256": "cf7d05467abe782277fbecd16d7ddbc0c5be47ec49dd411185afbe81ba905cbd",
+      "ordering": "explicit",
+      "tests": 168
+    },
+    "2.4.20": {
+      "artifact": "dootah-compiler-plugin-kotlin-2.4",
+      "compiledAgainst": "2.4.0",
+      "family": "2.4",
+      "implementationSha256": "cf7d05467abe782277fbecd16d7ddbc0c5be47ec49dd411185afbe81ba905cbd",
+      "ordering": "explicit",
+      "tests": 168
+    }
+  }
+}

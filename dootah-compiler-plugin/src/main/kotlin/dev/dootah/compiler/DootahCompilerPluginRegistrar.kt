@@ -53,6 +53,7 @@ class DootahCompilerPluginRegistrar : BackendRegistrar() {
                         messageCollector = messageCollector,
                         reportDirectory = reportDirectory,
                         filter = filter,
+                        sourceRoot = File(configuration.get(DootahConfigurationKeys.SOURCE_ROOT) ?: System.getProperty("user.dir")),
                     )
                 )
 

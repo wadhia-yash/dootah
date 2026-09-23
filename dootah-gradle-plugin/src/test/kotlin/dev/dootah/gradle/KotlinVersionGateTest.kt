@@ -21,14 +21,14 @@ class KotlinVersionGateTest {
     fun `rejects another version and names both`() {
 
         try {
-            verifyKotlinVersion("2.4.10")
+            verifyKotlinVersion("9.99.99")
             fail("an unsupported Kotlin version must be rejected")
         } catch (expected: GradleException) {
 
             val message = expected.message!!
 
             assertTrue(message, compilerBackends.all { message.contains(it.compilerVersion) })
-            assertTrue(message, message.contains("2.4.10"))
+            assertTrue(message, message.contains("9.99.99"))
         }
     }
 
@@ -40,12 +40,12 @@ class KotlinVersionGateTest {
 
     @Test
     fun `rejects unverified patches prereleases malformed and future versions`() {
-        listOf("2.0.21", "2.3.21", "2.3.20-RC", "2.0", "", "3.0.0").forEach { version ->
+        listOf("2.0.99", "2.3.99", "2.3.20-RC", "2.0", "", "3.0.0").forEach { version ->
             try {
                 selectCompilerBackend(version)
                 fail("Unverified compiler accepted: $version")
             } catch (expected: GradleException) {
-                assertTrue(expected.message!!, expected.message!!.contains("no verified compiler backend"))
+                assertTrue(expected.message!!, expected.message!!.contains("No verified Dootah compiler ABI"))
             }
         }
     }

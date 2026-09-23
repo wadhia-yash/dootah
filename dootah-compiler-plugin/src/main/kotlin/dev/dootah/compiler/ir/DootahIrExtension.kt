@@ -3,6 +3,8 @@ package dev.dootah.compiler.ir
 import dev.dootah.compiler.compat.*
 import dev.dootah.contract.RuntimeVersion
 import dev.dootah.contract.ScreenFilter
+import dev.dootah.contract.SourceContractFragments
+import dev.dootah.contract.InstalledContract
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -22,12 +24,22 @@ internal class DootahIrExtension(
     private val messageCollector: MessageCollector,
     private val reportDirectory: File?,
     private val filter: ScreenFilter,
+    private val sourceRoot: File,
 ) : IrGenerationExtension {
 
     override fun generate(
         moduleFragment: IrModuleFragment,
         pluginContext: IrPluginContext,
     ) {
+        reportDirectory?.let { directory ->
+            SourceContractFragments.prune(directory, sourceRoot)
+            // Include files with NO remaining composables. Clearing only discovered
+            // screens leaves stale capabilities when the last screen is removed.
+            moduleFragment.files.forEach { file ->
+                SourceContractFragments.replace(directory, sourceRoot, File(file.fileEntry.name),
+                    InstalledContract(runtimeVersion = RuntimeVersion.CURRENT, screens = emptyList()))
+            }
+        }
         val screens = moduleFragment.discoverScreens(filter)
         val ordering = composeOrderingOf(screens)
 
@@ -85,13 +97,8 @@ internal class DootahIrExtension(
             // asked for is recorded by the build that produced the app rather
             // than worked out again later from source that may have moved on.
             reportDirectory?.let { directory ->
-                transformer.contracts.forEach { contract ->
-                    writeContractFragment(
-                        reportDirectory = directory,
-                        runtimeVersion = RuntimeVersion.CURRENT,
-                        screen = contract,
-                    )
-                }
+                SourceContractFragments.replace(directory, sourceRoot, File(file.fileEntry.name),
+                    InstalledContract(runtimeVersion = RuntimeVersion.CURRENT, screens = transformer.contracts))
             }
 
             ids

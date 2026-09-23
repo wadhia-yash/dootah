@@ -16,7 +16,10 @@ sealed interface DootahContent {
 
     data object Loading : DootahContent
 
-    data class Bundle(val ui: BundleUiNode) : DootahContent {
+    // Each render owns a native-readiness receipt for its loaded session. Equal
+    // UI from another release must still replace the Compose state value;
+    // structural equality would retain the old session's invalidated receipt.
+    class Bundle(val ui: BundleUiNode) : DootahContent {
         internal var nativeReady: (() -> Unit)? = null
     }
 

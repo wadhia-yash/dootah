@@ -82,6 +82,7 @@ tasks.test {
 
 tasks.processResources {
     from(rootProject.file("gradle/compiler-backends.properties")) { into("dev/dootah") }
+    from(rootProject.file("gradle/compiler-features.properties")) { into("dev/dootah") }
 }
 
 val releaseMetadata = tasks.register("generateReleaseMetadata") {
@@ -101,17 +102,19 @@ val backendMatrixForTests = Properties().apply {
     rootProject.file("gradle/compiler-backends.properties").inputStream().use { load(it) }
 }
 backendMatrixForTests.stringPropertyNames().sorted().forEach { family ->
-    val compilerVersion = backendMatrixForTests.getProperty(family).split(",").first()
-    val compiler = configurations.create("backendTestCompiler$family")
-    val kgp = configurations.create("backendTestKgp$family")
+    backendMatrixForTests.getProperty(family).split(",").forEach { compilerVersion ->
+    val compiler = configurations.create("backendTestCompiler$compilerVersion")
+    val kgp = configurations.create("backendTestKgp$compilerVersion")
     dependencies.add(compiler.name, project(if (family == "2.3") ":dootah-compiler-plugin" else ":dootah-compiler-plugin-kotlin-$family"))
     dependencies.add(kgp.name, "org.jetbrains.kotlin:kotlin-gradle-plugin:$compilerVersion")
+    dependencies.add(kgp.name, "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$compilerVersion")
     tasks.test {
         inputs.files(compiler, kgp)
         doFirst {
             systemProperty("dootah.test.compiler.$compilerVersion", compiler.asPath)
             systemProperty("dootah.test.kgp.$compilerVersion", kgp.asPath)
         }
+    }
     }
 }
 
@@ -127,7 +130,7 @@ tasks.test {
 
 // A real Kotlin release deliberately outside the matrix, so the version gate's
 // refusal is proven against a real Kotlin Gradle plugin rather than a string.
-val unsupportedKotlinForTests = "2.2.20"
+val unsupportedKotlinForTests = "2.0.10"
 val unsupportedKgp = configurations.create("backendTestKgpUnsupported")
 dependencies.add(unsupportedKgp.name, "org.jetbrains.kotlin:kotlin-gradle-plugin:$unsupportedKotlinForTests")
 tasks.test {

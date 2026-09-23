@@ -36,6 +36,12 @@ import java.io.File
  */
 @UntrackedTask(because = "writes into the source tree, on request rather than as part of a build")
 abstract class DootahRecordContractTask : DefaultTask() {
+    @get:org.gradle.api.tasks.InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val currentSources: org.gradle.api.file.ConfigurableFileCollection
+
+    @get:org.gradle.api.tasks.Internal
+    abstract val sourceRoot: DirectoryProperty
 
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -46,7 +52,8 @@ abstract class DootahRecordContractTask : DefaultTask() {
 
     @TaskAction
     fun record() {
-
+        if (sourceRoot.isPresent) dev.dootah.contract.SourceContractFragments.prune(
+            fragmentsDirectory.get().asFile.parentFile, sourceRoot.get().asFile, currentSources.files)
         val contract = readContract(fragmentsDirectory.get().asFile)
 
         if (contract.screens.isEmpty()) {

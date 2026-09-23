@@ -26,6 +26,7 @@ private const val RUNTIME_ARTIFACT = "dootah-android"
 class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
 
     private var backend: CompilerBackend? = null
+    private var composeDeclaredFirst = false
 
     override fun apply(target: Project) {
 
@@ -46,7 +47,7 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         extension.discovery.convention("auto")
         extension.failOnUnsupportedScreen.convention(false)
 
-        rejectComposeDeclaredFirst(target)
+        composeDeclaredFirst = target.plugins.hasPlugin(COMPOSE_PLUGIN_ID)
         gateKotlinVersion(target)
         addRuntimeDependencies(target)
 
@@ -81,32 +82,19 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
 
         target.afterEvaluate { evaluated ->
             if (wired) return@afterEvaluate
-            if (evaluated.tasks.findByName(DEBUG_COMPILE_TASK) == null) return@afterEvaluate
             registerDootahWorkflow(
                 evaluated,
-                listOf(DootahVariant(name = DEBUG_COMPILATION, buildType = DEBUG_COMPILATION)),
+                if (evaluated.tasks.findByName(DEBUG_COMPILE_TASK) != null)
+                    listOf(DootahVariant(name = DEBUG_COMPILATION, buildType = DEBUG_COMPILATION))
+                else emptyList(),
             )
-        }
-    }
-
-    /**
-     * Fails when Compose was already applied as this plugin is applied.
-     *
-     * Plugin application order determines compiler plugin order, so the wrong
-     * declaration order is caught here, at configuration time, with the fix in
-     * the message. The compiler-side guard remains as the backstop for any case
-     * this cannot observe.
-     */
-    private fun rejectComposeDeclaredFirst(target: Project) {
-
-        if (target.plugins.hasPlugin(COMPOSE_PLUGIN_ID)) {
-            throw org.gradle.api.GradleException(composeDeclaredFirstMessage())
         }
     }
 
     private fun gateKotlinVersion(target: Project) {
         target.plugins.withType(KotlinBasePlugin::class.java) { kotlinPlugin ->
-            backend = selectCompilerBackend(kotlinPlugin.pluginVersion)
+            backend = resolveCompilerBackend(kotlinPlugin.pluginVersion)
+            if (backend == null) target.logger.warn(unsupportedCompilerMessage(kotlinPlugin.pluginVersion))
         }
     }
 
@@ -136,7 +124,14 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
             }
     }
 
-    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean = true
+    override fun isApplicable(kotlinCompilation: KotlinCompilation<*>): Boolean {
+        backend = hostKotlinVersion(kotlinCompilation.project)?.let(::resolveCompilerBackend)
+        val selected = backend ?: return false
+        if (composeDeclaredFirst && !selected.explicitOrdering) {
+            throw org.gradle.api.GradleException(composeDeclaredFirstMessage())
+        }
+        return true
+    }
 
     override fun getCompilerPluginId(): String = DOOTAH_GROUP
 
@@ -164,11 +159,16 @@ class DootahProjectPlugin : KotlinCompilerPluginSupportPlugin {
         // failed on a missing directory, naming a path and no way out of it.
         kotlinCompilation.compileTaskProvider.configure { task ->
             task.outputs.dir(reportDirectory).withPropertyName("dootahReport")
+            if (backend?.explicitOrdering == true && project.plugins.hasPlugin(COMPOSE_PLUGIN_ID)) {
+                (task as? org.jetbrains.kotlin.gradle.tasks.KotlinCompile)?.compilerOptions?.freeCompilerArgs
+                    ?.add("-Xcompiler-plugin-order=dev.dootah>androidx.compose.compiler.plugins.kotlin")
+            }
         }
 
         return project.provider {
             listOf(
                 SubpluginOption("mode", "intercept"),
+                SubpluginOption("sourceRoot", project.projectDir.absolutePath),
                 SubpluginOption("reportDir", reportDirectory.get()),
                 SubpluginOption("discovery", extension.discovery.get()),
                 SubpluginOption("filter", screenFilterOf(extension).encode()),

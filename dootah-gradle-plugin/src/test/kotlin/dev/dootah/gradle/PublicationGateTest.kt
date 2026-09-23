@@ -32,7 +32,7 @@ class PublicationGateTest {
     }
     private fun run(dir:java.io.File,key:String?) = GradleRunner.create().withProjectDir(dir).withPluginClasspath()
         .withEnvironment(System.getenv().filterKeys{it != "DOOTAH_SIGNING_KEY_FILE"} + mapOf("DOOTAH_PUBLISH_TOKEN" to "test-token-".repeat(4)) + (key?.let{mapOf("DOOTAH_SIGNING_KEY_FILE" to it)}?:emptyMap()))
-        .withArguments("dootahPublish","-PdootahServer=https://localhost:8443","-PdootahChannel=production","-PdootahRollout=100","--console=plain","--no-configuration-cache").buildAndFail()
+        .withArguments("dootahPublish","-PdootahServer=https://localhost:8443","-PdootahChannel=production","-PdootahRollout=100","--console=plain","--no-configuration-cache","--stacktrace").buildAndFail()
     @Test fun `missing signing key fails before bundle or publication`() {
         val result=run(fixture(),null)
         assertTrue(result.output,result.output.contains("DOOTAH_SIGNING_KEY_FILE"))

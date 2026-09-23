@@ -12,6 +12,9 @@ import java.io.File
 /** One source file in a test fixture. */
 data class SourceFile(val name: String, val contents: String)
 
+fun supportsExplicitPluginOrdering(): Boolean = K2JVMCompilerArguments::class.java.methods
+    .any { it.name == "setPluginOrderConstraints" }
+
 /** What a fixture compilation produced. */
 class CompilationResult(
     val exitCode: ExitCode,
@@ -208,6 +211,7 @@ fun compileWithDootah(
     withDootahRuntime: Boolean = true,
     screenFilter: String = "",
     discovery: String? = null,
+    realCompose: Boolean = false,
 ): CompilationResult {
 
     val sourceDirectory = File(workingDirectory, "src").apply { mkdirs() }
@@ -215,7 +219,7 @@ fun compileWithDootah(
     val reportDirectory = File(workingDirectory, "reports").apply { mkdirs() }
     val generatedDirectory = File(workingDirectory, "generated").apply { mkdirs() }
 
-    val stubs = (composeStubs() + if (withDootahRuntime) dootahRuntimeStubs() else emptyList())
+    val stubs = (composeStubs().filterNot { realCompose && it.name == "ComposeStubs.kt" } + if (withDootahRuntime) dootahRuntimeStubs() else emptyList())
         .asLibraryCode()
 
     val sourceFiles = (stubs + sources).map { source ->
@@ -230,6 +234,7 @@ fun compileWithDootah(
     // The contract travels with the plugin: a real build resolves it from the
     // plugin's POM, and these tests pass it explicitly for the same reason.
     val dootahJars = listOf(requiredJar("dootah.plugin.jar")) + System.getProperty("dootah.contract.jar").split(File.pathSeparator).map(::File)
+    val composeJars = if (realCompose) System.getProperty("dootah.compose.compiler").split(File.pathSeparator).map(::File) else emptyList()
     val pluginClasspath =
         if (dootahFirst) dootahJars + extraPluginClasspath
         else extraPluginClasspath + dootahJars
@@ -237,11 +242,16 @@ fun compileWithDootah(
     val arguments = K2JVMCompilerArguments().apply {
         freeArgs = sourceFiles.map { it.absolutePath }
         destination = outputDirectory.absolutePath
-        classpath = testCompileClasspath()
+        classpath = testCompileClasspath() + if (realCompose) File.pathSeparator + System.getProperty("dootah.compose.runtime") else ""
         noStdlib = true
         noReflect = true
         moduleName = "dootah-fixture"
-        pluginClasspaths = pluginClasspath.map { it.absolutePath }.toTypedArray()
+        pluginClasspaths = (if (realCompose && !dootahFirst) composeJars + pluginClasspath else pluginClasspath + composeJars)
+            .map { it.absolutePath }.toTypedArray()
+        if (realCompose && supportsExplicitPluginOrdering()) {
+            javaClass.getMethod("setPluginOrderConstraints", Array<String>::class.java)
+                .invoke(this, arrayOf("dev.dootah>androidx.compose.compiler.plugins.kotlin"))
+        }
         pluginOptions = arrayOf(
             "plugin:dev.dootah:mode=$mode",
             "plugin:dev.dootah:reportDir=${reportDirectory.absolutePath}",

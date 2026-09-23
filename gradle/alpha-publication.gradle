@@ -105,7 +105,15 @@ gradle.projectsEvaluated {
         }
         def sources = sdk.fileTree(moduleName.startsWith('dootah-compiler-plugin') ? rootProject.file('dootah-compiler-plugin/src') : sdk.file('src')) {
             include 'main/**/*.kt', 'main/**/*.java', 'jsMain/**/*.kt', 'commonMain/**/*.kt'
-            if (moduleName.startsWith('dootah-compiler-plugin')) include "backend-${moduleName.contains('-kotlin-') ? moduleName.split('-kotlin-')[1] : '2.3'}/**/*.kt"
+            if (moduleName.startsWith('dootah-compiler-plugin')) {
+                def adapters = new Properties()
+                rootProject.file('gradle/compiler-adapters.properties').withInputStream { adapters.load(it) }
+                def family = moduleName.contains('-kotlin-') ? moduleName.split('-kotlin-')[1] : '2.3'
+                def implementation = adapters.getProperty(family).split(',')
+                implementation[1].split('\\+').each { include "backend-${it}/**/*.kt" }
+                include "${implementation[2]}/**/*.kt"
+                include "backend-common/**/*.kt"
+            }
         }
         // This JS-only library has no commonMain declarations. Include its JS
         // source in the root publication as well as the platform sources JAR.

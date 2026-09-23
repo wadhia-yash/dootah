@@ -278,7 +278,7 @@ internal class InterceptionTransformer(
         function: IrSimpleFunction,
         native: NativeBindings,
         binding: ScreenBinding,
-        composable: List<IrConstructorCall>,
+        composable: List<IrAnnotation>,
     ): IrExpression = irCall(symbols.bindings).apply {
         arguments[0] = buildAdapters(function, native.adapters, composable)
         arguments[1] = buildCapabilities(function, native.capabilities)
@@ -376,7 +376,7 @@ internal class InterceptionTransformer(
     private fun IrBuilderWithScope.buildAdapters(
         function: IrSimpleFunction,
         adapters: List<NativeAdapter>,
-        composable: List<IrConstructorCall>,
+        composable: List<IrAnnotation>,
     ): IrExpression {
 
         val parameter = symbols.adapters.owner.parameters[0]
@@ -419,7 +419,7 @@ internal class InterceptionTransformer(
     private fun adapterLambda(
         parent: IrSimpleFunction,
         adapter: NativeAdapter,
-        composable: List<IrConstructorCall>,
+        composable: List<IrAnnotation>,
     ): IrExpression {
 
         val entry = symbols.adapter.owner.parameters[2]
@@ -475,7 +475,7 @@ internal class InterceptionTransformer(
         lambda: IrSimpleFunction,
         props: IrValueParameter,
         adapter: NativeAdapter,
-        composable: List<IrConstructorCall>,
+        composable: List<IrAnnotation>,
     ): IrExpression {
 
         // A frozen region is the code as written, and reading anything from the
@@ -519,7 +519,7 @@ internal class InterceptionTransformer(
         props: IrValueParameter,
         parameter: IrValueParameter,
         name: String,
-        composable: List<IrConstructorCall>,
+        composable: List<IrAnnotation>,
     ): IrExpression? {
 
         val type = parameter.type
@@ -599,7 +599,7 @@ internal class InterceptionTransformer(
         props: IrValueParameter,
         name: String,
         type: IrType,
-        composable: List<IrConstructorCall>,
+        composable: List<IrAnnotation>,
     ): IrExpression? {
 
         val children = symbols.accessor(CHILDREN_ACCESSOR) ?: return null

@@ -1,6 +1,9 @@
 package com.dootah.ota
 
 import com.dootah.UpdateResult
+import androidx.compose.runtime.mutableStateOf
+import com.dootah.ui.BundleUiNode
+import com.dootah.ui.DootahContent
 import dev.dootah.contract.BundleImages
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
@@ -13,6 +16,47 @@ import java.security.Signature
 import java.util.Base64
 
 class UpdateLifecycleTest {
+    @Test fun `same payload release replaces the composition health receipt`() {
+        equalUiTransition(samePayload = true)
+    }
+
+    @Test fun `changed bundle with an unchanged screen replaces the composition health receipt`() {
+        equalUiTransition(samePayload = false)
+    }
+
+    private fun equalUiTransition(samePayload: Boolean) {
+        val disk = store()
+        stage(disk, 31)
+        val first = disk.prepareForLoad()!!
+        val firstHealth = RemoteHealth { disk.confirmHealthy(first.identity) }.apply { initialized() }
+        // DootahScreenState uses Compose's structural state policy; the renderer
+        // takes its native-ready receipt from the value retained by that state.
+        val content = mutableStateOf<DootahContent>(
+            DootahContent.Bundle(BundleUiNode.Text("Unchanged screen", emptyList()))
+                .also { it.nativeReady = firstHealth.executed() },
+        )
+        (content.value as DootahContent.Bundle).nativeReady!!()
+        assertEquals(31, disk.state().lastKnownGood!!.version)
+
+        val payload = bytes(if (samePayload) 31 else 32)
+        disk.stage(signed(32, payload), payload) { _, _ -> error("No images") }
+        firstHealth.failed()
+        val second = disk.prepareForLoad()!!
+        val secondHealth = RemoteHealth { disk.confirmHealthy(second.identity) }.apply { initialized() }
+        content.value = DootahContent.Bundle(
+            BundleUiNode.Text("Unchanged screen", emptyList()),
+        ).also { it.nativeReady = secondHealth.executed() }
+
+        assertFalse(disk.state().confirmedHealthy) // Execution alone is insufficient.
+        // The successful native composition invokes only its current receipt.
+        (content.value as DootahContent.Bundle).nativeReady!!()
+        assertTrue("The new release must receive native readiness even for equal UI", disk.state().confirmedHealthy)
+        assertEquals(32, disk.state().lastKnownGood!!.version)
+        val restarted = store()
+        assertEquals(32, restarted.prepareForLoad()!!.version)
+        assertTrue(restarted.state().quarantine.isEmpty())
+    }
+
     @get:Rule val temporary = TemporaryFolder()
     private val keys = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
     private val verifier = ManifestVerifier("example.app", Base64.getEncoder().encodeToString(keys.public.encoded.takeLast(32).toByteArray()))

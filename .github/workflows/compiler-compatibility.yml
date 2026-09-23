@@ -1,5 +1,8 @@
 name: Compiler compatibility
 on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'
   pull_request:
   push:
     branches: [main, compiler-m1]
@@ -18,5 +21,16 @@ jobs:
       - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - run: sdkmanager 'platforms;android-37' 'platforms;android-36' 'build-tools;36.0.0'
-      # The Gradle matrix comes from compiler-backends.properties; CI has no second version list.
+      # Discover stable Maven releases and try existing ABI implementations first.
+      # Promotion writes metadata only after all compiler/Compose/semantic suites pass.
+      - run: python3 tools/compiler_compatibility.py --verify --promote
       - run: ./gradlew dootahCompilerMatrixCheck :dootah-contract:test :dootah-android:testDebugUnitTest :dootah-server:test --stacktrace
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compiler-compatibility-evidence
+          path: |
+            build/compiler-compatibility/
+            gradle/compiler-backends.properties
+            gradle/compiler-features.properties
+            gradle/compiler-compatibility-evidence.json

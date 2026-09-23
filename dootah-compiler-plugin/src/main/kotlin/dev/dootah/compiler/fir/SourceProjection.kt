@@ -120,7 +120,7 @@ internal class SourceProjection {
                 override val kind get() = LogicOperationKind.valueOf(node.kind.name)
             }
             is FirResolvedQualifier -> object : Expression(node), SourceResolvedQualifier {
-                override val classId get() = node.classId?.let(::classId)
+                override val classId get() = qualifierClassId(node)?.let(::classId)
                 override val relativeClassFqName get() = node.relativeClassFqName?.let { name(it.asString()) }
             }
             is FirExpression -> legacyWhenSubjectName(node)?.let { subject ->
@@ -148,7 +148,7 @@ internal class SourceProjection {
     }
     private fun reference(ref: FirReference): SourceReference {
         fun callable() = ref.toResolvedCallableSymbol()?.let { symbol(it) as SourceCallableSymbol }
-        fun bound() = (ref as? FirThisReference)?.boundSymbol?.let(::symbol)
+        fun bound() = (ref as? FirThisReference)?.let(::boundThisSymbol)?.let(::symbol)
         return if (ref is FirResolvedNamedReference) object : SourceResolvedNamedReference {
             override val name get() = name(ref.name.asString())
             override val callableSymbol get() = callable()

@@ -20,15 +20,13 @@ typealias DeclarationFinder = org.jetbrains.kotlin.backend.common.extensions.Dec
 abstract class BackendRegistrar : CompilerPluginRegistrar() {
     override val pluginId: String = DOOTAH_PLUGIN_ID
 }
-internal abstract class BackendScreenChecker : FirDeclarationChecker<FirNamedFunction>(MppCheckerKind.Common) {
+internal abstract class BackendScreenChecker : FirDeclarationChecker<org.jetbrains.kotlin.fir.declarations.FirFunction>(MppCheckerKind.Common) {
     context(context: CheckerContext, reporter: DiagnosticReporter)
-    final override fun check(declaration: FirNamedFunction) = inspect(declaration, context)
+    final override fun check(declaration: org.jetbrains.kotlin.fir.declarations.FirFunction) {
+        if (declaration is FirNamedFunction) inspect(declaration, context)
+    }
     abstract fun inspect(declaration: FirNamedFunction, context: CheckerContext)
 }
-internal fun receiverOwner(symbol: FirBasedSymbol<*>): FirBasedSymbol<*>? =
-    (symbol as? FirReceiverParameterSymbol)?.containingDeclarationSymbol
-internal fun CheckerContext.enclosingClassAnnotations() = containingDeclarations.filterIsInstance<FirRegularClassSymbol>().flatMap { it.fir.annotations }
-internal fun CheckerContext.fileAnnotations() = containingFileSymbol?.fir?.annotations.orEmpty()
 
 internal fun whenSubjectName(expression: org.jetbrains.kotlin.fir.expressions.FirWhenExpression) = expression.subjectVariable?.name?.asString()
 internal fun whenSubjectInitializer(expression: org.jetbrains.kotlin.fir.expressions.FirWhenExpression) = expression.subjectVariable?.initializer

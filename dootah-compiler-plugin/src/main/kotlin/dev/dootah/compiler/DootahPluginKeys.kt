@@ -75,6 +75,7 @@ enum class DootahDiscovery {
 }
 
 object DootahConfigurationKeys {
+    val SOURCE_ROOT: CompilerConfigurationKey<String> = CompilerConfigurationKey.create("dootah source root")
 
     val MODE: CompilerConfigurationKey<DootahMode> =
         CompilerConfigurationKey.create("dootah mode")

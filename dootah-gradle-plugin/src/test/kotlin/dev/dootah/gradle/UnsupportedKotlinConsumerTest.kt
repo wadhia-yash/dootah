@@ -8,20 +8,14 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 /**
- * What a project on an unverified Kotlin version is told.
- *
- * Automatic selection can only route to a backend the matrix verified, so every
- * other Kotlin version has to end in a refusal a reader can act on -- a named
- * version, the list of versions that would work -- and it has to arrive while
- * the build is still configuring, not as a stack trace from inside a compiler
- * the plugin was never built against. This runs a real Kotlin Gradle plugin, so
- * it fails the same way a consumer's build would.
+ * Real KGP consumer: an unknown compiler remains usable for native builds.
+ * Explicit OTA operations refuse it before loading any Dootah compiler code.
  */
 class UnsupportedKotlinConsumerTest {
 
     @get:Rule val temporary = TemporaryFolder()
 
-    @Test fun `an unverified Kotlin version is refused by name`() {
+    @Test fun `unverified Kotlin builds natively but explicit OTA is refused by name`() {
         val version = System.getProperty("dootah.test.unsupportedKotlin")
         assertTrue(
             "Kotlin $version is in the backend matrix now, so it no longer tests a refusal. " +
@@ -35,16 +29,28 @@ class UnsupportedKotlinConsumerTest {
             """
             plugins { id 'org.jetbrains.kotlin.jvm'; id 'dev.dootah' }
             repositories { mavenCentral() }
+            configurations.implementation.dependencies.removeAll { it.group == 'dev.dootah' }
+            tasks.register('verifyNative') {
+                dependsOn('compileKotlin')
+                def selected = tasks.named('compileKotlin').map { it.pluginClasspath }
+                doLast { assert !selected.get().files.any { it.name.startsWith('dootah-compiler') } }
+            }
             """.trimIndent()
         )
 
         val dootahClasspath = dootahPluginClasspath()
         val kgp = kotlinGradlePluginClasspath("dootah.test.kgp.$version")
 
-        val result = GradleRunner.create().withProjectDir(root).withPluginClasspath(dootahClasspath + kgp)
-            .withArguments("tasks", "--no-configuration-cache").buildAndFail()
+        root.resolve("src/main/kotlin/Native.kt").apply { parentFile.mkdirs(); writeText("fun answer() = 42") }
+        fun runner(vararg tasks: String) = GradleRunner.create().withProjectDir(root).withPluginClasspath(dootahClasspath + kgp)
+            .withArguments(*tasks, "--no-configuration-cache")
+        runner("verifyNative").build()
+        val doctor = runner("dootahDoctor").build()
+        assertTrue(doctor.output, doctor.output.contains("OTA readiness: NOT READY"))
+        val result = runner("dootahExtract").buildAndFail()
 
-        assertTrue(result.output, result.output.contains("no verified compiler backend for Kotlin $version"))
+        assertTrue(result.output, result.output.contains("Detected Kotlin $version"))
+        assertTrue(result.output, result.output.contains("No verified Dootah compiler ABI is available"))
         compilerBackends.forEach {
             assertTrue(result.output, result.output.contains(it.compilerVersion))
         }

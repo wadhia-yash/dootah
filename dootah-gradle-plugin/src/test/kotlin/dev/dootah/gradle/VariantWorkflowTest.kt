@@ -131,4 +131,37 @@ class VariantWorkflowTest {
         assertTrue(failure.output, failure.output.contains("which this module does not build"))
         assertTrue(failure.output, failure.output.contains("genericDebug"))
     }
+
+    @Test fun `doctor readiness requires a compatible backend and baseline contract`() {
+        val root = fixture(listOf("debug"), listOf("debug" to "debug"))
+        val backend = root.resolve("backend.jar")
+        java.util.zip.ZipOutputStream(backend.outputStream()).use { zip ->
+            zip.putNextEntry(java.util.zip.ZipEntry("dev/dootah/backend-versions.txt"))
+            zip.write(BUNDLE_KOTLIN_VERSION.toByteArray())
+            zip.closeEntry()
+        }
+        root.resolve("build.gradle").appendText("""
+
+            afterEvaluate {
+                tasks.named('dootahDoctor') {
+                    backendFiles.setFrom(files('backend.jar'))
+                    composeDetected.set(true)
+                    runtimeVersion.set('${dev.dootah.contract.RuntimeVersion.CURRENT}')
+                }
+            }
+        """.trimIndent())
+        val contract = root.resolve("dootah/contract.json").apply { parentFile.mkdirs() }
+        fun baseline(runtime: String) = dev.dootah.contract.ContractJson.write(
+            dev.dootah.contract.InstalledContract(runtimeVersion = runtime, screens = listOf(
+                dev.dootah.contract.ScreenContract("example.Screen()", emptyList(), emptyList(), emptyList(), emptyList())
+            )))
+        contract.writeText(baseline(dev.dootah.contract.RuntimeVersion.CURRENT))
+        val ready = runner(root, "dootahDoctor").build()
+        assertTrue(ready.output, ready.output.contains("OTA readiness: READY"))
+        assertFalse(ready.output, ready.tasks.any { it.path.contains("compile") })
+        contract.writeText(baseline("incompatible"))
+        val refused = runner(root, "dootahDoctor").build()
+        assertTrue(refused.output, refused.output.contains("OTA readiness: NOT READY"))
+        assertTrue(refused.output, refused.output.contains("different runtimeVersion"))
+    }
 }

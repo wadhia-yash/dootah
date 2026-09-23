@@ -19,6 +19,7 @@ class DootahCommandLineProcessor : CommandLineProcessor {
     override val pluginId: String = DOOTAH_PLUGIN_ID
 
     override val pluginOptions: Collection<AbstractCliOption> = listOf(
+        CliOption("sourceRoot", "<path>", "Root for relocatable source-owned contract fragments", required = false),
         CliOption(
             optionName = OPTION_MODE,
             valueDescription = "intercept|extract",
@@ -57,6 +58,7 @@ class DootahCommandLineProcessor : CommandLineProcessor {
         configuration: CompilerConfiguration,
     ) {
         when (option.optionName) {
+            "sourceRoot" -> configuration.put(DootahConfigurationKeys.SOURCE_ROOT, value)
 
             OPTION_MODE -> {
                 val mode = DootahMode.fromCliValue(value)

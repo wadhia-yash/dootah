@@ -43,7 +43,7 @@ include(":dootah-server")
 include(":dootah-compiler-core")
 
 val compilerBackends = java.util.Properties().apply {
-    file("gradle/compiler-backends.properties").inputStream().use { load(it) }
+    file("gradle/compiler-adapters.properties").inputStream().use { load(it) }
 }
 compilerBackends.stringPropertyNames().filter { it != "2.3" }.sorted().forEach { family ->
     include(":dootah-compiler-plugin-kotlin-$family")

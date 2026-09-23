@@ -115,9 +115,15 @@ internal fun requestedVariant(project: Project, extension: DootahExtension): Str
 internal fun registerDootahWorkflow(project: Project, discovered: List<DootahVariant>) {
 
     val usable = discovered.filter { kotlinCompileTaskName(project, it.name) != null }
-    if (usable.isEmpty()) return
-
     val extension = project.extensions.getByType(DootahExtension::class.java)
+
+    registerDootahDoctor(project, usable, extension)
+    val version = hostKotlinVersion(project)
+    if (version == null || resolveCompilerBackend(version) == null) {
+        registerUndecidedWorkflow(project, GradleException(unsupportedCompilerMessage(version ?: "unknown")))
+        return
+    }
+    if (usable.isEmpty()) return
 
     val selected = try {
         selectDootahVariant(usable, requestedVariant(project, extension))

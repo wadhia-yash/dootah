@@ -36,9 +36,10 @@ class BackendAbiMetadataTest {
         val matrix = Properties().apply {
             repository.resolve("gradle/compiler-backends.properties").inputStream().use(::load)
         }
-        val family = pluginJar.name.substringAfter("dootah-compiler-plugin-kotlin-", "2.3").substringBefore("-0")
+        val family = System.getProperty("dootah.backend.family")
+        val probe = System.getProperty("dootah.backend.probe").takeIf { it.isNotBlank() }
         assertEquals(
-            matrix.getProperty(family).split(",").map(String::trim),
+            (probe ?: matrix.getProperty(family)).split(",").map(String::trim),
             packaged,
         )
 

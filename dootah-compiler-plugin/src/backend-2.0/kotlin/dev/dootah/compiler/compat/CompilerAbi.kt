@@ -17,55 +17,14 @@ import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
 import org.jetbrains.kotlin.name.CallableId
 
 typealias FirNamedFunction = org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
-typealias FirBooleanOperatorExpression = org.jetbrains.kotlin.fir.expressions.FirBinaryLogicExpression
-typealias IrConst = org.jetbrains.kotlin.ir.expressions.IrConst<*>
 abstract class IrVisitorVoid : org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
-/**
- * Registration on this compiler line, where the order is decided differently.
- *
- * `KotlinCoreEnvironment` runs every legacy `ComponentRegistrar` against the
- * project first, and only then installs what the `CompilerPluginRegistrar`s
- * collected. On this line the Compose compiler plugin is still a
- * `ComponentRegistrar`, so an IR extension registered the modern way lands
- * after Compose's no matter where Dootah sits on the plugin classpath -- and
- * Dootah's whole transform depends on running before it.
- *
- * Registering the same way Compose does puts both back under one rule, the one
- * the Gradle plugin already enforces: plugin classpath order, which follows the
- * order the app declares its plugins in. On the newer line Compose registers
- * through `ExtensionStorage` and the modern path is the one that agrees, which
- * is why this lives here and not in the shared registrar.
- */
-abstract class BackendRegistrar : ComponentRegistrar {
-
-    final override fun registerProjectComponents(
-        project: MockProject,
-        configuration: CompilerConfiguration,
-    ) {
-        ExtensionStorage(project).registerExtensions(configuration)
+internal abstract class BackendScreenChecker : FirDeclarationChecker<org.jetbrains.kotlin.fir.declarations.FirFunction>(MppCheckerKind.Common) {
+    final override fun check(declaration: org.jetbrains.kotlin.fir.declarations.FirFunction, context: CheckerContext, reporter: DiagnosticReporter) {
+        if (declaration is FirNamedFunction) inspect(declaration, context)
     }
-
-    protected abstract fun ExtensionStorage.registerExtensions(configuration: CompilerConfiguration)
-
-    /**
-     * The shape the shared registrar writes against, registering eagerly.
-     *
-     * Same member-extension signature as the compiler's own storage of that
-     * name, so the shared code reads identically on both lines.
-     */
-    class ExtensionStorage(private val project: MockProject) {
-        fun <T : Any> ProjectExtensionDescriptor<T>.registerExtension(extension: T) =
-            registerExtension(project, extension)
-    }
-}
-internal abstract class BackendScreenChecker : FirDeclarationChecker<FirNamedFunction>(MppCheckerKind.Common) {
-    final override fun check(declaration: FirNamedFunction, context: CheckerContext, reporter: DiagnosticReporter) = inspect(declaration, context)
     abstract fun inspect(declaration: FirNamedFunction, context: CheckerContext)
 }
 // In this ABI a receiver is bound directly to its containing function symbol.
-internal fun receiverOwner(symbol: FirBasedSymbol<*>): FirBasedSymbol<*>? = null
-internal fun CheckerContext.enclosingClassAnnotations() = containingDeclarations.filterIsInstance<FirRegularClass>().flatMap { it.annotations }
-internal fun CheckerContext.fileAnnotations() = containingFile?.annotations.orEmpty()
 
 internal enum class IrParameterKind { DispatchReceiver, ExtensionReceiver, Regular }
 internal val IrFunction.parameters: List<IrValueParameter>

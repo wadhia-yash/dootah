@@ -7,6 +7,17 @@ internal const val BUNDLE_KOTLIN_VERSION = "2.3.20"
 
 internal data class CompilerBackend(val family: String, val compilerVersion: String) {
     val artifactId: String get() = if (family == "2.3") "dootah-compiler-plugin" else "dootah-compiler-plugin-kotlin-$family"
+    val explicitOrdering: Boolean get() = requireNotNull(compilerFeatures.getProperty(compilerVersion)) {
+        "Dootah compiler compatibility metadata is incomplete for Kotlin $compilerVersion. Reinstall this Dootah release."
+    } == "explicit"
+}
+
+private val compilerFeatures by lazy {
+    java.util.Properties().apply {
+        requireNotNull(DootahProjectPlugin::class.java.getResourceAsStream("/dev/dootah/compiler-features.properties")) {
+            "Dootah compiler feature metadata is missing. Reinstall this Dootah release."
+        }.use(::load)
+    }
 }
 
 /** This resource is also the build/test matrix; support cannot drift from artifact production. */
@@ -21,19 +32,44 @@ internal val compilerBackends: List<CompilerBackend> by lazy {
 }
 
 internal fun selectCompilerBackend(hostKotlinVersion: String): CompilerBackend =
+    resolveCompilerBackend(hostKotlinVersion) ?: throw GradleException(unsupportedCompilerMessage(hostKotlinVersion))
+
+internal fun resolveCompilerBackend(hostKotlinVersion: String): CompilerBackend? =
     compilerBackends.singleOrNull { it.compilerVersion == hostKotlinVersion }
-        ?: throw GradleException(
-            "Dootah has no verified compiler backend for Kotlin $hostKotlinVersion. " +
-                "Supported Kotlin versions: ${compilerBackends.joinToString { it.compilerVersion }}. " +
-                "Use a Dootah release that supports your Kotlin version, or select a supported Kotlin version. " +
-                "Compiler ABI checks cannot be bypassed."
-        )
+
+internal fun unsupportedCompilerMessage(version: String): String =
+    "Detected Kotlin $version.\n" +
+        "No verified Dootah compiler ABI is available.\n" +
+        "Verified ranges (only tested releases; no inferred patch compatibility): " +
+        compilerBackends.groupBy { it.family }.entries.joinToString { (family, versions) ->
+            "$family [${versions.joinToString { it.compilerVersion }}]"
+        } + ".\nDootah has not modified the application."
+
+internal fun hostKotlinVersion(project: org.gradle.api.Project): String? =
+    configuredCompilerVersion(project.extensions.findByName("kotlin")) ?: hostKgpVersion(project)
+
+/** Newer KGP can select a different compiler. Reflection bridges this optional public API. */
+internal fun configuredCompilerVersion(extension: Any?): String? {
+    if (extension == null) return null
+    val getter = extension.javaClass.methods.firstOrNull { it.name == "getCompilerVersion" && it.parameterCount == 0 } ?: return null
+    return try {
+        val version = getter.invoke(extension) as? org.gradle.api.provider.Provider<*>
+        version?.orNull as? String
+    } catch (_: ReflectiveOperationException) {
+        // Never guess KGP's version when an explicitly configurable compiler
+        // exists but cannot be read. No backend will match this diagnostic.
+        "unknown (compiler configuration could not be read)"
+    }
+}
+
+internal fun hostKgpVersion(project: org.gradle.api.Project): String? =
+    project.plugins.withType(org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin::class.java)
+        .firstOrNull()?.pluginVersion
 
 internal fun verifyKotlinVersion(hostKotlinVersion: String) { selectCompilerBackend(hostKotlinVersion) }
 
 internal fun hostCompilerBackend(project: org.gradle.api.Project): CompilerBackend =
-    project.plugins.withType(org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin::class.java)
-        .firstOrNull()?.let { selectCompilerBackend(it.pluginVersion) }
+    hostKotlinVersion(project)?.let(::selectCompilerBackend)
         ?: throw GradleException("Dootah could not detect the project's Kotlin compiler. Apply the Kotlin Android or JVM plugin.")
 
 /** The failure text used when Dootah is declared after the Compose plugin. */

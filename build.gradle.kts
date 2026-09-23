@@ -2,7 +2,25 @@
 // rootProject.extra so the modules do not each hard-code it.
 extra["dootahVersion"] = providers.gradleProperty("dootahVersion").getOrElse("0.1.0-alpha.17")
 
+if (providers.gradleProperty("dootahCompatibilityProbe").isPresent) {
+    subprojects {
+        tasks.withType<org.gradle.api.publish.maven.tasks.AbstractPublishToMaven>().configureEach {
+            doFirst { error("Compatibility probe artifacts cannot be published") }
+        }
+    }
+}
+
 apply(from = "gradle/alpha-publication.gradle")
+
+val verifyCompilerCompatibilityMetadata = tasks.register<Exec>("verifyCompilerCompatibilityMetadata") {
+    group = "verification"
+    commandLine("python3", "tools/compiler_compatibility.py", "--check-evidence")
+}
+subprojects {
+    tasks.withType<org.gradle.api.publish.maven.tasks.AbstractPublishToMaven>().configureEach {
+        dependsOn(verifyCompilerCompatibilityMetadata)
+    }
+}
 
 /**
  * Publishes every part of Dootah a host app resolves, in one go.
@@ -165,6 +183,9 @@ tasks.register<Copy>("buildBundle") {
 /** Every declared compiler ABI runs the same regression suite. */
 tasks.register("dootahCompilerMatrixCheck") {
     group = "verification"
+    // Every concrete member has already run the complete compiler/Compose suite.
+    // Refuse stale evidence before testing the release's packaged artifacts.
+    dependsOn(verifyCompilerCompatibilityMetadata)
     dependsOn(subprojects.filter { it.name.startsWith("dootah-compiler-plugin") }.map { "${it.path}:test" })
     dependsOn(":dootah-compiler-core:test", ":dootah-gradle-plugin:test", "dootahRealComposeCheck")
 }

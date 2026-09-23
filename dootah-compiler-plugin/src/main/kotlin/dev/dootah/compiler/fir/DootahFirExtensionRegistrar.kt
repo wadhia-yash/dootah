@@ -45,7 +45,7 @@ private class DootahCheckersExtension(
 
     override val declarationCheckers: DeclarationCheckers = object : DeclarationCheckers() {
 
-        override val simpleFunctionCheckers: Set<FirDeclarationChecker<FirNamedFunction>> =
+        override val functionCheckers: Set<FirDeclarationChecker<org.jetbrains.kotlin.fir.declarations.FirFunction>> =
             setOf(
                 ScreenExtractionChecker(
                     reportDirectory = reportDirectory,
