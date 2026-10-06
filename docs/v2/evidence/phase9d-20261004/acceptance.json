@@ -1,0 +1,158 @@
+{
+  "acceptanceResourcesRemoved": true,
+  "architecture": "linux/arm64",
+  "checks": [
+    "Compose private topology and loopback-only acceptance proxy",
+    "PostgreSQL healthy",
+    "idempotent bootstrap and explicit migrations",
+    "xprem healthy, Cloud ready, trusted local HTTPS proxy",
+    "non-root HTTP processes and no host ports for private services",
+    "authenticated org/app/environment creation and contract registration",
+    "operator provisioning, validated bindings, signed publish and rollback",
+    "invalid binding leaves prior config intact; API-key rotation preserves signing identity",
+    "liveness survives DB failure; readiness rejects DB failure and tolerates xprem outage",
+    "runtime roles cannot migrate and HTTP rejects migration owner",
+    "packaged production startup rejects HTTP, missing DB and unavailable Java",
+    "all Cloud tests including database privileges and signed backend",
+    "restart preserves state and signed delivery",
+    "credentials absent from service logs",
+    "fresh-volume database/storage/key/config restore with identical storage hashes and verified signatures"
+  ],
+  "cloudTests": {
+    "failed": 0,
+    "passed": 13,
+    "skipped": 0
+  },
+  "date": "2026-10-04",
+  "developmentSdk": "0.7.5-local",
+  "deviceRerunRequired": false,
+  "dootahTotals": {
+    "failed": 0,
+    "passed": 93,
+    "skipped": 0
+  },
+  "externalDeployment": false,
+  "externalInfrastructureCreated": false,
+  "host": "local Docker Desktop",
+  "images": {
+    "dootah-cloud:9d": {
+      "architecture": "arm64",
+      "id": "sha256:398fb8f43bd997ed61d8ad37c285b4ceb90d299e8bf087e04260c3c22473cc3e",
+      "size": 564864528
+    },
+    "dootah-xprem:9d": {
+      "architecture": "arm64",
+      "id": "sha256:bbbb8402b629c8da9db38c147323a9045ab4f67c4723809524deee788ee71a36",
+      "size": 93288982
+    }
+  },
+  "inputSha256": {
+    "v2/cloud/Validate.java": "952a5c8bb9891739c3e16f7b9fa45dc9ee62984771f6850f5948fcd3c23236c9",
+    "v2/cloud/adapter.mjs": "6c34cd127b6c242340f8ca8559409bdde0c81043b170af14a744a4ae8ac62410",
+    "v2/cloud/admin.mjs": "8b8e68c056674b77ffcda2fe3ed60a69a874adcdbaf70145d641cd8f556e88fb",
+    "v2/cloud/config.mjs": "8b0225c6af3af11a29bbb92be7dabb2068ece20d362c610be926f0b4eaeab05e",
+    "v2/cloud/core.mjs": "111d2e56532872a8bfb164d4f975c46c5e35756bace5d33cef8dc9d549edb4bd",
+    "v2/cloud/server.mjs": "23a5951f26227a80cfd63a307ab3a036de5005d53a8f5c05af2aaebe2d94e12d",
+    "v2/cloud/worker.mjs": "bbc46ffd727d8f15148b3e5b0fc78bc76a468fbe63c0921f676ef0be2b6e83bf",
+    "v2/deploy/.env.example": "b232c8b9faa5a559f006001406058b8e7ca85f74dcba5527b8b4cd5038110ce8",
+    "v2/deploy/.gitignore": "fe26fd7a7f9455b54927f8fa0c961c39ac4cd5ccdeec3989f85b3a3da8cca358",
+    "v2/deploy/Caddyfile": "a438c2a6002109a5df0d6e3ee839d767c4170a70687fc1b0c0bc6e20efd6ad3c",
+    "v2/deploy/Caddyfile.local": "b2a2776e226b82854dd4f6a83b458065efeb46f32f0516d96ece22831e371328",
+    "v2/deploy/Cloud.Dockerfile": "9176648eef77011257ae7ea7501e20b8545446543a313ffca968438db3f6b343",
+    "v2/deploy/Xprem.Dockerfile": "2975a276bf30bdd1ce7d383862f428004a6fb682000d24b3dc4fb1e8141b4bbb",
+    "v2/deploy/acceptance-client.mjs": "699defcb478fb2fd10286905afcaa74aa9ca8cbf63cc8337c4ba855cf90c2341",
+    "v2/deploy/acceptance.py": "f5bd330cb50c025635378e61af75339d864dec4393b43c934165bcd81a882d41",
+    "v2/deploy/bindings.example.json": "a7590f45c4a3ae201b9daf42ca153c26fc6ffb2b21de42df6202c3fd8a6846ed",
+    "v2/deploy/build.sh": "f0a1add4080d9812f9430ab42393273fded35e4c983334c6205611fcde7f5da7",
+    "v2/deploy/compose.yaml": "3feb8788b5d85a97c42e1b02d5d8777ce49d5ec4eda9e3a1b893ab68f0047b9d",
+    "v2/deploy/config.test.mjs": "819c32a14caf1bf875d407ea9ff9f5143b7f2cddc944311b4233bffa9faf914c",
+    "v2/deploy/entrypoint.sh": "31b1b9564142439824c71fee85303b91c8781ee92f980063dd251eab9a46c534",
+    "v2/deploy/ops.py": "0523cf7535927eafaed5a22ab3072b8c6d77df7260a6481f2fc4dd5626926805",
+    "v2/portable/src/main/java/dev/dootah/portable/PortableProgram.java": "c9c787068392732d9c15840288e08a1f9a646cad68f4ed2c2a146ad1434de379",
+    "v2/server/main.go": "baab0d5427b8793b48e64e43bc78f0444916ca5b5786b78cbb37fbc1e5a36ab3"
+  },
+  "logicAbi": 1,
+  "passed": true,
+  "phase": "9D",
+  "productionCaddyConfigurationValidatedWithoutNetwork": true,
+  "publicCertificateRequested": false,
+  "publicPostgresPort": false,
+  "publicSdk": "0.1.0-alpha.1",
+  "publicXpremPort": false,
+  "runtimeAbi": 2,
+  "runtimeBehaviorChanged": false,
+  "secretsCommitted": false,
+  "startingHead": "1f723c0b17115556ae43d653b3773dd1fb35524b",
+  "tests": {
+    "cloud": {
+      "failed": 0,
+      "passed": 13,
+      "skipped": 0
+    },
+    "composeAcceptance": {
+      "failed": 0,
+      "passed": 1,
+      "skipped": 0
+    },
+    "composeFixtures": {
+      "failed": 0,
+      "passed": 4,
+      "skipped": 0
+    },
+    "deploymentConfig": {
+      "failed": 0,
+      "passed": 10,
+      "skipped": 0
+    },
+    "nativeHealth": {
+      "failed": 0,
+      "passed": 3,
+      "skipped": 0
+    },
+    "nodeCliPortableAudit": {
+      "failed": 0,
+      "passed": 11,
+      "skipped": 0
+    },
+    "packaging": {
+      "failed": 0,
+      "passed": 13,
+      "skipped": 0
+    },
+    "plugin": {
+      "failed": 0,
+      "passed": 9,
+      "skipped": 0
+    },
+    "publisher": {
+      "failed": 0,
+      "passed": 22,
+      "skipped": 0
+    },
+    "runtime": {
+      "failed": 0,
+      "passed": 7,
+      "skipped": 0
+    }
+  },
+  "xpremAudit": {
+    "eeDependencies": [],
+    "goModSHA256": "2f8d23294584076302db67ec4b8f5894943d093419bd77f243a79dd4376ea439",
+    "goSumSHA256": "0e32a61359b3039e3f7429e86e39268840ace93992c8772be367513ad546b588",
+    "packages": 835,
+    "sourceFiles": 4039,
+    "unchangedUpstreamFilesVerified": 341
+  },
+  "xpremTests": {
+    "explicitlyExcluded": [
+      "TestAzuriteUploadListGet",
+      "TestAzuriteSASUploadRequiresBlockBlobHeader",
+      "TestAzuriteCreateFrom",
+      "TestAzuriteDeleteUpdate"
+    ],
+    "failed": 0,
+    "passed": 345,
+    "reason": "Azure/Azurite storage is not wired into the local-storage alpha deployment",
+    "skipped": 4
+  }
+}

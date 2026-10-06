@@ -1,0 +1,737 @@
+{
+  "status": "PASS",
+  "date": "2026-09-28",
+  "startingCommit": "ddfdf4a",
+  "device": "Samsung SM-E426B",
+  "package": "dev.dootah.consumer",
+  "sdk": "0.7.0-local",
+  "runtimeVersion": "dootah-v2-logic-2",
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "originalPhase6ApkSha256": "95c18eda921fd4f00b804ea8b7166f1e05d8db93df8f02b9a436f1704a9647f2",
+  "replacementExplicitlyAuthorized": true,
+  "baselineApkSha256": "4005bafe3578c2638c25a6de4823f1e3e545c6f7a79d35c0c6c575c634da7eca",
+  "installedFinalSha256": "4005bafe3578c2638c25a6de4823f1e3e545c6f7a79d35c0c6c575c634da7eca",
+  "lastUpdateTime": "2026-09-28 20:45:44 IST",
+  "reinstallDuringAcceptedSequence": false,
+  "dataClear": false,
+  "manualAcceptanceJS": false,
+  "manualFunctionIds": false,
+  "stages": {
+    "baseline": {
+      "text": [
+        "Enroll telemetry",
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "business-download": {
+      "text": [
+        "Enroll telemetry",
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "business-active": {
+      "text": [
+        "Enroll telemetry",
+        "Discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "paused": {
+      "text": [
+        "Enroll telemetry",
+        "Discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "combined-download": {
+      "text": [
+        "Enroll telemetry",
+        "Discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "combined-active": {
+      "text": [
+        "Enroll telemetry",
+        "Cloud discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "cloud-unavailable": {
+      "text": [
+        "Enroll telemetry",
+        "Cloud discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "rollback-download": {
+      "text": [
+        "Enroll telemetry",
+        "Cloud discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "rollback-active": {
+      "text": [
+        "Enroll telemetry",
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "rollback-offline": {
+      "text": [
+        "Enroll telemetry",
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    },
+    "final-native": {
+      "text": [
+        "Enroll telemetry",
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "package": [
+        "versionName=0.7.0",
+        "lastUpdateTime=2026-09-28 20:45:44"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false
+    }
+  },
+  "physicalInstallation": {
+    "id": "af97ce50-7b04-46b0-a0a6-90d5804306b7",
+    "native_version": "0.7.0",
+    "sdk_version": "0.7.0-local",
+    "runtime": "dootah-v2-logic-2"
+  },
+  "deviceEvents": [
+    {
+      "type": "download_completed",
+      "release_id": "0395697f-35f5-4ad0-afe6-5d0747c3ef2b",
+      "count": 1
+    },
+    {
+      "type": "download_completed",
+      "release_id": "e56e87ef-e516-4148-95f4-bf3088421778",
+      "count": 1
+    },
+    {
+      "type": "download_started",
+      "release_id": "0395697f-35f5-4ad0-afe6-5d0747c3ef2b",
+      "count": 1
+    },
+    {
+      "type": "download_started",
+      "release_id": "e56e87ef-e516-4148-95f4-bf3088421778",
+      "count": 1
+    },
+    {
+      "type": "rollback_applied",
+      "release_id": "0395697f-35f5-4ad0-afe6-5d0747c3ef2b",
+      "count": 1
+    },
+    {
+      "type": "update_activated",
+      "release_id": "0395697f-35f5-4ad0-afe6-5d0747c3ef2b",
+      "count": 3
+    },
+    {
+      "type": "update_activated",
+      "release_id": "e56e87ef-e516-4148-95f4-bf3088421778",
+      "count": 3
+    },
+    {
+      "type": "update_activated",
+      "release_id": null,
+      "count": 5
+    },
+    {
+      "type": "update_available",
+      "release_id": "0395697f-35f5-4ad0-afe6-5d0747c3ef2b",
+      "count": 1
+    },
+    {
+      "type": "update_available",
+      "release_id": "e56e87ef-e516-4148-95f4-bf3088421778",
+      "count": 1
+    },
+    {
+      "type": "update_checked",
+      "release_id": null,
+      "count": 11
+    },
+    {
+      "type": "update_healthy",
+      "release_id": "0395697f-35f5-4ad0-afe6-5d0747c3ef2b",
+      "count": 3
+    },
+    {
+      "type": "update_healthy",
+      "release_id": "e56e87ef-e516-4148-95f4-bf3088421778",
+      "count": 3
+    },
+    {
+      "type": "update_healthy",
+      "release_id": null,
+      "count": 5
+    }
+  ],
+  "releases": [
+    {
+      "id": "e56e87ef-e516-4148-95f4-bf3088421778",
+      "runtime": "dootah-v2-logic-2",
+      "runtime_abi": 2,
+      "logic_abi": 1,
+      "hash": "b53554edd1c5039466d92116528f9944cde605915d1573bf92e00740d860179a",
+      "status": "paused",
+      "percentage": 100,
+      "contract_digest": "2916a6618aa689e6bdd5c801e10fde6ebbef38b817f913e7d00475da1adb4168",
+      "upstream_uuid": "0399cbd2-d75b-b3c3-3b4f-862b8da1627e"
+    },
+    {
+      "id": "0395697f-35f5-4ad0-afe6-5d0747c3ef2b",
+      "runtime": "dootah-v2-logic-2",
+      "runtime_abi": 2,
+      "logic_abi": 1,
+      "hash": "bd8ba15d8474bceb1db59b600bf898c0638cdbce9e9e3a5df5fa78c0c6969647",
+      "status": "rolled_back",
+      "percentage": 100,
+      "contract_digest": "2916a6618aa689e6bdd5c801e10fde6ebbef38b817f913e7d00475da1adb4168",
+      "upstream_uuid": "2cae70a2-b378-8c3a-48cf-20b433301777"
+    }
+  ],
+  "liveMetrics": {
+    "windowDays": 30,
+    "asOf": "2026-09-28T15:23:44.734Z",
+    "compatible": 4,
+    "eligible": 4,
+    "downloaded": 1,
+    "activated": 1,
+    "healthy": 1,
+    "rejected": 0,
+    "rollbackCount": 0,
+    "adopted": 1,
+    "adoptionPercent": 25,
+    "healthPercent": 100,
+    "provenance": "authenticated_device_reports",
+    "crashFree": null
+  },
+  "rollbackSignature": {
+    "signatureVerified": true,
+    "directive": {
+      "type": "rollBackToEmbedded",
+      "parameters": {
+        "commitTime": "2026-09-28T15:25:09.078Z"
+      }
+    }
+  },
+  "auditActions": [
+    {
+      "action": "app.created",
+      "count": 4
+    },
+    {
+      "action": "enrollment.created",
+      "count": 7
+    },
+    {
+      "action": "environment.created",
+      "count": 1
+    },
+    {
+      "action": "member.added",
+      "count": 3
+    },
+    {
+      "action": "member.changed",
+      "count": 6
+    },
+    {
+      "action": "organization.created",
+      "count": 1
+    },
+    {
+      "action": "pause",
+      "count": 3
+    },
+    {
+      "action": "publish.completed",
+      "count": 4
+    },
+    {
+      "action": "publish.requested",
+      "count": 5
+    },
+    {
+      "action": "resume",
+      "count": 2
+    },
+    {
+      "action": "rollback.completed",
+      "count": 1
+    },
+    {
+      "action": "rollback.reason",
+      "count": 1
+    },
+    {
+      "action": "rollback.requested",
+      "count": 1
+    },
+    {
+      "action": "rollout",
+      "count": 6
+    },
+    {
+      "action": "token.created",
+      "count": 9
+    },
+    {
+      "action": "token.revoked",
+      "count": 5
+    }
+  ],
+  "cloudTests": {
+    "tests": 13,
+    "failures": 0,
+    "skipped": 0
+  },
+  "publisherTests": {
+    "tests": 18,
+    "failures": 0,
+    "skipped": 0
+  },
+  "portableGeneratorTests": {
+    "tests": 2,
+    "failures": 0,
+    "skipped": 0
+  },
+  "runtimeTests": {
+    "tests": 2,
+    "failures": 0,
+    "skipped": 0
+  },
+  "nativeHealthTests": {
+    "tests": 3,
+    "failures": 0,
+    "skipped": 0
+  },
+  "gradlePluginTests": {
+    "tests": 6,
+    "failures": 0,
+    "skipped": 3,
+    "note": "Three external Compose fixture tests were not repeated; visitor and compiler behavior unchanged. Phase 6 fixture evidence remains valid."
+  },
+  "hostDelivery": {
+    "signatureVerified": true,
+    "hashVerified": true,
+    "pause": true,
+    "resume": true,
+    "zeroPercent": true,
+    "ungrantedAssetDenied": true,
+    "releaseId": "d96a4e4d-73c5-4d7d-84a4-449a7d7030c1"
+  },
+  "dashboard": {
+    "status": "PASS",
+    "pages": [
+      "Apps",
+      "App overview",
+      "Releases",
+      "Release detail",
+      "Installations",
+      "Telemetry/health",
+      "Team",
+      "API tokens",
+      "Audit"
+    ],
+    "javascriptErrors": []
+  },
+  "persistence": {
+    "cloudRestart": true,
+    "xpremRestart": true,
+    "postgresRestart": true,
+    "scopedRowsIdentical": true,
+    "before": {
+      "a": {
+        "apps": {
+          "count": 1,
+          "sha256": "07a071525db9224696d6086732addacc438bd8b2b3113c207da3433c8b242ea7"
+        },
+        "environments": {
+          "count": 1,
+          "sha256": "77106197b723b1313632bf3be74af3519df7b790d091ee116a5083ea3bcd40e3"
+        },
+        "releases": {
+          "count": 4,
+          "sha256": "635088fabbaa0c6a508b6fc68feb8698f9ba2cedaec97e22d9734051ee47e7f4"
+        },
+        "installations": {
+          "count": 4,
+          "sha256": "ac089f2a86cd31d4b7b3ee4b62095dae33de07ebadc7d3d0245127d0e118fc72"
+        },
+        "events": {
+          "count": 27,
+          "sha256": "9ba02de5040a1ac83e6a221bc83f1944c9e96da33628d4f36108119272608e83"
+        },
+        "operations": {
+          "count": 4,
+          "sha256": "e5f3f9b3aa3c96d603c0fced95d6468f7e59418c1e2b44c039d893dafae32311"
+        },
+        "audit": {
+          "count": 29,
+          "sha256": "e3d091f060504ee046583aa470b2b546ae1e8847895321d3921162f94c218bbf"
+        },
+        "grants": {
+          "count": 3,
+          "sha256": "2e7cba4c44ed596644ec5c8e06d99dd4fca786cfa84f70fb7049083c9859b991"
+        }
+      },
+      "b": {
+        "apps": {
+          "count": 1,
+          "sha256": "e00d48fc10679a7266b9b2947af8774e07faab650c03d8143ae9032afa164d6f"
+        },
+        "environments": {
+          "count": 1,
+          "sha256": "7d8b3419952d2acd06666ed53df415531f8514b5a7ae47e3bfcf2fdcf47bbb42"
+        },
+        "releases": {
+          "count": 1,
+          "sha256": "e1d26c672122859e07d0e0969c8b69932df9b4469d988e448794e315c24917ed"
+        },
+        "installations": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "events": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "operations": {
+          "count": 2,
+          "sha256": "692e81e975a6be0e8e3255febcfa0b01705cd1cc6ad69c7a72626e847c5963a3"
+        },
+        "audit": {
+          "count": 13,
+          "sha256": "493efb09a2cc9a4355cb14c44bfc391e3d1c1b063df3d62d47bd0dbf65fc1185"
+        },
+        "grants": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      }
+    },
+    "after": {
+      "a": {
+        "apps": {
+          "count": 1,
+          "sha256": "07a071525db9224696d6086732addacc438bd8b2b3113c207da3433c8b242ea7"
+        },
+        "environments": {
+          "count": 1,
+          "sha256": "77106197b723b1313632bf3be74af3519df7b790d091ee116a5083ea3bcd40e3"
+        },
+        "releases": {
+          "count": 4,
+          "sha256": "635088fabbaa0c6a508b6fc68feb8698f9ba2cedaec97e22d9734051ee47e7f4"
+        },
+        "installations": {
+          "count": 4,
+          "sha256": "ac089f2a86cd31d4b7b3ee4b62095dae33de07ebadc7d3d0245127d0e118fc72"
+        },
+        "events": {
+          "count": 27,
+          "sha256": "9ba02de5040a1ac83e6a221bc83f1944c9e96da33628d4f36108119272608e83"
+        },
+        "operations": {
+          "count": 4,
+          "sha256": "e5f3f9b3aa3c96d603c0fced95d6468f7e59418c1e2b44c039d893dafae32311"
+        },
+        "audit": {
+          "count": 29,
+          "sha256": "e3d091f060504ee046583aa470b2b546ae1e8847895321d3921162f94c218bbf"
+        },
+        "grants": {
+          "count": 3,
+          "sha256": "2e7cba4c44ed596644ec5c8e06d99dd4fca786cfa84f70fb7049083c9859b991"
+        }
+      },
+      "b": {
+        "apps": {
+          "count": 1,
+          "sha256": "e00d48fc10679a7266b9b2947af8774e07faab650c03d8143ae9032afa164d6f"
+        },
+        "environments": {
+          "count": 1,
+          "sha256": "7d8b3419952d2acd06666ed53df415531f8514b5a7ae47e3bfcf2fdcf47bbb42"
+        },
+        "releases": {
+          "count": 1,
+          "sha256": "e1d26c672122859e07d0e0969c8b69932df9b4469d988e448794e315c24917ed"
+        },
+        "installations": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "events": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "operations": {
+          "count": 2,
+          "sha256": "692e81e975a6be0e8e3255febcfa0b01705cd1cc6ad69c7a72626e847c5963a3"
+        },
+        "audit": {
+          "count": 13,
+          "sha256": "493efb09a2cc9a4355cb14c44bfc391e3d1c1b063df3d62d47bd0dbf65fc1185"
+        },
+        "grants": {
+          "count": 0,
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      }
+    },
+    "migrations": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "postRestartKotlinPublication": {
+      "id": "8b83eeb4-76eb-4f56-bb3d-72a5c377fe69",
+      "organization_id": "12a0679c-fd6c-4533-888e-f2fb4af0623a",
+      "app_id": "7d041833-4ea6-48b4-b581-357626bf5d5e",
+      "environment_id": "cde94f1d-6644-4cea-b6d6-9a4d82ce4e1f",
+      "runtime": "dootah-v2-logic-2",
+      "runtime_abi": 2,
+      "logic_abi": 1,
+      "revision": "ddfdf4a+phase7",
+      "hash": "b4712c8ef76780a4637e0aad08a01977e7dc72181ff0169f44073939aac8104a",
+      "creator": "9d0cba03-4c5d-4421-a31d-2f2b3002d036",
+      "status": "ready",
+      "percentage": 0,
+      "version": 1,
+      "created_at": "2026-09-28T15:43:35.350Z",
+      "contract_digest": "2916a6618aa689e6bdd5c801e10fde6ebbef38b817f913e7d00475da1adb4168",
+      "metrics": {
+        "windowDays": 30,
+        "asOf": "2026-09-28T15:47:47.166Z",
+        "compatible": 5,
+        "eligible": 0,
+        "downloaded": 0,
+        "activated": 0,
+        "healthy": 0,
+        "rejected": 0,
+        "rollbackCount": 0,
+        "adopted": 0,
+        "adoptionPercent": null,
+        "healthPercent": null,
+        "provenance": "authenticated_device_reports",
+        "crashFree": null
+      },
+      "operation": {
+        "id": "d2dccc42-234f-485b-a0bc-c237c084d887",
+        "action": "publish",
+        "status": "succeeded",
+        "created_at": "2026-09-28T15:43:35.350Z"
+      }
+    }
+  },
+  "sandboxBoundary": "RestrictedSandbox, PortableProgram, dispatch visitor, native renderer and Expo signing/health patch unchanged; capability assets match original Phase 6 APK.",
+  "easServiceDependency": false,
+  "limitations": [
+    "Local loopback deployment; TLS termination and private backend ingress required for production.",
+    "Operator-provisioned users, upstream bindings and installation enrollment; one runtime/contract per environment.",
+    "Device reports are authenticated self-reports, not crash telemetry or attestation.",
+    "Bounded best-effort queue; expired credentials, stale batches and clock skew require operational attention; retention operator-managed.",
+    "SQL authorization uses explicit tenant predicates and composite foreign keys, not PostgreSQL row-level security."
+  ],
+  "preAcceptanceFailure": "First host publication failed hash reconciliation because JSONB serialization changed bytes. Isolated internal channel prevented distribution. Exact bytes are now retained until publish completion; failed host candidate excluded."
+}

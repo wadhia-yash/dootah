@@ -1,0 +1,70 @@
+# --- Gradle ---
+.gradle/
+build/
+
+# --- Kotlin ---
+.kotlin/
+
+# --- Node ---
+node_modules/
+
+# --- Local machine configuration (never commit: contains absolute SDK paths) ---
+local.properties
+
+# --- IDE ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# --- Eclipse / VSCode Kotlin language server output ---
+# `bin/` holds the language server's own copy of the sources it has compiled.
+# It is regenerated on every edit and drifts from the real sources under src/.
+bin/
+
+# --- OS ---
+.DS_Store
+
+# --- JVM crash / heap dumps ---
+# These are multi-hundred-MB binaries produced by OOM'd Gradle daemons.
+*.hprof
+hs_err_pid*.log
+replay_pid*.log
+
+# --- Android ---
+/captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# --- Dootah bundle signing keys ---
+# The private signing key must NEVER be committed or shipped in the APK.
+*.pem
+*.key
+dootah-signing-key*
+
+# --- Private planning/handoff files (public documentation is tracked normally) ---
+/DOOTAH_CURRENT.md
+/DOOTAH_HANDOFF.md
+
+# --- Acceptance evidence policy ---
+# Existing tracked sanitized receipts remain versioned. New evidence needs review
+# and an explicit git add -f of the individual sanitized file; never raw workspaces.
+/docs/v2/evidence/
+
+# --- Private operator/publisher state (never public documentation) ---
+.env
+.env.*
+!.env.example
+*.token
+*.ticket
+*.session
+/dootah-private/
+/dootah-state/
+/dootah-publish.json
+/installed-contract.json
+__pycache__/

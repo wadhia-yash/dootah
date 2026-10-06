@@ -1,0 +1,60 @@
+{
+  "sourceBase": "1237187ba7542686abf1d6bcf006e3dab837ee5c",
+  "fixedBug": "9G-BUG-003",
+  "permissionFixPassed": true,
+  "buildContextUmask": "077",
+  "imageAuditPassed": true,
+  "cloudRuntimeUid": 10001,
+  "xpremRuntimeUid": 10001,
+  "secretInputModes": [
+    "0400",
+    "0600"
+  ],
+  "secretSnapshotMode": "0600",
+  "secretDirectoryMode": "0700",
+  "unrelatedUidActualReadDenied": true,
+  "privateDeploymentIntegrationPassed": true,
+  "restorePassed": true,
+  "cloudTests": {
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0
+  },
+  "xpremTests": {
+    "passed": 345,
+    "failed": 0,
+    "documentedAzureExclusions": 4
+  },
+  "ngrokSmoke": {
+    "passed": false,
+    "classification": "DOCUMENTATION_BUG",
+    "finding": "9G-DOC-004",
+    "bootstrapMigrationsUserPassed": true,
+    "nonRootStartupPassed": true,
+    "containerLive": 200,
+    "containerReady": 200,
+    "initialPublicLive": 502,
+    "initialPublicReady": 502,
+    "publicTlsBypassed": false,
+    "loopbackListenerReachable": false,
+    "customerCliReached": false,
+    "xpremTunneled": false,
+    "postgresTunneled": false
+  },
+  "fullPhase9gRestarted": false,
+  "phase9hStarted": false,
+  "hostedCi": "UNVERIFIED",
+  "images": {
+    "dootah-cloud:9d": "sha256:f7fd6eebff16cd8a0245b91375840f354a62ccb17091c42bdb3ed92667830634",
+    "dootah-xprem:9d": "sha256:4a4ed6ee0dd7745b0ee49752a01c7814a267e5c198694e535e94c22275492c53"
+  },
+  "externalProductionDeployment": false,
+  "publicArtifactPublication": false,
+  "cleanup": {
+    "integrationPassed": true,
+    "smokeResourcesRemoved": true,
+    "ngrokStopped": true,
+    "temporarySmokeSecretsRemoved": true,
+    "deviceChanged": false
+  }
+}

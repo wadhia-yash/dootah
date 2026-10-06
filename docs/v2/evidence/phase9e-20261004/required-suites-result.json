@@ -1,0 +1,108 @@
+{
+  "sourceCommit": "5f6e3e2b3ba6f7af0e2e8b8b14e9a225c8767550",
+  "passed": true,
+  "suites": [
+    {
+      "id": "sdk-runtime",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "native-health",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "gradle-plugin",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "compose-fixtures",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "publisher-jvm",
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "portable-logic",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "cli",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "packaging-regressions",
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "server-audit-regression",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "deployment-config",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "cloud-api-auth",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "cloud-unit",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "cloud-database",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "cloud-signed-backend",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "xprem",
+      "passed": 345,
+      "failed": 0,
+      "skipped": 4
+    },
+    {
+      "id": "compose-restore",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "id": "ci-regressions",
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    }
+  ]
+}

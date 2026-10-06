@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-04T15:53:25.663806+00:00",
+  "classification": "PASS",
+  "scope": "9G-DOC-004 Caddy ingress correction preflight only",
+  "startingHead": "99ec6e61e607bff2e75535873d5b1060db3bcbf2",
+  "umask": "077",
+  "freshBackendState": true,
+  "reusedAuditedImages": true,
+  "services": {
+    "postgres": {
+      "health": "healthy",
+      "hostBindings": {},
+      "imageId": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
+    },
+    "xprem": {
+      "health": "healthy",
+      "hostBindings": {},
+      "imageId": "sha256:4a4ed6ee0dd7745b0ee49752a01c7814a267e5c198694e535e94c22275492c53"
+    },
+    "cloud": {
+      "health": "healthy",
+      "hostBindings": {},
+      "imageId": "sha256:f7fd6eebff16cd8a0245b91375840f354a62ccb17091c42bdb3ed92667830634"
+    },
+    "proxy": {
+      "health": "running",
+      "hostBindings": {
+        "80/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "18080"
+          }
+        ]
+      },
+      "imageId": "sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d"
+    }
+  },
+  "probes": [
+    {
+      "transport": "host loopback HTTP",
+      "path": "/live",
+      "status": 200,
+      "body": "live"
+    },
+    {
+      "transport": "host loopback HTTP",
+      "path": "/ready",
+      "status": 200,
+      "body": "ready"
+    },
+    {
+      "transport": "ngrok HTTPS",
+      "path": "/live",
+      "status": 200,
+      "body": "live"
+    },
+    {
+      "transport": "ngrok HTTPS",
+      "path": "/ready",
+      "status": 200,
+      "body": "ready"
+    }
+  ],
+  "normalTLSVerification": true,
+  "nodeHTTPS": "PASS",
+  "customerCLIAuthenticatedLoginAndOrgList": "PASS",
+  "oneTunnelTarget": "http://127.0.0.1:18080",
+  "finalCloudAndXpremPublicOriginsAgree": true,
+  "privateXpremOrigin": "http://xprem:3100",
+  "deliveryBindingAndAndroidBuild": "NOT RUN in small preflight",
+  "ngrokTokenReadOrPrinted": false,
+  "deviceChanges": false,
+  "githubHostedCI": "UNVERIFIED",
+  "full9GAcceptance": "NOT RUN",
+  "phase9HStarted": false,
+  "cleanup": "PASS: tunnel stopped, temporary stack/volumes removed, secrets and session removed"
+}

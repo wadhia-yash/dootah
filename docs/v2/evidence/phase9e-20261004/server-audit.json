@@ -1,0 +1,386 @@
+{
+  "eeDependencies": [],
+  "goModSHA256": "2f8d23294584076302db67ec4b8f5894943d093419bd77f243a79dd4376ea439",
+  "goSumSHA256": "0e32a61359b3039e3f7429e86e39268840ace93992c8772be367513ad546b588",
+  "modules": {
+    "cloud.google.com/go": {
+      "sum": "h1:ZaGT6LiG7dBzi6zNOvVZwacaXlmf3lRqnC4DQzqyRQw=",
+      "version": "v0.112.2"
+    },
+    "cloud.google.com/go/auth": {
+      "sum": "h1:PRyzEpGfx/Z9e8+lHsbkoUVXD0gnu4MNmm7Gp8TQNIs=",
+      "version": "v0.3.0"
+    },
+    "cloud.google.com/go/auth/oauth2adapt": {
+      "sum": "h1:+TTV8aXpjeChS9M+aTtN/TjdQnzJvmzKFt//oWu7HX4=",
+      "version": "v0.2.2"
+    },
+    "cloud.google.com/go/compute/metadata": {
+      "sum": "h1:pDUj4QMoPejqq20dK0Pg2N4yG9zIkYGdBtwLoEkH9Zs=",
+      "version": "v0.9.0"
+    },
+    "cloud.google.com/go/iam": {
+      "sum": "h1:r7umDwhj+BQyz0ScZMp4QrGXjSTI3ZINnpgU2nlB/K0=",
+      "version": "v1.1.8"
+    },
+    "cloud.google.com/go/storage": {
+      "sum": "h1:RusiwatSu6lHeEXe3kglxakAmAbfV+rhtPqA6i8RBx0=",
+      "version": "v1.41.0"
+    },
+    "github.com/Azure/azure-sdk-for-go/sdk/azcore": {
+      "sum": "h1:aokoqcHvaGjiM3VpjKDfMMnF/8epJ+Q1HLJ7CudztqE=",
+      "version": "v1.22.0"
+    },
+    "github.com/Azure/azure-sdk-for-go/sdk/internal": {
+      "sum": "h1:fhqpLE3UEXi9lPaBRpQ6XuRW0nU7hgg4zlmZZa+a9q4=",
+      "version": "v1.12.0"
+    },
+    "github.com/Azure/azure-sdk-for-go/sdk/storage/azblob": {
+      "sum": "h1:irsmOWwkp0KCTTNS5e2hdFeIvSQClQo2No3IaNmL3Vw=",
+      "version": "v1.8.0"
+    },
+    "github.com/andybalholm/brotli": {
+      "sum": "h1:R+f5xP285VArJDRgowrfb9DqL18yVK0gKAW/F+eTWro=",
+      "version": "v1.2.1"
+    },
+    "github.com/aws/aws-sdk-go-v2": {
+      "sum": "h1:9eOTgu1z/dVtYpNZ3/8/XbbaX0x/BqE3HUzAzs6K0ek=",
+      "version": "v1.42.1"
+    },
+    "github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream": {
+      "sum": "h1:3IZY0XAJquT3aHzbkHfPzy4ACPcEjVG0x87KOwtpqGY=",
+      "version": "v1.7.14"
+    },
+    "github.com/aws/aws-sdk-go-v2/config": {
+      "sum": "h1:XwsEzpTJfQYJbFicz/QMLwAZdyeNVVoOEkbF7R3gPJk=",
+      "version": "v1.32.30"
+    },
+    "github.com/aws/aws-sdk-go-v2/credentials": {
+      "sum": "h1:WHZGssHH887cO0ox07SIQZsFx3MKD4ps6w0xUEmnKYQ=",
+      "version": "v1.19.29"
+    },
+    "github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign": {
+      "sum": "h1:QlVVNzQp22a8buSK+Wrjg164RcL052/1wHWAboN5M44=",
+      "version": "v1.11.7"
+    },
+    "github.com/aws/aws-sdk-go-v2/feature/ec2/imds": {
+      "sum": "h1:/hi1JADLEW9YYryEz1w4GQu0EtP23pP553Cf9KgsDV4=",
+      "version": "v1.18.30"
+    },
+    "github.com/aws/aws-sdk-go-v2/internal/configsources": {
+      "sum": "h1:xM/Is9cKMHa8Jj8zkvWhvrFkZsXJV9E+BB4g0HW0duQ=",
+      "version": "v1.4.30"
+    },
+    "github.com/aws/aws-sdk-go-v2/internal/endpoints/v2": {
+      "sum": "h1:jn46zC9LdsVR/ZpMIJqMqb8hHv31BlLx3ulVqNspUOk=",
+      "version": "v2.7.30"
+    },
+    "github.com/aws/aws-sdk-go-v2/internal/v4a": {
+      "sum": "h1:3GUprIsfmGcC5SACIyB0e7E0BM1O1b3Erl5CePYIAeQ=",
+      "version": "v1.4.31"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding": {
+      "sum": "h1:mbRIur/BiHK6SKPjoBIXSE/hJ6g6JGRLuxQy1jGjlN4=",
+      "version": "v1.13.13"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/internal/checksum": {
+      "sum": "h1:9Fjh6fi/U5JEStVZijmaMpUwE/gvBJj7x2B/PjbO9To=",
+      "version": "v1.9.23"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/internal/presigned-url": {
+      "sum": "h1:/Z5jmNrKsSD7EmDjzAPsm/3L9IuOkzaynklJZ1qX7S4=",
+      "version": "v1.13.30"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/internal/s3shared": {
+      "sum": "h1:uao4A3QZ5UmB326V6KF+qRpv9Tjz7IlnlnTbbANntlU=",
+      "version": "v1.19.31"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/s3": {
+      "sum": "h1:5C00eQYpTrgQXnp6V3P6P7zPElna3AXvlukbANE6nJI=",
+      "version": "v1.105.2"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/secretsmanager": {
+      "sum": "h1:ZI18/nuaDBwwMJ95paJrb4NT2TbqEvptj/rlMkEO7DI=",
+      "version": "v1.43.1"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/signin": {
+      "sum": "h1:V7ZZ300WPXGjvkyore5DGe0ljVPOxCXie/thWdtSBXE=",
+      "version": "v1.4.1"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/sso": {
+      "sum": "h1:gYFYh4iLLcAOJRLNPY2aD2g9DIhKn4eof8UkIrr1rTk=",
+      "version": "v1.32.1"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/ssooidc": {
+      "sum": "h1:arjT9Cm3/WYbGmD5TUZHk4UQn4Lle1fUNZs5FC6CtF0=",
+      "version": "v1.37.1"
+    },
+    "github.com/aws/aws-sdk-go-v2/service/sts": {
+      "sum": "h1:RvfHDg+xvAeZ+5741vUEjpOVtYSIm93W2zhx10Xtydw=",
+      "version": "v1.44.1"
+    },
+    "github.com/aws/smithy-go": {
+      "sum": "h1:F3Zb497UhhskkfpJmfkXswyo+t0sh9OTBnIHjogWbVY=",
+      "version": "v1.27.3"
+    },
+    "github.com/beorn7/perks": {
+      "sum": "h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=",
+      "version": "v1.0.1"
+    },
+    "github.com/cespare/xxhash/v2": {
+      "sum": "h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=",
+      "version": "v2.3.0"
+    },
+    "github.com/dgryski/go-rendezvous": {
+      "sum": "h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=",
+      "version": "v0.0.0-20200823014737-9f7001d12a5f"
+    },
+    "github.com/dsnet/compress": {
+      "sum": "h1:PlZu0n3Tuv04TzpfPbrnI0HW/YwodEXDS+oPKahKF0Q=",
+      "version": "v0.0.1"
+    },
+    "github.com/felixge/httpsnoop": {
+      "sum": "h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=",
+      "version": "v1.0.4"
+    },
+    "github.com/go-logr/logr": {
+      "sum": "h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=",
+      "version": "v1.4.3"
+    },
+    "github.com/go-logr/stdr": {
+      "sum": "h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=",
+      "version": "v1.2.2"
+    },
+    "github.com/golang-jwt/jwt/v5": {
+      "sum": "h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63YCY=",
+      "version": "v5.3.1"
+    },
+    "github.com/golang/groupcache": {
+      "sum": "h1:oI5xCqsCo564l8iNU+DwB5epxmsaqB+rhGL0m5jtYqE=",
+      "version": "v0.0.0-20210331224755-41bb18bfe9da"
+    },
+    "github.com/golang/protobuf": {
+      "sum": "h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=",
+      "version": "v1.5.4"
+    },
+    "github.com/google/s2a-go": {
+      "sum": "h1:60BLSyTrOV4/haCDW4zb1guZItoSq8foHCXrAnjBo/o=",
+      "version": "v0.1.7"
+    },
+    "github.com/google/uuid": {
+      "sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+      "version": "v1.6.0"
+    },
+    "github.com/googleapis/enterprise-certificate-proxy": {
+      "sum": "h1:Vie5ybvEvT75RniqhfFxPRy3Bf7vr3h0cechB90XaQs=",
+      "version": "v0.3.2"
+    },
+    "github.com/googleapis/gax-go/v2": {
+      "sum": "h1:9gWcmF85Wvq4ryPFvGFaOgPIs1AQX0d0bcbGw4Z96qg=",
+      "version": "v2.12.4"
+    },
+    "github.com/gorilla/mux": {
+      "sum": "h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=",
+      "version": "v1.8.1"
+    },
+    "github.com/jackc/pgpassfile": {
+      "sum": "h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=",
+      "version": "v1.0.0"
+    },
+    "github.com/jackc/pgservicefile": {
+      "sum": "h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=",
+      "version": "v0.0.0-20240606120523-5a60cdf6a761"
+    },
+    "github.com/jackc/pgx/v5": {
+      "sum": "h1:VhSvgU2jSli8o3AqIEOTJr7rZwAEUVo4E4XhR94Zfr0=",
+      "version": "v5.10.0"
+    },
+    "github.com/jackc/puddle/v2": {
+      "sum": "h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=",
+      "version": "v2.2.2"
+    },
+    "github.com/joho/godotenv": {
+      "sum": "h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=",
+      "version": "v1.5.1"
+    },
+    "github.com/klauspost/compress": {
+      "sum": "h1:2jupLlAwFm95+YDR+NwD2MEfFO9d4z4Prjl1XXDjuao=",
+      "version": "v1.18.6"
+    },
+    "github.com/mfridman/interpolate": {
+      "sum": "h1:pnuTK7MQIxxFz1Gr+rjSIx9u7qVjf5VOoM/u6BbAxPY=",
+      "version": "v0.0.2"
+    },
+    "github.com/modelcontextprotocol/go-sdk": {
+      "sum": "h1:yqjY2dsbKAC0LSuWZVBMrHgiG8ukXv6NRo0JiALay44=",
+      "version": "v1.7.0"
+    },
+    "github.com/munnerz/goautoneg": {
+      "sum": "h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=",
+      "version": "v0.0.0-20191010083416-a7dc8b61c822"
+    },
+    "github.com/pressly/goose/v3": {
+      "sum": "h1:KJakav68jdH0WDvoAcj8+n61WqOIaPGgH0bJWS6jpmM=",
+      "version": "v3.26.0"
+    },
+    "github.com/prometheus/client_golang": {
+      "sum": "h1:cxppBPuYhUnsO6yo/aoRol4L7q7UFfdm+bR9r+8l63Y=",
+      "version": "v1.20.5"
+    },
+    "github.com/prometheus/client_model": {
+      "sum": "h1:ZKSh/rekM+n3CeS952MLRAdFwIKqeY8b62p8ais2e9E=",
+      "version": "v0.6.1"
+    },
+    "github.com/prometheus/common": {
+      "sum": "h1:KEi6DK7lXW/m7Ig5i47x0vRzuBsHuvJdi5ee6Y3G1dc=",
+      "version": "v0.55.0"
+    },
+    "github.com/prometheus/procfs": {
+      "sum": "h1:YagwOFzUgYfKKHX6Dr+sHT7km/hxC76UB0learggepc=",
+      "version": "v0.15.1"
+    },
+    "github.com/redis/go-redis/v9": {
+      "sum": "h1:pMkxYPkEbMPwRdenAzUNyFNrDgHx9U+DrBabWNfSRQs=",
+      "version": "v9.18.0"
+    },
+    "github.com/riverqueue/river": {
+      "sum": "h1:gjp+eYx5sB+sA14URXls6EHdXOTbHRnXGN5u+FvYnH0=",
+      "version": "v0.45.0"
+    },
+    "github.com/riverqueue/river/riverdriver": {
+      "sum": "h1:oGSiSw5Pjv6toclmsvcc1VCWhtQXvB0DnA8CGzK+5/k=",
+      "version": "v0.45.0"
+    },
+    "github.com/riverqueue/river/riverdriver/riverpgxv5": {
+      "sum": "h1:6ST4tuudkk2rJrGxmlDDKOi09jI3R/30sd3Csq03QD0=",
+      "version": "v0.45.0"
+    },
+    "github.com/riverqueue/river/rivershared": {
+      "sum": "h1:xWEqjaNBhqpE5QpPcCcPTXZNzPajI5PIYcMVdAjH0sM=",
+      "version": "v0.45.0"
+    },
+    "github.com/riverqueue/river/rivertype": {
+      "sum": "h1:AITFM9ZB+kkd/PsWT7YuQ211V/kPCSv4awjSfnHVWMs=",
+      "version": "v0.45.0"
+    },
+    "github.com/segmentio/asm": {
+      "sum": "h1:DTNbBqs57ioxAD4PrArqftgypG4/qNpXoJx8TVXxPR0=",
+      "version": "v1.2.1"
+    },
+    "github.com/segmentio/encoding": {
+      "sum": "h1:OW1VRern8Nw6ITAtwSZ7Idrl3MXCFwXHPgqESYfvNt0=",
+      "version": "v0.5.4"
+    },
+    "github.com/sethvargo/go-retry": {
+      "sum": "h1:EEt31A35QhrcRZtrYFDTBg91cqZVnFL2navjDrah2SE=",
+      "version": "v0.3.0"
+    },
+    "github.com/tidwall/gjson": {
+      "sum": "h1:xwxm7n691Uf3u5OFjzngavjGTh55KX5q/9w9xHW88JU=",
+      "version": "v1.19.0"
+    },
+    "github.com/tidwall/match": {
+      "sum": "h1:0pt8FlkOwjN2fPt4bIl4BoNxb98gGHN2ObFEDkrfZnM=",
+      "version": "v1.2.0"
+    },
+    "github.com/tidwall/pretty": {
+      "sum": "h1:qjsOFOWWQl+N3RsoF5/ssm1pHmJJwhjlSbZ51I6wMl4=",
+      "version": "v1.2.1"
+    },
+    "github.com/tidwall/sjson": {
+      "sum": "h1:kLy8mja+1c9jlljvWTlSazM7cKDRfJuR/bOJhcY5NcY=",
+      "version": "v1.2.5"
+    },
+    "go.opencensus.io": {
+      "sum": "h1:y73uSU6J157QMP2kn2r30vwW1A2W2WFwSCGnAVxeaD0=",
+      "version": "v0.24.0"
+    },
+    "go.opentelemetry.io/auto/sdk": {
+      "sum": "h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=",
+      "version": "v1.2.1"
+    },
+    "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc": {
+      "sum": "h1:4Pp6oUg3+e/6M4C0A/3kJ2VYa++dsWVTtGgLVj5xtHg=",
+      "version": "v0.49.0"
+    },
+    "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp": {
+      "sum": "h1:8tvICD4vSTOOsNrsI4Ljf6C+6UKvpTEH5XY3JMoyPoo=",
+      "version": "v0.69.0"
+    },
+    "go.opentelemetry.io/otel": {
+      "sum": "h1:JjwHmHpA4iZ3wBxluu2fbbE7j4kqlE8jXyAyPXH7HqU=",
+      "version": "v1.44.0"
+    },
+    "go.opentelemetry.io/otel/metric": {
+      "sum": "h1:1w0gILTcHdr3YI+ixLyjemwrVnsMURbTZFrSYCdDdmc=",
+      "version": "v1.44.0"
+    },
+    "go.opentelemetry.io/otel/trace": {
+      "sum": "h1:jxF5CsGYCe74MCRx2X4g7WsY/VBKRqqpNvXlX/6gtIk=",
+      "version": "v1.44.0"
+    },
+    "go.uber.org/atomic": {
+      "sum": "h1:ZvwS0R+56ePWxUNi+Atn9dWONBPp/AUETXlHW0DxSjE=",
+      "version": "v1.11.0"
+    },
+    "go.uber.org/multierr": {
+      "sum": "h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=",
+      "version": "v1.11.0"
+    },
+    "golang.org/x/crypto": {
+      "sum": "h1:YLIA59K4fiNzHzjnZt2tUJQjQtUWfWbeHBqKtk3eScw=",
+      "version": "v0.54.0"
+    },
+    "golang.org/x/net": {
+      "sum": "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE=",
+      "version": "v0.57.0"
+    },
+    "golang.org/x/oauth2": {
+      "sum": "h1:peZ/1z27fi9hUOFCAZaHyrpWG5lwe0RJEEEeH0ThlIs=",
+      "version": "v0.36.0"
+    },
+    "golang.org/x/sync": {
+      "sum": "h1:SZjpbeLmrCk4xhRSZFNZW5gFUeCeFgjekvI/+gfScek=",
+      "version": "v0.22.0"
+    },
+    "golang.org/x/sys": {
+      "sum": "h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=",
+      "version": "v0.47.0"
+    },
+    "golang.org/x/text": {
+      "sum": "h1:vz/seA0lnX87Othu2f/0L24RcgrXD9/YFTSuGjj3rH8=",
+      "version": "v0.41.0"
+    },
+    "golang.org/x/time": {
+      "sum": "h1:bbrp8t3bGUeFOx08pvsMYRTCVSMk89u4tKbNOZbp88U=",
+      "version": "v0.15.0"
+    },
+    "google.golang.org/api": {
+      "sum": "h1:yoW/QMI4bRVCHF+NWOTa4cL8MoWL3Jnuc7FlcFF91Ok=",
+      "version": "v0.178.0"
+    },
+    "google.golang.org/genproto": {
+      "sum": "h1:wu/KJm9KJwpfHWhkkZGohVC6KRrc1oJNr4jwtQMOQXw=",
+      "version": "v0.0.0-20240401170217-c3f982113cda"
+    },
+    "google.golang.org/genproto/googleapis/api": {
+      "sum": "h1:yQugLulqltosq0B/f8l4w9VryjV+N/5gcW0jQ3N8Qec=",
+      "version": "v0.0.0-20260414002931-afd174a4e478"
+    },
+    "google.golang.org/genproto/googleapis/rpc": {
+      "sum": "h1:RmoJA1ujG+/lRGNfUnOMfhCy5EipVMyvUE+KNbPbTlw=",
+      "version": "v0.0.0-20260414002931-afd174a4e478"
+    },
+    "google.golang.org/grpc": {
+      "sum": "h1:NnAxzGRA0677vCa4BUkOAnO5+FfQqVl9iUXeD0IqcGE=",
+      "version": "v1.82.1"
+    },
+    "google.golang.org/protobuf": {
+      "sum": "h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=",
+      "version": "v1.36.11"
+    }
+  },
+  "packages": 837,
+  "sourceFiles": 4071,
+  "unchangedUpstreamFilesVerified": 341
+}

@@ -1,0 +1,8 @@
+# Alpha validation only. Requires Compose >= 2.24.4 for !override.
+# Preserve Cloud's internal networks; only the existing proxy reaches the host.
+services:
+  proxy:
+    ports: !override
+      - "127.0.0.1:18080:80"
+    volumes:
+      - ./Caddyfile.ngrok:/etc/caddy/Caddyfile:ro

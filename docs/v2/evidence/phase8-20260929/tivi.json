@@ -1,0 +1,13 @@
+{
+    "key": "tivi",
+    "native": "PASS",
+    "integrated": "FAIL",
+    "reasons": [
+        "checkAarMetadata: androidx.core:core-ktx 1.17.0 (requested by dev.dootah.internal:expo-modules-core:0.6.0-local) requires compileSdk >= 36 and AGP >= 8.9.1; Tivi uses compileSdk 34, AGP 8.7.2",
+        "licensee: RN/Meta artifacts declare MIT URLs outside the app allowlist; dev.dootah:runtime-v2 and 11 dev.dootah.internal artifacts declare no licenses"
+    ],
+    "classification": [
+        "TOOLCHAIN_COMPATIBILITY",
+        "DOOTAH packaging metadata gap (deferred: product license decision)"
+    ]
+}

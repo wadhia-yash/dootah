@@ -1,0 +1,147 @@
+name: ${COMPOSE_PROJECT_NAME:-dootah}
+x-cloud-env: &cloud-env
+  DOOTAH_MODE: production
+  NODE_ENV: production
+  DOOTAH_CLOUD_HOST: 0.0.0.0
+  DOOTAH_CLOUD_ORIGIN: ${DOOTAH_CLOUD_ORIGIN:?set HTTPS origin}
+  DOOTAH_XPREM_ORIGIN: http://xprem:3100
+  DOOTAH_CLOUD_DATABASE_URL_FILE: /run/private/cloud-runtime-url
+  DOOTAH_DELIVERY_BINDINGS: /run/private/bindings.json
+  # Only Caddy's pinned ingress address may supply X-Forwarded-For.
+  DOOTAH_TRUSTED_PROXIES: ${DOOTAH_INGRESS_PREFIX:-10.231.47}.14
+x-xprem-env: &xprem-env
+  DOOTAH_MODE: production
+  BASE_URL: ${DOOTAH_CLOUD_ORIGIN:?set HTTPS origin}
+  DB_URL_FILE: /run/private/xprem-runtime-url
+  DB_KEYS_MASTER_KEY_B64_FILE: /run/private/master-key
+  JWT_SECRET_FILE: /run/private/xprem-jwt
+  STORAGE_MODE: local
+  LOCAL_BUCKET_BASE_PATH: /state/assets
+  BIND_TO_ADDRESS: 0.0.0.0
+  PORT: "3100"
+  BUNDLE_DIFFING: "false"
+  DISABLE_TELEMETRY: "true"
+  DISABLE_DEVICE_TELEMETRY: "true"
+  SKIP_LEGACY_APP_ID_FALLBACK: "true"
+x-cloud: &cloud
+  image: dootah-cloud:9d
+  networks: [backend]
+  tmpfs: [/tmp, /run/private]
+  read_only: true
+  security_opt: [no-new-privileges:true]
+x-xprem: &xprem
+  image: dootah-xprem:9d
+  networks: [backend]
+  volumes: [xprem-state:/state]
+  tmpfs: [/tmp, /run/private]
+  read_only: true
+  security_opt: [no-new-privileges:true]
+services:
+  postgres:
+    image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    restart: unless-stopped
+    networks: [backend]
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+    secrets: [postgres-password]
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  cloud:
+    <<: *cloud
+    restart: unless-stopped
+    networks: [ingress, backend]
+    environment: *cloud-env
+    secrets:
+      - {source: cloud-runtime-url, target: /run/input/cloud-runtime-url}
+      - {source: bindings, target: /run/input/bindings.json}
+    depends_on:
+      postgres: {condition: service_healthy}
+  xprem:
+    <<: *xprem
+    restart: unless-stopped
+    stop_grace_period: 20s
+    environment: *xprem-env
+    secrets:
+      - {source: xprem-runtime-url, target: /run/input/xprem-runtime-url}
+      - {source: master-key, target: /run/input/master-key}
+      - {source: xprem-jwt, target: /run/input/xprem-jwt}
+    depends_on:
+      postgres: {condition: service_healthy}
+  proxy:
+    image: caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
+    restart: unless-stopped
+    networks:
+      edge: {}
+      ingress: {ipv4_address: "${DOOTAH_INGRESS_PREFIX:-10.231.47}.14"}
+    environment:
+      DOOTAH_SITE: ${DOOTAH_SITE:?set domain}
+    ports:
+      - "${DOOTAH_BIND_IP:-0.0.0.0}:${DOOTAH_HTTP_PORT:-80}:80"
+      - "${DOOTAH_BIND_IP:-0.0.0.0}:${DOOTAH_HTTPS_PORT:-443}:443"
+    volumes:
+      - ${DOOTAH_CADDYFILE:?set Caddyfile path}:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      cloud: {condition: service_healthy}
+  cloud-migrate:
+    <<: *cloud
+    profiles: [operator]
+    environment:
+      DOOTAH_CLOUD_DATABASE_URL_FILE: /run/private/cloud-owner-url
+    secrets:
+      - {source: cloud-owner-url, target: /run/input/cloud-owner-url}
+    command: [node, admin.mjs, migrate]
+  cloud-user:
+    <<: *cloud
+    profiles: [operator]
+    environment:
+      DOOTAH_CLOUD_DATABASE_URL_FILE: /run/private/cloud-owner-url
+      DOOTAH_INITIAL_PASSWORD_FILE: /run/private/initial-password
+    secrets:
+      - {source: cloud-owner-url, target: /run/input/cloud-owner-url}
+      - {source: initial-password, target: /run/input/initial-password}
+    command: [node, admin.mjs, user, "${DOOTAH_OPERATOR_EMAIL:?set operator email}"]
+  xprem-migrate:
+    <<: *xprem
+    profiles: [operator]
+    environment:
+      <<: *xprem-env
+      DB_URL_FILE: /run/private/xprem-owner-url
+      ADMIN_EMAIL: ${DOOTAH_OPERATOR_EMAIL:?set operator email}
+      ADMIN_PASSWORD_FILE: /run/private/initial-password
+    secrets:
+      - {source: xprem-owner-url, target: /run/input/xprem-owner-url}
+      - {source: master-key, target: /run/input/master-key}
+      - {source: xprem-jwt, target: /run/input/xprem-jwt}
+      - {source: initial-password, target: /run/input/initial-password}
+    command: [-migrate]
+networks:
+  edge: {}
+  # Declared so Caddy's address is stable; dynamic addresses (Cloud) stay below .8.
+  ingress:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${DOOTAH_INGRESS_PREFIX:-10.231.47}.0/28
+          ip_range: ${DOOTAH_INGRESS_PREFIX:-10.231.47}.0/29
+  backend: {internal: true}
+volumes:
+  postgres-data: {}
+  xprem-state: {}
+  caddy-data: {}
+  caddy-config: {}
+secrets:
+  postgres-password: {file: "${DOOTAH_SECRETS_DIR:?set secret directory}/postgres-password"}
+  cloud-runtime-url: {file: "${DOOTAH_SECRETS_DIR}/cloud-runtime-url"}
+  cloud-owner-url: {file: "${DOOTAH_SECRETS_DIR}/cloud-owner-url"}
+  xprem-runtime-url: {file: "${DOOTAH_SECRETS_DIR}/xprem-runtime-url"}
+  xprem-owner-url: {file: "${DOOTAH_SECRETS_DIR}/xprem-owner-url"}
+  master-key: {file: "${DOOTAH_SECRETS_DIR}/master-key"}
+  xprem-jwt: {file: "${DOOTAH_SECRETS_DIR}/xprem-jwt"}
+  initial-password: {file: "${DOOTAH_SECRETS_DIR}/initial-password"}
+  bindings: {file: "${DOOTAH_SECRETS_DIR}/bindings.json"}

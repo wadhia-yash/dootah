@@ -1,0 +1,50 @@
+[
+  {
+    "component": "boost",
+    "version": "1_83_0",
+    "license": "BSL-1.0",
+    "origin": "https://raw.githubusercontent.com/boostorg/boost/boost-1.83.0/LICENSE_1_0.txt",
+    "notice": "boost-1_83_0-LICENSE",
+    "sha256": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
+  },
+  {
+    "component": "doubleconversion",
+    "version": "1.1.6",
+    "license": "BSD-3-Clause",
+    "origin": "https://raw.githubusercontent.com/google/double-conversion/v1.1.6/LICENSE",
+    "notice": "doubleconversion-1.1.6-LICENSE",
+    "sha256": "4af93c12062c58058378de2397dc1c92bbff9ddfb1d583a01c84127557ce97ca"
+  },
+  {
+    "component": "fmt",
+    "version": "12.1.0",
+    "license": "MIT",
+    "origin": "https://raw.githubusercontent.com/fmtlib/fmt/12.1.0/LICENSE",
+    "notice": "fmt-12.1.0-LICENSE",
+    "sha256": "07580f2a3b35709ce703d523f447b242f6dfec7582a8c0df102c7fa2849375f8"
+  },
+  {
+    "component": "folly",
+    "version": "2024.11.18.00",
+    "license": "Apache-2.0",
+    "origin": "https://raw.githubusercontent.com/facebook/folly/v2024.11.18.00/LICENSE",
+    "notice": "folly-2024.11.18.00-LICENSE",
+    "sha256": "2206c00af7013581ae0d7c8c8a0089f02fab621913daac019b32336bd4d1e1db"
+  },
+  {
+    "component": "glog",
+    "version": "0.3.5",
+    "license": "BSD-3-Clause",
+    "origin": "https://raw.githubusercontent.com/google/glog/v0.3.5/COPYING",
+    "notice": "glog-0.3.5-LICENSE",
+    "sha256": "0fc497129c5c69ff6f22da6933c7e4aaef082fde8437fd57680c2780100772a4"
+  },
+  {
+    "component": "fastFloat",
+    "version": "8.0.0",
+    "license": "MIT",
+    "origin": "https://raw.githubusercontent.com/fastfloat/fast_float/v8.0.0/LICENSE-MIT",
+    "notice": "fastFloat-8.0.0-LICENSE",
+    "sha256": "e562f3f974ced7e69dd1db77b820b36bcf8f30377f1aa105723fba449c53c4e6"
+  }
+]

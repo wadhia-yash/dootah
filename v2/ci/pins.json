@@ -1,0 +1,15 @@
+{
+  "v2/runtime-spike/package.json": "787618fa6e3e0b0c7bd1f640d8f8bd4548292878de8728ec3092c7110c1d142c",
+  "v2/runtime-spike/package-lock.json": "518bf48d954406e3edf83fa4be17aa937b3efca2330b9b314fd43675d436a12d",
+  "v2/cloud/package.json": "aa37b1b4b0fc5fec89fdd89708afca6436d69f4fde2b840cb8bcefd5e0295f78",
+  "v2/cloud/package-lock.json": "e5ace2681c03ce28951d47978195af635511cd626fb9404938305c2b1cb5a881",
+  "v2/native-consumer/build.gradle": "1f6b3f24e86ad886e24f35fe488be69d753a371d63c478e80d6b0f60e03cd450",
+  "v2/android-sdk/gradle-plugin/build.gradle": "aa961c1dc70f8389bb42a0e1d3d0bed6048d3a2cb345a7e618f81c211bb19766",
+  "v2/publishing/build.gradle": "2b82a1f5ce298368c8e3962ad37b64ecdc8b1d1c89e01b2a4de665e84128002e",
+  "v2/deploy/Cloud.Dockerfile": "70d7f08efc3fd8e8dbbedc051b43847e309ad6947730c54ff5b9625a43099372",
+  "v2/deploy/Xprem.Dockerfile": "2be314e3064a1689ee8cba9052552cf15a13b61c60c9ff7a657ffa09a2220531",
+  "v2/server/prepare.sh": "c5cf421a2388c21ee18187b6a53a808a0cc779b15b1edf411c1e16098713400c",
+  "v2/ci/Tools.Dockerfile": "61eb7ae786842d5112a3ffe0c105973a14a21bf2065d00743edeb3cb68399e9f",
+  "v2/server/build.sh": "1fd7b6f8a36d56becd00fd5cec1d682d3461e3764f29bcfb95b9c92a11d069dc",
+  "v2/deploy/compose.yaml": "bfa290c443193fe6a422086972085fcca00d759c032d6d23a0fb924318eec709"
+}

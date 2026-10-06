@@ -1,0 +1,14 @@
+[
+  {
+    "name": "dootah-cloud:9d",
+    "id": "sha256:bc04dfc27cca854ae0033a87b69307b145968e5a771b283a66022fbef1f7da39",
+    "architecture": "amd64",
+    "os": "linux"
+  },
+  {
+    "name": "dootah-xprem:9d",
+    "id": "sha256:71015e6fffbc0deb03e3d79de7a11659d4b0674e4259caca35d8e662a65047ed",
+    "architecture": "amd64",
+    "os": "linux"
+  }
+]

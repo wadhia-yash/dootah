@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "job": "security",
+  "sourceCommit": "5f6e3e2b3ba6f7af0e2e8b8b14e9a225c8767550",
+  "suites": [
+    {
+      "id": "ci-regressions",
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "passed": true,
+  "freshCheckout": true,
+  "emptyDependencyCaches": true,
+  "externalPublication": false
+}

@@ -1,0 +1,186 @@
+{
+  "phase": "9C",
+  "passed": true,
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "publicSdk": "0.1.0-alpha.1",
+  "standaloneTool": true,
+  "debugRetention": true,
+  "r8Retention": true,
+  "customerDatabaseWrites": false,
+  "manualIds": false,
+  "stageManifestSha256": "8f26fc3ef1346e6e3eaa1dfec3d6b18251756c4e7d033c6779e4d83432bb27d7",
+  "startingHead": "d54db5b59c0bbe59f059f7caa5f2c2850f995e41",
+  "implementationCommits": [
+    "1748741",
+    "3351989"
+  ],
+  "harnessSha256": "ae6a0117050e453463ba2c6e092c7a0bb62e1e3f62fa2d02cbc65f260f5b2f73",
+  "tests": [
+    {
+      "name": "Gradle plugin and retention",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "Real Compose fixtures",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "Publisher JVM",
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "Runtime",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "Native health",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "CLI, portable and server audit Node tests",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "Packaging regression tests",
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "Cloud API/auth/database/signed backend",
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "Isolated full CLI acceptance",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "passed": 83,
+    "failed": 0,
+    "skipped": 0
+  },
+  "records": [
+    {
+      "case": "customer-a-debug",
+      "metadata": {
+        "agpVersion": "8.12.0",
+        "applicationId": "example.customer",
+        "channel": "development",
+        "gradleVersion": "9.3.1",
+        "kotlinVersion": "2.1.20",
+        "runtimeVersion": "dootah-v2-logic-2",
+        "sdkVersion": "0.1.0-alpha.1",
+        "variant": "debug"
+      },
+      "apkSha256": "fccd5fb551b659123ff6946743f982dc78c8bb8abc07f5cee2a8702d5036f699",
+      "recordSha256": "6f6313d1af0a7c5e7703a28ef8a9993610bad5f8a434bc1c94305c21c6604678",
+      "retainedClasses": 319,
+      "hooks": 1,
+      "sourceFiles": 1,
+      "sourceRoots": [
+        "src/debug/java",
+        "src/debug/kotlin",
+        "src/main/java",
+        "src/main/kotlin"
+      ]
+    },
+    {
+      "case": "customer-b-debug",
+      "metadata": {
+        "agpVersion": "8.12.0",
+        "applicationId": "example.customer",
+        "channel": "development",
+        "gradleVersion": "9.3.1",
+        "kotlinVersion": "2.1.20",
+        "runtimeVersion": "dootah-v2-logic-2",
+        "sdkVersion": "0.1.0-alpha.1",
+        "variant": "debug"
+      },
+      "apkSha256": "229cfffd103cfc341c55419c944d97caebaa8a3f21b0749eb4a61c3a75312450",
+      "recordSha256": "f7a8dd8b78d481b9de1c9b696c2f292863c4f0055d9cd2dcc2ff1e53c4c18f2f",
+      "retainedClasses": 319,
+      "hooks": 1,
+      "sourceFiles": 1,
+      "sourceRoots": [
+        "src/debug/java",
+        "src/debug/kotlin",
+        "src/main/java",
+        "src/main/kotlin"
+      ]
+    },
+    {
+      "case": "customer-b-r8",
+      "metadata": {
+        "agpVersion": "8.12.0",
+        "applicationId": "example.customer",
+        "channel": "development",
+        "gradleVersion": "9.3.1",
+        "kotlinVersion": "2.1.20",
+        "runtimeVersion": "dootah-v2-logic-2",
+        "sdkVersion": "0.1.0-alpha.1",
+        "variant": "release"
+      },
+      "apkSha256": "c59f026ffbda52acf88618469081326e6de517e67af48805704aa69b425d70ad",
+      "recordSha256": "50b8594471c440e3a89f09140957edf75e3a71f525cfe1ad0c6c2154b287a1c2",
+      "retainedClasses": 318,
+      "hooks": 1,
+      "sourceFiles": 1,
+      "sourceRoots": [
+        "src/main/java",
+        "src/main/kotlin",
+        "src/release/java",
+        "src/release/kotlin"
+      ]
+    }
+  ],
+  "customerActions": [
+    "login",
+    "org create/list",
+    "app create/list",
+    "Debug retention",
+    "release import",
+    "env create",
+    "idempotent contract registration",
+    "mismatched app/runtime refusal",
+    "scoped token creation/denial/revocation",
+    "Kotlin edit",
+    "analyze",
+    "Cloud publish",
+    "release list/inspect",
+    "rollout 25%",
+    "pause",
+    "resume",
+    "rollout 100%",
+    "signed rollback",
+    "operation inspect/signatureVerified",
+    "enrollment ticket",
+    "R8 retention/import"
+  ],
+  "runtimeBehaviorChanged": false,
+  "deviceTestRequired": false,
+  "externalDeployment": false,
+  "publicPublication": false,
+  "manualHookIds": false,
+  "manualClassHashes": false,
+  "manualAgpPaths": false,
+  "outOfRepositoryHelpers": false,
+  "retainedArtifactsCommitted": false
+}

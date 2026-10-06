@@ -1,0 +1,50 @@
+// Producer only: publish upstream AARs separately, retaining normal Maven transitivity.
+ext.dootahSdkDirectory = file('../../android-sdk')
+apply from: '../../android-sdk/versions.gradle'
+def sdkVersion = dootahSdkVersion
+subprojects { p ->
+    p.plugins.withId('com.android.library') {
+        p.apply plugin: 'maven-publish'
+        p.android.publishing { singleVariant('release') { withSourcesJar() } }
+        p.afterEvaluate {
+            p.group = p.name == 'runtime-v2' ? 'dev.dootah' : 'dev.dootah.internal'
+            p.version = p.name == 'runtime-v2' ? sdkVersion : rootProject.dootahInternalVersion
+            p.publishing {
+                publications {
+                    dootah(MavenPublication) {
+                        from p.components.release
+                        artifactId = p.name
+                        versionMapping { allVariants { fromResolutionOf('releaseRuntimeClasspath') } }
+                    }
+                }
+                repositories { maven { name = 'Dootah'; url = rootProject.dootahRepository } }
+            }
+        }
+    }
+}
+
+// These SDK 57 modules ship prebuilt Maven repositories inside the pinned npm tree.
+def mirror = tasks.register('mirrorDootahPrebuiltModules', Copy) {
+    ['expo-asset', 'expo-file-system', 'expo-font', 'expo-keep-awake', '@expo/dom-webview'].each { name ->
+        from rootProject.file("../node_modules/expo/node_modules/${name}/local-maven-repo")
+    }
+    into rootProject.dootahRepository
+}
+subprojects { p ->
+    p.tasks.withType(PublishToMavenRepository).configureEach { dependsOn mirror }
+    if (p.name == 'expo-constants') {
+        p.tasks.configureEach { t ->
+            if (t.name == 'createExpoConfig') {
+                // The reusable engine must carry no producer app identity/configuration.
+                t.doLast { p.file("${p.buildDir}/generated/assets/expo-constants/app.config").text = '{}' }
+            }
+        }
+    }
+    if (p.name == 'expo-updates') {
+        p.plugins.withId('com.android.library') {
+            p.android.sourceSets.test.java.srcDir rootProject.file('../../android-sdk/tests/health')
+        }
+    }
+}
+
+apply from: '../../android-sdk/release/inventory.gradle'

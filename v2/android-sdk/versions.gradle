@@ -1,0 +1,15 @@
+def versions = new Properties()
+new File(dootahSdkDirectory, 'version.properties').withInputStream { versions.load(it) }
+ext.dootahSdkVersion = versions.getProperty(providers.gradleProperty('dootahReleaseStage').isPresent()
+    ? 'dootah.public.version' : 'dootah.sdk.version')
+// Development coordinates change with the locked upstream inputs and maintained patch.
+// Release staging replaces this provisional version with a digest of the packaged bytes.
+def digest = java.security.MessageDigest.getInstance('SHA-256')
+def sdk = dootahSdkDirectory
+[new File(sdk, '../runtime-spike/package-lock.json'),
+ new File(sdk, '../runtime-spike/patches/expo-updates+57.0.23.patch'),
+ new File(sdk, 'publish.gradle')].each { digest.update(it.bytes) }
+ext.dootahInternalVersion = versions.getProperty('dootah.internal.version') + '.sha256-' + digest.digest().encodeHex()
+ext.dootahRepository = providers.gradleProperty('dootahRepository').map { file(it) }
+    .getOrElse(new File(sdk, 'build/maven'))
+if (dootahRepository.toURI().scheme != 'file') throw new GradleException('Only local publication is supported')

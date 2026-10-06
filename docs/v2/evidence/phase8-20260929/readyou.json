@@ -1,0 +1,1072 @@
+{
+ "key": "readyou",
+ "installedContract": {
+  "schema": 2,
+  "irAbi": 2,
+  "dispatchAbi": 2,
+  "capabilities": {
+   "logicAbi": 1,
+   "capabilities": {
+    "logic.pure.v1": {
+     "outputs": [
+      "String",
+      "Boolean",
+      "Int",
+      "String?",
+      "Boolean?",
+      "Int?"
+     ],
+     "inputs": [
+      "String",
+      "Boolean",
+      "Int",
+      "String?",
+      "Boolean?",
+      "Int?"
+     ],
+     "permissions": [],
+     "effect": "pure",
+     "implementation": "PortableProgram/JavaScriptSandbox",
+     "version": 1,
+     "limits": {
+      "operations": 512,
+      "depth": 24,
+      "stringUnits": 256
+     }
+    },
+    "compose.basicText.v1": {
+     "outputs": [
+      "Unit"
+     ],
+     "inputs": [
+      "String"
+     ],
+     "permissions": [],
+     "effect": "render",
+     "implementation": "ComposeDispatch/BasicText",
+     "version": 1,
+     "limits": {
+      "stringUnits": 256
+     }
+    }
+   },
+   "runtimeAbi": 2,
+   "limits": {
+    "async": false,
+    "entries": 32,
+    "collections": 0,
+    "loops": 0,
+    "parameters": 9,
+    "payloadBytes": 65536,
+    "recursion": 0
+   }
+  },
+  "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+  "embeddedId": "487d3a28-1819-458f-bf95-871ffed39624",
+  "hermesBytecodeVersion": 98,
+  "packageName": "me.ash.reader",
+  "runtimeVersion": "phase8-readyou-1",
+  "appId": "e69ab13c-5f00-4c14-bf30-e3186f5e5573",
+  "channel": "development"
+ },
+ "identities": [
+  {
+   "owner": "me/ash/reader/ui/page/home/reading/drawer/FeedOptionDrawerKt",
+   "name": "Info",
+   "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:29808108f86ec716fb5ef2f0a755a6d34f517b779ecf14db0b40077ca51eee2e",
+   "nullable": "",
+   "installed": true
+  },
+  {
+   "owner": "me/ash/reader/ui/page/home/flow/StickyHeaderKt",
+   "name": "StickyHeader",
+   "descriptor": "(Ljava/lang/String;ZILandroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:9ef88ca762fa7ffc1f3522c3ab64ed609ee50a637f2d412e9b8a11bf6aae4e4d",
+   "nullable": "!!!",
+   "installed": true
+  },
+  {
+   "owner": "me/ash/reader/ui/page/settings/color/reading/TitleAndTextPreviewKt",
+   "name": "TitleAndTextPreview",
+   "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:ca04cd82482e35e765283e1444808f0b7730d95d7a45b035910d1381f204b4a5",
+   "nullable": "",
+   "installed": true
+  }
+ ],
+ "bytecode": {
+  "classes": 1791,
+  "methods": 12137,
+  "hooked": 26,
+  "untouchedIdentical": 12097,
+  "hookedForms": {
+   "static/0args": 23,
+   "static/1args": 2,
+   "static/3args": 1
+  },
+  "hookedInHelpers": 0,
+  "composableNotHooked": 185,
+  "overloadGroups": 0,
+  "overloadDistinctIds": true,
+  "samples": [
+   {
+    "owner": "me/ash/reader/ui/page/settings/color/reading/TitleAndTextPreviewKt",
+    "method": "TitleAndTextPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:ca04cd82482e35e765283e1444808f0b7730d95d7a45b035910d1381f204b4a5"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/settings/color/feeds/FeedsPagePreviewKt",
+    "method": "FeedItemExpandSwitcher",
+    "descriptor": "(ZLandroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:acfacb4a34c065557c42b9d0e9d03a4e0a2fa2c25e7821a5d9f48a4eaf7da936"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/settings/color/feeds/FeedsPagePreviewKt",
+    "method": "FeedPreview",
+    "descriptor": "(ZLandroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:df933bdcf1a99d02240cc1634d0306c610e2d329b1397273653a0dbf14d2ae4f"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/settings/accounts/AccountsPageKt",
+    "method": "AccountsPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:8d81f891c280cef0d827397a8d3158d04b4025127de11e2180225f6311fc7e78"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/settings/accounts/AddAccountsPageKt",
+    "method": "AddAccountsPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:0a32dff23f45185a5c82780b0ae9bc11cb21d259c1efbcdd417804eaf03601cf"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/home/reading/drawer/FeedOptionDrawerKt",
+    "method": "Info",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:29808108f86ec716fb5ef2f0a755a6d34f517b779ecf14db0b40077ca51eee2e"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/home/reading/drawer/FeedOptionDrawerKt",
+    "method": "Prev",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:734e768929b1a5c72f3181873c0efa91416cf3ac12bc1715e34ebd4398291298"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/home/reading/tts/TtsButtonKt",
+    "method": "Preview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:084312a7b5aaec45c076b57d6ad01cc5a2d6dd2303ee8bed9eb6db7855047ca3"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/home/feeds/FeedItemKt",
+    "method": "Preview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:0cf75ae0326c0fd02af266fe72a28eb7895ad588b894cbc351883a049599f307"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/home/flow/ArticleItemKt",
+    "method": "MenuContentPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:e61ee73987c36b517a7dd85fb0902e9c2d505fc63dc9bd11f431364d3a61eca6"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/home/flow/PullToLoadIndicatorKt",
+    "method": "PreviewMarkAsRead",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:87c59753b6484b7275c246dadaf365ee9adbe80458da7adfdd3deaf4da20a50d"
+   },
+   {
+    "owner": "me/ash/reader/ui/page/home/flow/PullToLoadIndicatorKt",
+    "method": "PreviewNextFeed",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:0b7eb27066a88764b30f915c74c27a75b20097c3bb43cad6f7431d1fbb1c9dc5"
+   }
+  ],
+  "foreignSuperclassRewrites": [
+   "me/ash/reader/ui/widget/ArticleCardWidgetReceiver.class: androidx/glance/appwidget/GlanceAppWidgetReceiver -> me/ash/reader/ui/widget/Hilt_ArticleCardWidgetReceiver",
+   "me/ash/reader/ui/widget/ArticleListWidgetReceiver.class: androidx/glance/appwidget/GlanceAppWidgetReceiver -> me/ash/reader/ui/widget/Hilt_ArticleListWidgetReceiver",
+   "me/ash/reader/ui/widget/WidgetConfigActivity.class: androidx/activity/ComponentActivity -> me/ash/reader/ui/widget/Hilt_WidgetConfigActivity",
+   "me/ash/reader/infrastructure/android/MainActivity.class: androidx/appcompat/app/AppCompatActivity -> me/ash/reader/infrastructure/android/Hilt_MainActivity",
+   "me/ash/reader/infrastructure/android/AndroidApp.class: dev/dootah/runtime/DootahApplication -> me/ash/reader/infrastructure/android/Hilt_AndroidApp",
+   "me/ash/reader/infrastructure/android/CrashReportActivity.class: androidx/appcompat/app/AppCompatActivity -> me/ash/reader/infrastructure/android/Hilt_CrashReportActivity"
+  ],
+  "foreignTransformedMethods": 14,
+  "violationCount": 0
+ },
+ "lastPortableIr": {
+  "schema": "dootah.portable",
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "runtimeVersion": "phase8-readyou-1",
+  "requires": [
+   "logic.pure.v1",
+   "compose.basicText.v1"
+  ],
+  "overrides": [
+   {
+    "functionId": "dth1:9ef88ca762fa7ffc1f3522c3ab64ed609ee50a637f2d412e9b8a11bf6aae4e4d",
+    "parameters": [
+     "String",
+     "Boolean",
+     "Int"
+    ],
+    "expression": {
+     "op": "seq",
+     "args": [
+      {
+       "op": "if",
+       "args": [
+        {
+         "op": "input",
+         "index": 1
+        },
+        {
+         "op": "concat",
+         "args": [
+          {
+           "op": "literal",
+           "type": "String",
+           "value": ""
+          },
+          {
+           "op": "literal",
+           "type": "String",
+           "value": "▸"
+          }
+         ]
+        },
+        {
+         "op": "concat",
+         "args": [
+          {
+           "op": "literal",
+           "type": "String",
+           "value": ""
+          },
+          {
+           "op": "literal",
+           "type": "String",
+           "value": "•"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "op": "if",
+       "args": [
+        {
+         "op": "gt",
+         "args": [
+          {
+           "op": "input",
+           "index": 2
+          },
+          {
+           "op": "literal",
+           "type": "Int",
+           "value": 0
+          }
+         ]
+        },
+        {
+         "op": "concat",
+         "args": [
+          {
+           "op": "concat",
+           "args": [
+            {
+             "op": "literal",
+             "type": "String",
+             "value": ""
+            },
+            {
+             "op": "literal",
+             "type": "String",
+             "value": " · layer "
+            }
+           ]
+          },
+          {
+           "op": "string",
+           "args": [
+            {
+             "op": "input",
+             "index": 2
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "op": "literal",
+         "type": "String",
+         "value": ""
+        }
+       ]
+      },
+      {
+       "op": "concat",
+       "args": [
+        {
+         "op": "concat",
+         "args": [
+          {
+           "op": "concat",
+           "args": [
+            {
+             "op": "concat",
+             "args": [
+              {
+               "op": "literal",
+               "type": "String",
+               "value": ""
+              },
+              {
+               "op": "string",
+               "args": [
+                {
+                 "op": "if",
+                 "args": [
+                  {
+                   "op": "input",
+                   "index": 1
+                  },
+                  {
+                   "op": "concat",
+                   "args": [
+                    {
+                     "op": "literal",
+                     "type": "String",
+                     "value": ""
+                    },
+                    {
+                     "op": "literal",
+                     "type": "String",
+                     "value": "▸"
+                    }
+                   ]
+                  },
+                  {
+                   "op": "concat",
+                   "args": [
+                    {
+                     "op": "literal",
+                     "type": "String",
+                     "value": ""
+                    },
+                    {
+                     "op": "literal",
+                     "type": "String",
+                     "value": "•"
+                    }
+                   ]
+                  }
+                 ]
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "op": "literal",
+             "type": "String",
+             "value": " "
+            }
+           ]
+          },
+          {
+           "op": "string",
+           "args": [
+            {
+             "op": "input",
+             "index": 0
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "op": "string",
+         "args": [
+          {
+           "op": "if",
+           "args": [
+            {
+             "op": "gt",
+             "args": [
+              {
+               "op": "input",
+               "index": 2
+              },
+              {
+               "op": "literal",
+               "type": "Int",
+               "value": 0
+              }
+             ]
+            },
+            {
+             "op": "concat",
+             "args": [
+              {
+               "op": "concat",
+               "args": [
+                {
+                 "op": "literal",
+                 "type": "String",
+                 "value": ""
+                },
+                {
+                 "op": "literal",
+                 "type": "String",
+                 "value": " · layer "
+                }
+               ]
+              },
+              {
+               "op": "string",
+               "args": [
+                {
+                 "op": "input",
+                 "index": 2
+                }
+               ]
+              }
+             ]
+            },
+            {
+             "op": "literal",
+             "type": "String",
+             "value": ""
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "deviceStages": [
+  {
+   "stage": "baseline",
+   "time": "2026-09-29 21:47:55 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=487d3a28-1819-458f-bf95-871ffed39624 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Allow Read You to send you notifications?",
+    "Allow",
+    "Don't allow"
+   ]
+  },
+  {
+   "stage": "baseline-articles",
+   "time": "2026-09-29 21:49:28 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=487d3a28-1819-458f-bf95-871ffed39624 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Wednesday, 3 June 2026",
+    "ReadYou Releases",
+    "8:25 pm",
+    "0.16.2",
+    "What's Changed fix(webview): drop allowFileAccessFromFileURLs in reader WebView by @jim-daf in #1277 Fix wrong overload of queryMetadataAll being called by @NatsuCamellia in #1269 Translations update from Hosted Weblate by @weblate in #1227 Fix a rare crash on launches New Contri",
+    "Sunday, 1 February 2026",
+    "ReadYou Releases",
+    "6:32 pm",
+    "0.16.1",
+    "What's Changed Fixes Fixed a bug where the first item was incorrectly marked as read, even when no scrolling occurred #1207 Fixed a rare crash when using native renderer with certain feeds #1213 Full Changelog: 0.16.0...0.16.1",
+    "Sunday, 25 January 2026",
+    "ReadYou Releases",
+    "10:56 pm",
+    "0.16.0"
+   ]
+  },
+  {
+   "stage": "tampered-manifest",
+   "time": "2026-09-29 21:50:16 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=487d3a28-1819-458f-bf95-871ffed39624 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [
+    "Code signing verification failed for manifest"
+   ],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Allow Read You to send you notifications?",
+    "Allow",
+    "Don't allow"
+   ]
+  },
+  {
+   "stage": "ota-download",
+   "time": "2026-09-29 21:50:41 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=487d3a28-1819-458f-bf95-871ffed39624 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": true,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Allow Read You to send you notifications?",
+    "Allow",
+    "Don't allow"
+   ]
+  },
+  {
+   "stage": "ota-launch",
+   "time": "2026-09-29 21:51:12 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Allow Read You to send you notifications?",
+    "Allow",
+    "Don't allow"
+   ]
+  },
+  {
+   "stage": "ota-active",
+   "time": "2026-09-29 21:51:49 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "▸ Wednesday, 3 June 2026",
+    "ReadYou Releases",
+    "8:25 pm",
+    "0.16.2",
+    "What's Changed fix(webview): drop allowFileAccessFromFileURLs in reader WebView by @jim-daf in #1277 Fix wrong overload of queryMetadataAll being called by @NatsuCamellia in #1269 Translations update from Hosted Weblate by @weblate in #1227 Fix a rare crash on launches New Contri",
+    "▸ Sunday, 1 February 2026",
+    "ReadYou Releases",
+    "6:32 pm",
+    "0.16.1",
+    "What's Changed Fixes Fixed a bug where the first item was incorrectly marked as read, even when no scrolling occurred #1207 Fixed a rare crash when using native renderer with certain feeds #1213 Full Changelog: 0.16.0...0.16.1",
+    "▸ Sunday, 25 January 2026",
+    "ReadYou Releases",
+    "10:56 pm",
+    "0.16.0"
+   ]
+  },
+  {
+   "stage": "online-restart-launch",
+   "time": "2026-09-29 21:52:21 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Read You",
+    "Unread",
+    "10 unread items",
+    "Feeds",
+    "Default",
+    "ReadYou Releases",
+    "10"
+   ]
+  },
+  {
+   "stage": "online-restart",
+   "time": "2026-09-29 21:52:34 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "▸ Wednesday, 3 June 2026",
+    "ReadYou Releases",
+    "8:25 pm",
+    "0.16.2",
+    "What's Changed fix(webview): drop allowFileAccessFromFileURLs in reader WebView by @jim-daf in #1277 Fix wrong overload of queryMetadataAll being called by @NatsuCamellia in #1269 Translations update from Hosted Weblate by @weblate in #1227 Fix a rare crash on launches New Contri",
+    "▸ Sunday, 1 February 2026",
+    "ReadYou Releases",
+    "6:32 pm",
+    "0.16.1",
+    "What's Changed Fixes Fixed a bug where the first item was incorrectly marked as read, even when no scrolling occurred #1207 Fixed a rare crash when using native renderer with certain feeds #1213 Full Changelog: 0.16.0...0.16.1",
+    "▸ Sunday, 25 January 2026",
+    "ReadYou Releases",
+    "10:56 pm",
+    "0.16.0"
+   ]
+  },
+  {
+   "stage": "cloud-down-restart-launch",
+   "time": "2026-09-29 21:52:57 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Read You",
+    "Unread",
+    "10 unread items",
+    "Feeds",
+    "Default",
+    "ReadYou Releases",
+    "10"
+   ]
+  },
+  {
+   "stage": "cloud-down-restart",
+   "time": "2026-09-29 21:53:10 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "▸ Wednesday, 3 June 2026",
+    "ReadYou Releases",
+    "8:25 pm",
+    "0.16.2",
+    "What's Changed fix(webview): drop allowFileAccessFromFileURLs in reader WebView by @jim-daf in #1277 Fix wrong overload of queryMetadataAll being called by @NatsuCamellia in #1269 Translations update from Hosted Weblate by @weblate in #1227 Fix a rare crash on launches New Contri",
+    "▸ Sunday, 1 February 2026",
+    "ReadYou Releases",
+    "6:32 pm",
+    "0.16.1",
+    "What's Changed Fixes Fixed a bug where the first item was incorrectly marked as read, even when no scrolling occurred #1207 Fixed a rare crash when using native renderer with certain feeds #1213 Full Changelog: 0.16.0...0.16.1",
+    "▸ Sunday, 25 January 2026",
+    "ReadYou Releases",
+    "10:56 pm",
+    "0.16.0"
+   ]
+  },
+  {
+   "stage": "offline-restart-launch",
+   "time": "2026-09-29 21:53:33 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "ReadYou Releases",
+    "3:28 pm",
+    "0.15.0",
+    "Widgets Card View: Get a quick, elegant glance at the latest article List View: See up to 15 unread headlines from any feed, folder, or account, offering two themes and a responsive, configurable design Large Screen Support The reading page and article list are now a unified list",
+    "▸ Sunday, 10 August 2025",
+    "ReadYou Releases",
+    "8:32 pm",
+    "0.15.0-beta.3",
+    "Full Changelog: 0.15.0-beta.2...0.15.0-beta.3",
+    "▸ Monday, 4 August 2025",
+    "ReadYou Releases",
+    "9:46 pm",
+    "0.15.0-beta.2",
+    "What's Changed Bug Fixes Fixed an issue caused duplicated articles to be synced with Google Reader API Fixed an issue where periodic sync tasks could not restart after failing Fixed a navigation issue when the article list was hidden Opening the app from the widget now correctly "
+   ]
+  },
+  {
+   "stage": "offline-restart",
+   "time": "2026-09-29 21:53:49 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "▸ Wednesday, 3 June 2026",
+    "ReadYou Releases",
+    "8:25 pm",
+    "0.16.2",
+    "What's Changed fix(webview): drop allowFileAccessFromFileURLs in reader WebView by @jim-daf in #1277 Fix wrong overload of queryMetadataAll being called by @NatsuCamellia in #1269 Translations update from Hosted Weblate by @weblate in #1227 Fix a rare crash on launches New Contri",
+    "▸ Sunday, 1 February 2026",
+    "ReadYou Releases",
+    "6:32 pm",
+    "0.16.1",
+    "What's Changed Fixes Fixed a bug where the first item was incorrectly marked as read, even when no scrolling occurred #1207 Fixed a rare crash when using native renderer with certain feeds #1213 Full Changelog: 0.16.0...0.16.1",
+    "▸ Sunday, 25 January 2026",
+    "ReadYou Releases",
+    "10:56 pm",
+    "0.16.0"
+   ]
+  },
+  {
+   "stage": "rollback-delivery-launch",
+   "time": "2026-09-29 21:54:37 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [
+    "rollback={commitTime=2026-09-29T16:24:14Z}"
+   ],
+   "visibleTextSample": [
+    "Read You",
+    "Unread",
+    "10 unread items",
+    "Feeds",
+    "Default",
+    "ReadYou Releases",
+    "10"
+   ]
+  },
+  {
+   "stage": "rollback-delivery",
+   "time": "2026-09-29 21:54:50 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=ecb088bd-93ab-2ae8-ae16-fdda667c1f04 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [
+    "rollback={commitTime=2026-09-29T16:24:14Z}"
+   ],
+   "visibleTextSample": [
+    "▸ Wednesday, 3 June 2026",
+    "ReadYou Releases",
+    "8:25 pm",
+    "0.16.2",
+    "What's Changed fix(webview): drop allowFileAccessFromFileURLs in reader WebView by @jim-daf in #1277 Fix wrong overload of queryMetadataAll being called by @NatsuCamellia in #1269 Translations update from Hosted Weblate by @weblate in #1227 Fix a rare crash on launches New Contri",
+    "▸ Sunday, 1 February 2026",
+    "ReadYou Releases",
+    "6:32 pm",
+    "0.16.1",
+    "What's Changed Fixes Fixed a bug where the first item was incorrectly marked as read, even when no scrolling occurred #1207 Fixed a rare crash when using native renderer with certain feeds #1213 Full Changelog: 0.16.0...0.16.1",
+    "▸ Sunday, 25 January 2026",
+    "ReadYou Releases",
+    "10:56 pm",
+    "0.16.0"
+   ]
+  },
+  {
+   "stage": "rollback-active-launch",
+   "time": "2026-09-29 21:55:10 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=487d3a28-1819-458f-bf95-871ffed39624 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Read You",
+    "Unread",
+    "10 unread items",
+    "Feeds",
+    "Default",
+    "ReadYou Releases",
+    "10"
+   ]
+  },
+  {
+   "stage": "rollback-active",
+   "time": "2026-09-29 21:55:23 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=487d3a28-1819-458f-bf95-871ffed39624 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Wednesday, 3 June 2026",
+    "ReadYou Releases",
+    "8:25 pm",
+    "0.16.2",
+    "What's Changed fix(webview): drop allowFileAccessFromFileURLs in reader WebView by @jim-daf in #1277 Fix wrong overload of queryMetadataAll being called by @NatsuCamellia in #1269 Translations update from Hosted Weblate by @weblate in #1227 Fix a rare crash on launches New Contri",
+    "Sunday, 1 February 2026",
+    "ReadYou Releases",
+    "6:32 pm",
+    "0.16.1",
+    "What's Changed Fixes Fixed a bug where the first item was incorrectly marked as read, even when no scrolling occurred #1207 Fixed a rare crash when using native renderer with certain feeds #1213 Full Changelog: 0.16.0...0.16.1",
+    "Sunday, 25 January 2026",
+    "ReadYou Releases",
+    "10:56 pm",
+    "0.16.0"
+   ]
+  },
+  {
+   "stage": "rollback-offline-restart-launch",
+   "time": "2026-09-29 21:55:44 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=487d3a28-1819-458f-bf95-871ffed39624 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Read You",
+    "Unread",
+    "10 unread items",
+    "Feeds",
+    "Default",
+    "ReadYou Releases",
+    "10"
+   ]
+  },
+  {
+   "stage": "rollback-offline-restart",
+   "time": "2026-09-29 21:55:56 IST",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "install": [
+    "firstInstallTime=2026-09-29 21:47:24",
+    "lastUpdateTime=2026-09-29 21:47:24",
+    "versionName=0.16.2"
+   ],
+   "selected": [
+    "update=487d3a28-1819-458f-bf95-871ffed39624 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Wednesday, 3 June 2026",
+    "ReadYou Releases",
+    "8:25 pm",
+    "0.16.2",
+    "What's Changed fix(webview): drop allowFileAccessFromFileURLs in reader WebView by @jim-daf in #1277 Fix wrong overload of queryMetadataAll being called by @NatsuCamellia in #1269 Translations update from Hosted Weblate by @weblate in #1227 Fix a rare crash on launches New Contri",
+    "Sunday, 1 February 2026",
+    "ReadYou Releases",
+    "6:32 pm",
+    "0.16.1",
+    "What's Changed Fixes Fixed a bug where the first item was incorrectly marked as read, even when no scrolling occurred #1207 Fixed a rare crash when using native renderer with certain feeds #1213 Full Changelog: 0.16.0...0.16.1",
+    "Sunday, 25 January 2026",
+    "ReadYou Releases",
+    "10:56 pm",
+    "0.16.0"
+   ]
+  }
+ ],
+ "cloud": {
+  "deviceEventCounts": {
+   "update_checked:embedded": 11,
+   "download_completed:release": 1,
+   "update_healthy:embedded": 6,
+   "update_activated:release": 5,
+   "update_healthy:release": 5,
+   "update_activated:embedded": 6,
+   "update_available:release": 1,
+   "download_started:release": 1,
+   "rollback_applied:release": 1
+  },
+  "eventInstallations": 1,
+  "release": {
+   "id": "1cc4d5d7-1ada-4fff-bd86-1968aac615b6",
+   "status": "rolled_back",
+   "percentage": 100,
+   "runtime": "phase8-readyou-1",
+   "runtime_abi": 2,
+   "logic_abi": 1,
+   "hash": "5be74f6758a37bee2db0fc5544dca1074e5de1b1515e53a8bce45bb35a6ecf8a",
+   "revision": "d2b979ccad9a+dootah-integration",
+   "contract_digest": "b96a78370c4be74eb8e8ace071b3f7c238af5716697370ea0ff9c39a5635f5e6"
+  },
+  "metrics": {
+   "windowDays": 30,
+   "asOf": "2026-09-29T16:26:20.733Z",
+   "compatible": 1,
+   "eligible": 1,
+   "downloaded": 1,
+   "activated": 1,
+   "healthy": 1,
+   "rejected": 0,
+   "rollbackCount": 1,
+   "adopted": 0,
+   "adoptionPercent": 0,
+   "healthPercent": 100,
+   "provenance": "authenticated_device_reports",
+   "crashFree": null
+  },
+  "rollback-signature": {
+   "signatureVerified": true,
+   "tamperedRejected": true,
+   "directive": {
+    "type": "rollBackToEmbedded",
+    "parameters": {
+     "commitTime": "2026-09-29T16:24:14.162Z"
+    }
+   }
+  }
+ },
+ "measurementsRaw": [
+  "TotalTime: 425 WaitTime: 427 ",
+  "TotalTime: 366 WaitTime: 368 ",
+  "TotalTime: 363 WaitTime: 366 ",
+  "           TOTAL PSS:    82693            TOTAL RSS:   199952       TOTAL SWAP PSS:      930",
+  ""
+ ]
+}

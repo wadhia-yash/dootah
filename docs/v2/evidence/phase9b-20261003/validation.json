@@ -1,0 +1,73 @@
+{
+  "runtime": {
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nativeHealth": {
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "plugin": {
+    "tests": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "fixture": {
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "analyzer": {
+    "tests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "releasePackaging": {
+    "tests": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nodeBroader": {
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": [
+      "publisher portable tests",
+      "Cloud core unit tests",
+      "xprem audit precondition tests"
+    ]
+  },
+  "buildSdk": "PASS",
+  "cleanCheckoutProducer": {
+    "commit": "7ef77e5",
+    "androidTasksExecuted": 425,
+    "pluginTasksExecuted": 13,
+    "devMavenRepositoryUsed": false
+  },
+  "signing": {
+    "support": "PASS",
+    "orchestrationTests": "mocked GnuPG success and failure",
+    "realIdentityKeyUsed": false,
+    "externalUploadPerformed": false
+  },
+  "artifactManifestSha256": "8f26fc3ef1346e6e3eaa1dfec3d6b18251756c4e7d033c6779e4d83432bb27d7",
+  "finalConsumer": {
+    "tasksExecuted": 87,
+    "debugD8": "PASS",
+    "releaseR8": "PASS",
+    "debugHooks": 13,
+    "releaseHooks": 11,
+    "receipt": "consumer-result.json"
+  },
+  "fixtureAfterWrapperChecksumChange": "PASS (4 tests, 0 skipped; Debug and Release hooks verified)",
+  "unsignedCandidateExportGate": "PASS: missing maintainer metadata blocks export before signing"
+}

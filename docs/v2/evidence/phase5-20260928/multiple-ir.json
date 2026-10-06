@@ -1,0 +1,47 @@
+{
+  "schema": "dootah.portable",
+  "abi": 1,
+  "runtimeVersion": "dootah-v2-hook-1",
+  "apkSha256": "778b3414da61bcabc1f1a3e043c46b70bfb4cd364b06764f303f31ac791c3068",
+  "overrides": [
+    {
+      "functionId": "dth1:24c995762d2e4acf9946c225a6cdd08ae9ac3d7a7021b6477e2cfb56ec9083f9",
+      "requires": [
+        "compose.basic-text.constant.v1"
+      ],
+      "tree": {
+        "type": "text",
+        "value": {
+          "type": "string",
+          "value": "Receipt via Kotlin OTA"
+        }
+      }
+    },
+    {
+      "functionId": "dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85",
+      "requires": [
+        "compose.basic-text.constant.v1"
+      ],
+      "tree": {
+        "type": "text",
+        "value": {
+          "type": "string",
+          "value": "Checkout via Kotlin OTA"
+        }
+      }
+    },
+    {
+      "functionId": "dth1:63a2bc6b77eeafd75a243cc3cce5255bbccb407f821adbba9dec3e29f6b2685a",
+      "requires": [
+        "compose.basic-text.constant.v1"
+      ],
+      "tree": {
+        "type": "text",
+        "value": {
+          "type": "string",
+          "value": "String overload via Kotlin OTA"
+        }
+      }
+    }
+  ]
+}

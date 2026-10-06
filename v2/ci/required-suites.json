@@ -1,0 +1,229 @@
+{
+  "schema": 1,
+  "frozen": {
+    "publicVersion": "0.1.0-alpha.1",
+    "developmentVersion": "0.7.5-local",
+    "internalPrefix": "0.1.0-dootah",
+    "runtimeAbi": 2,
+    "logicAbi": 1
+  },
+  "suites": [
+    {
+      "id": "sdk-runtime",
+      "job": "sdk",
+      "format": "junit",
+      "report": "reports/sdk-runtime/*.xml",
+      "minimum": 7,
+      "classes": {
+        "DispatchGroupTest": 1,
+        "DispatchPayloadTest": 1,
+        "LifecycleIntegrationTest": 2,
+        "ManifestSurfaceTest": 1,
+        "VerificationSignalTest": 2
+      },
+      "sourceReport": "v2/android-sdk/runtime/build/test-results/testReleaseUnitTest/*.xml"
+    },
+    {
+      "id": "native-health",
+      "job": "sdk",
+      "format": "junit",
+      "report": "reports/native-health/*.xml",
+      "minimum": 3,
+      "classes": {
+        "NativeHealthTest": 3
+      },
+      "sourceReport": "v2/runtime-spike/node_modules/expo-updates/android/build/test-results/testReleaseUnitTest/*.xml"
+    },
+    {
+      "id": "gradle-plugin",
+      "job": "sdk",
+      "format": "junit",
+      "report": "reports/gradle-plugin/*.xml",
+      "minimum": 9,
+      "classes": {
+        "DootahPluginTest": 4,
+        "FunctionIdentityTest": 1,
+        "RetentionTest": 4
+      },
+      "sourceReport": "v2/android-sdk/gradle-plugin/build/test-results/test/*.xml"
+    },
+    {
+      "id": "compose-fixtures",
+      "job": "sdk",
+      "format": "junit",
+      "report": "reports/compose-fixtures/*.xml",
+      "minimum": 4,
+      "classes": {
+        "ComposeEntryTest": 4
+      },
+      "sourceReport": "v2/android-sdk/gradle-plugin/build/test-results/composeFixtureTest/*.xml"
+    },
+    {
+      "id": "publisher-jvm",
+      "job": "sdk",
+      "format": "junit",
+      "report": "reports/publisher-jvm/*.xml",
+      "minimum": 22,
+      "classes": {
+        "PublishingTest": 9,
+        "LogicTest": 9,
+        "CloudContractTest": 4
+      },
+      "sourceReport": "v2/publishing/build/test-results/test/*.xml"
+    },
+    {
+      "id": "portable-logic",
+      "job": "sdk",
+      "format": "tap",
+      "report": "reports/portable-logic.tap",
+      "minimum": 2,
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "v2/publishing/portable.test.mjs"
+      ]
+    },
+    {
+      "id": "cli",
+      "job": "sdk",
+      "format": "tap",
+      "report": "reports/cli.tap",
+      "minimum": 7,
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "v2/publishing/customer.test.mjs"
+      ]
+    },
+    {
+      "id": "server-audit-regression",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/server-audit-regression.tap",
+      "minimum": 2,
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "v2/server/audit.test.mjs"
+      ]
+    },
+    {
+      "id": "deployment-config",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/deployment-config.tap",
+      "minimum": 14,
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "v2/deploy/config.test.mjs",
+        "v2/deploy/ngrok.test.mjs",
+        "v2/deploy/proxy.test.mjs"
+      ]
+    },
+    {
+      "id": "packaging-regressions",
+      "job": "sdk",
+      "format": "junit",
+      "report": "reports/packaging.xml",
+      "minimum": 13
+    },
+    {
+      "id": "ci-regressions",
+      "job": "security",
+      "format": "junit",
+      "report": "reports/ci.xml",
+      "minimum": 12
+    },
+    {
+      "id": "cloud-api-auth",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/cloud-tests.tap",
+      "minimum": 5,
+      "names": [
+        "tenant isolation and scoped tokens across all control/read paths",
+        "sessions require CSRF and exact origin; untrusted ids and oversized bodies fail",
+        "installation authorization, tenant boundaries, deduplication and bounded telemetry",
+        "same-organization app scopes deny sibling apps and invalid list filters fail validation",
+        "membership changes restrict existing tokens; last owner cannot be removed"
+      ]
+    },
+    {
+      "id": "cloud-unit",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/cloud-tests.tap",
+      "minimum": 3,
+      "names": [
+        "rollout is deterministic, monotonic and bounded for all supported percentages",
+        "password hashing uses salt and verifies exact bytes",
+        "viewer cannot mutate even with a mutation scope"
+      ]
+    },
+    {
+      "id": "cloud-database",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/cloud-tests.tap",
+      "minimum": 4,
+      "names": [
+        "database constraints reject cross-tenant parents and runtime cannot mutate audit or upstream data",
+        "expired credentials are rejected and token secrets are stored only as digests",
+        "shared PostgreSQL limiter persists across callers",
+        "database cohort agrees exactly with the HTTP rollout algorithm"
+      ]
+    },
+    {
+      "id": "cloud-signed-backend",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/cloud-tests.tap",
+      "minimum": 1,
+      "names": [
+        "real signed backend: tenant release denial, idempotency, controls, rollback and terminal kill"
+      ]
+    },
+    {
+      "id": "cloud-client-identity",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/cloud-tests.tap",
+      "minimum": 8,
+      "names": [
+        "trusted proxy forwards distinct client identities",
+        "forged forwarding headers from an untrusted peer are ignored",
+        "absent, malformed and multiple forwarded values resolve deterministically",
+        "IPv4 and IPv6 representations cannot fan out one client",
+        "trusted proxy configuration is explicit and fails closed",
+        "trusted proxy keeps anonymous delivery buckets independent per client",
+        "trusted proxy keeps login buckets independent per client",
+        "HTTP ignores forged forwarding headers from an untrusted direct peer"
+      ]
+    },
+    {
+      "id": "xprem",
+      "job": "server",
+      "format": "go",
+      "report": "reports/upstream-tests.json",
+      "minimum": 345,
+      "allowedSkips": [
+        "TestAzuriteUploadListGet",
+        "TestAzuriteSASUploadRequiresBlockBlobHeader",
+        "TestAzuriteCreateFrom",
+        "TestAzuriteDeleteUpdate"
+      ]
+    },
+    {
+      "id": "compose-restore",
+      "job": "server",
+      "format": "acceptance",
+      "report": "reports/acceptance.json",
+      "minimum": 1
+    }
+  ]
+}

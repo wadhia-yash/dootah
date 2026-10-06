@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width"
+  /><title>Dootah Cloud</title
+  ><link rel="stylesheet" href="/dashboard.css" />
+  <body>
+    <header>
+      <h1>Dootah Cloud</h1>
+      <span>Native Android OTA</span>
+    </header>
+    <main>
+      <form id="login">
+        <label
+          >Email
+          <input
+            name="email"
+            type="email"
+            required
+            autocomplete="username" /></label
+        ><label
+          >Password
+          <input
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password" /></label
+        ><button>Sign in</button>
+      </form>
+      <section id="workspace" hidden>
+        <label
+          >Organization
+          <select id="organizations"></select
+        ></label>
+        <nav id="nav"></nav>
+        <h2 id="title"></h2>
+        <div id="content"></div>
+      </section>
+      <p id="message" role="status"></p>
+    </main>
+    <script src="/dashboard.js"></script>
+  </body>
+</html>

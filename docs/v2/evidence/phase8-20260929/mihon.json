@@ -1,0 +1,1191 @@
+{
+ "key": "mihon",
+ "installedContract": {
+  "schema": 2,
+  "irAbi": 2,
+  "dispatchAbi": 2,
+  "capabilities": {
+   "logicAbi": 1,
+   "capabilities": {
+    "logic.pure.v1": {
+     "outputs": [
+      "String",
+      "Boolean",
+      "Int",
+      "String?",
+      "Boolean?",
+      "Int?"
+     ],
+     "inputs": [
+      "String",
+      "Boolean",
+      "Int",
+      "String?",
+      "Boolean?",
+      "Int?"
+     ],
+     "permissions": [],
+     "effect": "pure",
+     "implementation": "PortableProgram/JavaScriptSandbox",
+     "version": 1,
+     "limits": {
+      "operations": 512,
+      "depth": 24,
+      "stringUnits": 256
+     }
+    },
+    "compose.basicText.v1": {
+     "outputs": [
+      "Unit"
+     ],
+     "inputs": [
+      "String"
+     ],
+     "permissions": [],
+     "effect": "render",
+     "implementation": "ComposeDispatch/BasicText",
+     "version": 1,
+     "limits": {
+      "stringUnits": 256
+     }
+    }
+   },
+   "runtimeAbi": 2,
+   "limits": {
+    "async": false,
+    "entries": 32,
+    "collections": 0,
+    "loops": 0,
+    "parameters": 9,
+    "payloadBytes": 65536,
+    "recursion": 0
+   }
+  },
+  "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+  "embeddedId": "184046f7-b535-43b4-8d39-98781cd78229",
+  "hermesBytecodeVersion": 98,
+  "packageName": "app.mihon",
+  "runtimeVersion": "phase8-mihon-1",
+  "appId": "480ea077-d48f-4a6c-8bc4-cb48dc2f14e9",
+  "channel": "development"
+ },
+ "identities": [
+  {
+   "owner": "eu/kanade/presentation/reader/ChapterTransitionKt",
+   "name": "ChapterText",
+   "descriptor": "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLandroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:0d6ca41697e8d45a97a31516adcf1f8cc7d3422fc525c8e4ec8da5109acfe767",
+   "nullable": "!!?!",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/browse/ExtensionDetailsScreenKt",
+   "name": "InfoDivider",
+   "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:1a5ecbe235aef8658969228810208b03304cb019d57e1e7f218d246d00cdf90c",
+   "nullable": "",
+   "installed": true
+  },
+  {
+   "owner": "mihon/feature/migration/config/MigrationConfigScreenSheetKt",
+   "name": "MigrationSheetDividerItem",
+   "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:2480efeb48e0943bc80593e551381063ce288ff8f5dae1a2c23ec0e70f4e15d9",
+   "nullable": "",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/library/components/LibraryBadgesKt",
+   "name": "DownloadsBadge",
+   "descriptor": "(ILandroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:4543d8dd2491e71c99ad48373f32abf2399cb6cb802f162ef35f9679b73e773b",
+   "nullable": "!",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/more/settings/widget/InfoWidgetKt",
+   "name": "InfoWidget",
+   "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:6b8c15000fd8aa5ca671e7e2525017491ff412579b473d01213b0d5f295387f2",
+   "nullable": "!",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/browse/components/GlobalSearchResultItemsKt",
+   "name": "GlobalSearchLoadingResultItem",
+   "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:7a88056fc637e9fccfbf1b3726f3118f87e0fa3f2f5814f6e78eb7c0d9374a6c",
+   "nullable": "",
+   "installed": true
+  },
+  {
+   "owner": "mihon/feature/migration/config/MigrationConfigScreenSheetKt",
+   "name": "MigrationSheetWarningItem",
+   "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:9408f9160bb8b2d1badaf3c970579805f4efa674709ef992c39e010fce87a1c2",
+   "nullable": "!",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/browse/components/BrowseSourceLoadingItemKt",
+   "name": "BrowseSourceLoadingItem",
+   "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:99af8ff1d8420fb423d3ac6853171bc3e634cdca7321aee94d266e897566c0aa",
+   "nullable": "",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/manga/components/ChapterHeaderKt",
+   "name": "MissingChaptersWarning",
+   "descriptor": "(ILandroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:9c16c1f2dd140bda408f76e0bf496fd480fb9e4cdbf56b4e6cac705a76f21611",
+   "nullable": "!",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/track/TrackerSearchKt",
+   "name": "SearchResultItemDetails",
+   "descriptor": "(Ljava/lang/String;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:9d3f6cf0b2f1a3342d29fa8085ced444b43e12d74c54df27e8fabee73021c3e4",
+   "nullable": "!!",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/library/components/LibraryBadgesKt",
+   "name": "LanguageBadge",
+   "descriptor": "(ZLjava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:a07e0ef50502d460831db12e193446f88e3f61286251c17a0b745f19596ef50f",
+   "nullable": "!!",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/browse/components/BrowseBadgesKt",
+   "name": "InLibraryBadge",
+   "descriptor": "(ZLandroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:a70da6bb377f4ae2c34fd3060bb28eae5ff3bc5178d050fdba13dadbfb3373b1",
+   "nullable": "!",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/browse/components/GlobalSearchResultItemsKt",
+   "name": "GlobalSearchErrorResultItem",
+   "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:c8f808047d0c4b6675528205c73d2c91425ba208188c78db85b8f91ea5c56be7",
+   "nullable": "?",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/more/settings/widget/PreferenceGroupHeaderKt",
+   "name": "PreferenceGroupHeader",
+   "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:d03934f3e2bfe712ff7b770c6f614349ff31d63769b5eea9904333bdeb95ccca",
+   "nullable": "!",
+   "installed": true
+  },
+  {
+   "owner": "eu/kanade/presentation/browse/components/GlobalSearchCardRowKt",
+   "name": "EmptyResultItem",
+   "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:e7ebc95a9870217416e34c4a59f756f31dd7a111cbe2980fb6704a3f5b87bb72",
+   "nullable": "",
+   "installed": true
+  }
+ ],
+ "bytecode": {
+  "classes": 4012,
+  "methods": 25755,
+  "hooked": 100,
+  "untouchedIdentical": 25655,
+  "hookedForms": {
+   "member/0args": 57,
+   "static/0args": 30,
+   "static/1args": 7,
+   "static/4args": 1,
+   "static/2args": 2,
+   "member/1args": 3
+  },
+  "hookedInHelpers": 0,
+  "composableNotHooked": 392,
+  "overloadGroups": 1,
+  "overloadDistinctIds": true,
+  "samples": [
+   {
+    "owner": "mihon/feature/support/SupportUsScreen",
+    "method": "Content",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:b92c9f5a5a9e9487360803133ac79b5c162e0d1a21345d76df136dc2640a084b"
+   },
+   {
+    "owner": "mihon/feature/upcoming/UpcomingScreen",
+    "method": "Content",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:b4e78e2e2a31d93382a8fa381ce1105dc3a79ff78c9629c5faf35ab37ad98a1f"
+   },
+   {
+    "owner": "mihon/feature/upcoming/components/calendar/CalendarHeaderKt",
+    "method": "CalenderHeaderPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:f2fa433ec6b82aa739340468d671c9805edf790a0b9a8e1a4ac129b9e849995a"
+   },
+   {
+    "owner": "mihon/feature/migration/config/MigrationConfigScreenSheetKt",
+    "method": "MigrationSheetDividerItem",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:2480efeb48e0943bc80593e551381063ce288ff8f5dae1a2c23ec0e70f4e15d9"
+   },
+   {
+    "owner": "mihon/feature/migration/config/MigrationConfigScreenSheetKt",
+    "method": "MigrationSheetWarningItem",
+    "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:9408f9160bb8b2d1badaf3c970579805f4efa674709ef992c39e010fce87a1c2"
+   },
+   {
+    "owner": "mihon/feature/migration/config/MigrationConfigScreen",
+    "method": "Content",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:dfc74e8a03733860225a36b9d42bcea2a83fd1bdcb28f5238a861d7bea6660bc"
+   },
+   {
+    "owner": "mihon/feature/migration/list/MigrationListScreen",
+    "method": "Content",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:3ee08a4087f0d3143a51c1f3d956b791478684b8196753c1668ac9f8dc7138ee"
+   },
+   {
+    "owner": "eu/kanade/tachiyomi/ui/reader/viewer/ReaderProgressIndicator",
+    "method": "Content",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:ecb5117177412a1949be6db58b2bc7201ca833f92339c4dbd4b295f5ed0441b0"
+   },
+   {
+    "owner": "eu/kanade/tachiyomi/ui/reader/viewer/ReaderTransitionView",
+    "method": "Content",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:4a55f95e063628c19100f537ad06949facbbd8c5fbabdcfdfc5f4255f15d6e26"
+   },
+   {
+    "owner": "eu/kanade/tachiyomi/ui/home/HomeScreen",
+    "method": "Content",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:1b882247295fc4c64d9a60c419e737c959a40916e048b20008f9ccbdebce9023"
+   },
+   {
+    "owner": "eu/kanade/tachiyomi/ui/category/CategoryScreen",
+    "method": "Content",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:e2ded0cc1654dbc1f12a2a5a6c8aa95b0c75c741dd8d0a1329e2be7910776860"
+   },
+   {
+    "owner": "eu/kanade/tachiyomi/ui/webview/WebViewScreen",
+    "method": "Content",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:8f655837c41d0c81a0931c24535cfe0046e8160e428c3917986b2bb223be0ae4"
+   }
+  ],
+  "violationCount": 0
+ },
+ "lastPortableIr": {
+  "schema": "dootah.portable",
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "runtimeVersion": "phase8-mihon-1",
+  "requires": [
+   "logic.pure.v1",
+   "compose.basicText.v1"
+  ],
+  "overrides": [
+   {
+    "functionId": "dth1:d03934f3e2bfe712ff7b770c6f614349ff31d63769b5eea9904333bdeb95ccca",
+    "parameters": [
+     "String"
+    ],
+    "expression": {
+     "op": "seq",
+     "args": [
+      {
+       "op": "eq",
+       "args": [
+        {
+         "op": "input",
+         "index": 0
+        },
+        {
+         "op": "concat",
+         "args": [
+          {
+           "op": "literal",
+           "type": "String",
+           "value": ""
+          },
+          {
+           "op": "literal",
+           "type": "String",
+           "value": "Theme"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "op": "if",
+       "args": [
+        {
+         "op": "eq",
+         "args": [
+          {
+           "op": "input",
+           "index": 0
+          },
+          {
+           "op": "concat",
+           "args": [
+            {
+             "op": "literal",
+             "type": "String",
+             "value": ""
+            },
+            {
+             "op": "literal",
+             "type": "String",
+             "value": "Theme"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "op": "concat",
+         "args": [
+          {
+           "op": "concat",
+           "args": [
+            {
+             "op": "literal",
+             "type": "String",
+             "value": ""
+            },
+            {
+             "op": "string",
+             "args": [
+              {
+               "op": "input",
+               "index": 0
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "op": "literal",
+           "type": "String",
+           "value": " (updated over the air)"
+          }
+         ]
+        },
+        {
+         "op": "input",
+         "index": 0
+        }
+       ]
+      },
+      {
+       "op": "if",
+       "args": [
+        {
+         "op": "eq",
+         "args": [
+          {
+           "op": "input",
+           "index": 0
+          },
+          {
+           "op": "concat",
+           "args": [
+            {
+             "op": "literal",
+             "type": "String",
+             "value": ""
+            },
+            {
+             "op": "literal",
+             "type": "String",
+             "value": "Theme"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "op": "concat",
+         "args": [
+          {
+           "op": "concat",
+           "args": [
+            {
+             "op": "literal",
+             "type": "String",
+             "value": ""
+            },
+            {
+             "op": "string",
+             "args": [
+              {
+               "op": "input",
+               "index": 0
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "op": "literal",
+           "type": "String",
+           "value": " (updated over the air)"
+          }
+         ]
+        },
+        {
+         "op": "input",
+         "index": 0
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "deviceStages": [
+  {
+   "stage": "baseline",
+   "time": "2026-09-29 20:59:32 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=184046f7-b535-43b4-8d39-98781cd78229 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Welcome!",
+    "Let's set some things up first. You can always change these in the settings later too.",
+    "Light",
+    "Dark",
+    "System",
+    "Default",
+    "Dynamic",
+    "Catppuccin",
+    "Next"
+   ]
+  },
+  {
+   "stage": "baseline-settings",
+   "time": "2026-09-29 21:02:10 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=184046f7-b535-43b4-8d39-98781cd78229 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Theme",
+    "Light",
+    "Dark",
+    "System",
+    "Default",
+    "Dynamic",
+    "Catppuccin",
+    "Green Apple",
+    "Pure black dark mode",
+    "Display",
+    "App language",
+    "Tablet UI",
+    "Auto",
+    "Date format"
+   ]
+  },
+  {
+   "stage": "rollout-0",
+   "time": "2026-09-29 21:03:37 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=184046f7-b535-43b4-8d39-98781cd78229 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "(¬_¬)",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "rollout-40",
+   "time": "2026-09-29 21:04:00 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=184046f7-b535-43b4-8d39-98781cd78229 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "(╬ಠ益ಠ)",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "rollout-50-download",
+   "time": "2026-09-29 21:04:35 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=184046f7-b535-43b4-8d39-98781cd78229 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": true,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "(；￣Д￣)",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "ota-launch",
+   "time": "2026-09-29 21:05:08 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "(¬_¬)",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "ota-active-settings",
+   "time": "2026-09-29 21:05:26 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Theme (updated over the air)",
+    "Light",
+    "Dark",
+    "System",
+    "Default",
+    "Dynamic",
+    "Catppuccin",
+    "Green Apple",
+    "Pure black dark mode",
+    "Display",
+    "App language",
+    "Tablet UI",
+    "Auto",
+    "Date format"
+   ]
+  },
+  {
+   "stage": "paused-restart",
+   "time": "2026-09-29 21:06:23 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "(˘･_･˘)",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "paused-active",
+   "time": "2026-09-29 21:06:40 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Theme (updated over the air)",
+    "Light",
+    "Dark",
+    "System",
+    "Default",
+    "Dynamic",
+    "Catppuccin",
+    "Green Apple",
+    "Pure black dark mode",
+    "Display",
+    "App language",
+    "Tablet UI",
+    "Auto",
+    "Date format"
+   ]
+  },
+  {
+   "stage": "xprem-down-restart",
+   "time": "2026-09-29 21:07:23 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    " ˙ᯅ˙)",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "cloud-down-restart",
+   "time": "2026-09-29 21:07:47 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Ò︵Ó",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "invalid-signature-restart",
+   "time": "2026-09-29 21:08:30 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [
+    "Code signing verification failed for directive"
+   ],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Ò︵Ó",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "offline-restart",
+   "time": "2026-09-29 21:09:24 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "(˘･_･˘)",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "offline-active",
+   "time": "2026-09-29 21:09:42 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Theme (updated over the air)",
+    "Light",
+    "Dark",
+    "System",
+    "Default",
+    "Dynamic",
+    "Catppuccin",
+    "Green Apple",
+    "Pure black dark mode",
+    "Display",
+    "App language",
+    "Tablet UI",
+    "Auto",
+    "Date format"
+   ]
+  },
+  {
+   "stage": "rollback-delivery",
+   "time": "2026-09-29 21:10:36 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=b7ae0702-7ce4-a238-1bb6-e26aa44eb308 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": false,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [
+    "rollback={commitTime=2026-09-29T15:40:11Z}"
+   ],
+   "visibleTextSample": [
+    "(･Д･。",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "rollback-launch",
+   "time": "2026-09-29 21:10:56 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=184046f7-b535-43b4-8d39-98781cd78229 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Ò︵Ó",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  },
+  {
+   "stage": "rollback-active",
+   "time": "2026-09-29 21:11:14 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=184046f7-b535-43b4-8d39-98781cd78229 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Theme",
+    "Light",
+    "Dark",
+    "System",
+    "Default",
+    "Dynamic",
+    "Catppuccin",
+    "Green Apple",
+    "Pure black dark mode",
+    "Display",
+    "App language",
+    "Tablet UI",
+    "Auto",
+    "Date format"
+   ]
+  },
+  {
+   "stage": "rollback-offline-restart",
+   "time": "2026-09-29 21:11:54 IST",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "install": [
+    "firstInstallTime=2026-09-29 20:59:00",
+    "lastUpdateTime=2026-09-29 20:59:00",
+    "versionName=0.20.4"
+   ],
+   "selected": [
+    "update=184046f7-b535-43b4-8d39-98781cd78229 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    " ˙ᯅ˙)",
+    "Your library is empty",
+    "Getting started guide",
+    "Library",
+    "Library",
+    "Updates",
+    "History",
+    "Browse",
+    "More"
+   ]
+  }
+ ],
+ "cloud": {
+  "deviceEventCounts": {
+   "update_healthy:release": 3,
+   "update_checked:embedded": 14,
+   "update_activated:embedded": 7,
+   "update_healthy:embedded": 7,
+   "update_activated:release": 7,
+   "download_started:release": 1,
+   "download_completed:release": 1,
+   "update_available:release": 1,
+   "rollback_applied:release": 1
+  },
+  "eventInstallations": 1,
+  "release": {
+   "id": "6de6bbd3-ac48-45a1-875c-2e41da6e040a",
+   "status": "rolled_back",
+   "percentage": 100,
+   "runtime": "phase8-mihon-1",
+   "runtime_abi": 2,
+   "logic_abi": 1,
+   "hash": "ee8d855a2de933dd4116c3a45c431f6c91496a445010a0246dbd767384d13c5f",
+   "revision": "449c4e08e76d+dootah-integration",
+   "contract_digest": "de1727c19cc43ff1488390077af960a6ba77b966b19adad80b70eb561affc576"
+  },
+  "metrics": {
+   "windowDays": 30,
+   "asOf": "2026-09-29T15:42:18.517Z",
+   "compatible": 21,
+   "eligible": 21,
+   "downloaded": 1,
+   "activated": 1,
+   "healthy": 1,
+   "rejected": 0,
+   "rollbackCount": 1,
+   "adopted": 0,
+   "adoptionPercent": 0,
+   "healthPercent": 100,
+   "provenance": "authenticated_device_reports",
+   "crashFree": null
+  },
+  "negatives": {
+   "results": {
+    "wrongRuntimeAbi": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "wrongLogicAbi": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "wrongRuntimeVersion": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "unknownCapability": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "missingCapability": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "unknownFunction": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "wrongParameterTypes": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "unknownOperation": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "rawJavaScript": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "malformedValue": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    },
+    "unknownRootField": {
+     "status": 422,
+     "error": "artifact_validation_failed",
+     "releaseCreated": false
+    }
+   },
+   "negativeReleasesInEnvironment": 0
+  },
+  "rollback-signature": {
+   "signatureVerified": true,
+   "tamperedRejected": true,
+   "directive": {
+    "type": "rollBackToEmbedded",
+    "parameters": {
+     "commitTime": "2026-09-29T15:40:11.413Z"
+    }
+   }
+  },
+  "cohorts": [
+   {
+    "policy": "0",
+    "offered": 0,
+    "expected": 0,
+    "mismatches": 0,
+    "total": 20
+   },
+   {
+    "policy": "40",
+    "offered": 10,
+    "expected": 10,
+    "mismatches": 0,
+    "total": 20
+   },
+   {
+    "policy": "50",
+    "offered": 13,
+    "expected": 13,
+    "mismatches": 0,
+    "total": 20
+   },
+   {
+    "policy": "100",
+    "offered": 20,
+    "expected": 20,
+    "mismatches": 0,
+    "total": 20
+   },
+   {
+    "policy": "paused",
+    "offered": 0,
+    "expected": 0,
+    "mismatches": 0,
+    "total": 20
+   },
+   {
+    "policy": "100",
+    "offered": 20,
+    "expected": 20,
+    "mismatches": 0,
+    "total": 20
+   }
+  ]
+ },
+ "measurementsRaw": [
+  "TotalTime: 870 WaitTime: 875 ",
+  "TotalTime: 806 WaitTime: 810 ",
+  "TotalTime: 853 WaitTime: 857 ",
+  "           TOTAL PSS:    95287            TOTAL RSS:   218488       TOTAL SWAP PSS:      935",
+  ""
+ ]
+}

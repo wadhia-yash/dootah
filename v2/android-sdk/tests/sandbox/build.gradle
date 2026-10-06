@@ -1,0 +1,10 @@
+plugins { id 'com.android.application' version '8.12.0' }
+android {
+    namespace 'dev.dootah.sandboxproof'
+    compileSdk 36
+    defaultConfig { applicationId 'dev.dootah.sandboxproof'; minSdk 29; targetSdk 36; versionCode 1; versionName '1' }
+    sourceSets.main.java.srcDir '../../runtime/src/main/java/dev/dootah/runtime/sandbox'
+    sourceSets.main.java.srcDir '../../../portable/src/main/java'
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies { implementation 'androidx.javascriptengine:javascriptengine:1.0.0' }

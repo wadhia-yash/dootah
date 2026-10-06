@@ -1,0 +1,187 @@
+{
+ "key": "nia",
+ "bytecode": {
+  "classes": 43,
+  "methods": 250,
+  "hooked": 0,
+  "untouchedIdentical": 229,
+  "hookedForms": {},
+  "hookedInHelpers": 0,
+  "composableNotHooked": 3,
+  "overloadGroups": 0,
+  "overloadDistinctIds": true,
+  "samples": [],
+  "foreignSuperclassRewrites": [
+   "com/google/samples/apps/nowinandroid/MainActivity.class: androidx/activity/ComponentActivity -> com/google/samples/apps/nowinandroid/Hilt_MainActivity",
+   "com/google/samples/apps/nowinandroid/NiaApplication.class: dev/dootah/runtime/DootahApplication -> com/google/samples/apps/nowinandroid/Hilt_NiaApplication"
+  ],
+  "foreignTransformedMethods": 6,
+  "violationCount": 15
+ },
+ "deviceStages": [
+  {
+   "stage": "baseline",
+   "time": "2026-09-29 22:28:27 IST",
+   "apkSha256": "59094c202ab665a1f9bb9fe6525a080db6f180aee5c1e3a5b93897ea1540b18d",
+   "install": [
+    "firstInstallTime=2026-09-29 22:27:55",
+    "lastUpdateTime=2026-09-29 22:27:55",
+    "versionName=0.1.2"
+   ],
+   "selected": [
+    "update=4fc76b20-1e0f-4a3c-85f5-cd76e0749144 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "6",
+    ":",
+    "55",
+    "Tue, 29 September"
+   ]
+  },
+  {
+   "stage": "baseline-unlocked",
+   "time": "2026-09-30 01:23:34 IST",
+   "apkSha256": "59094c202ab665a1f9bb9fe6525a080db6f180aee5c1e3a5b93897ea1540b18d",
+   "install": [
+    "firstInstallTime=2026-09-29 22:27:55",
+    "lastUpdateTime=2026-09-29 22:27:55",
+    "versionName=0.1.2"
+   ],
+   "selected": [
+    "update=4fc76b20-1e0f-4a3c-85f5-cd76e0749144 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Now in Android",
+    "What are you interested in?",
+    "Updates from topics you follow will appear here. Follow some things to get started.",
+    "Headlines",
+    "UI",
+    "Compose",
+    "Done",
+    "For you",
+    "Saved",
+    "Interests"
+   ]
+  },
+  {
+   "stage": "online-restart",
+   "time": "2026-09-30 01:24:07 IST",
+   "apkSha256": "59094c202ab665a1f9bb9fe6525a080db6f180aee5c1e3a5b93897ea1540b18d",
+   "install": [
+    "firstInstallTime=2026-09-29 22:27:55",
+    "lastUpdateTime=2026-09-29 22:27:55",
+    "versionName=0.1.2"
+   ],
+   "selected": [
+    "update=4fc76b20-1e0f-4a3c-85f5-cd76e0749144 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Now in Android",
+    "What are you interested in?",
+    "Updates from topics you follow will appear here. Follow some things to get started.",
+    "Headlines",
+    "UI",
+    "Compose",
+    "Done",
+    "For you",
+    "Saved",
+    "Interests"
+   ]
+  },
+  {
+   "stage": "offline-restart",
+   "time": "2026-09-30 01:24:29 IST",
+   "apkSha256": "59094c202ab665a1f9bb9fe6525a080db6f180aee5c1e3a5b93897ea1540b18d",
+   "install": [
+    "firstInstallTime=2026-09-29 22:27:55",
+    "lastUpdateTime=2026-09-29 22:27:55",
+    "versionName=0.1.2"
+   ],
+   "selected": [
+    "update=4fc76b20-1e0f-4a3c-85f5-cd76e0749144 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Now in Android",
+    "What are you interested in?",
+    "Updates from topics you follow will appear here. Follow some things to get started.",
+    "Headlines",
+    "UI",
+    "Compose",
+    "Done",
+    "For you",
+    "Saved",
+    "Interests"
+   ]
+  },
+  {
+   "stage": "cloud-down-restart",
+   "time": "2026-09-30 01:24:52 IST",
+   "apkSha256": "59094c202ab665a1f9bb9fe6525a080db6f180aee5c1e3a5b93897ea1540b18d",
+   "install": [
+    "firstInstallTime=2026-09-29 22:27:55",
+    "lastUpdateTime=2026-09-29 22:27:55",
+    "versionName=0.1.2"
+   ],
+   "selected": [
+    "update=4fc76b20-1e0f-4a3c-85f5-cd76e0749144 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Now in Android",
+    "What are you interested in?",
+    "Updates from topics you follow will appear here. Follow some things to get started.",
+    "Headlines",
+    "UI",
+    "Compose",
+    "Done",
+    "For you",
+    "Saved",
+    "Interests"
+   ]
+  }
+ ],
+ "cloud": {
+  "deviceEventCounts": {
+   "update_checked:embedded": 6,
+   "update_healthy:embedded": 6,
+   "update_activated:embedded": 6
+  },
+  "eventInstallations": 1
+ },
+ "measurementsRaw": [
+  "TotalTime: 277 WaitTime: 281 ",
+  "TotalTime: 267 WaitTime: 269 ",
+  "TotalTime: 260 WaitTime: 262 ",
+  "           TOTAL PSS:    99964            TOTAL RSS:   254576       TOTAL SWAP PSS:      930",
+  ""
+ ]
+}

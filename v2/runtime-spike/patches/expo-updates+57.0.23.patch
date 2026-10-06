@@ -1,0 +1,93 @@
+diff --git a/node_modules/expo-updates/android/src/main/java/expo/modules/updates/EnabledUpdatesController.kt b/node_modules/expo-updates/android/src/main/java/expo/modules/updates/EnabledUpdatesController.kt
+index 95495df..b816681 100644
+--- a/node_modules/expo-updates/android/src/main/java/expo/modules/updates/EnabledUpdatesController.kt
++++ b/node_modules/expo-updates/android/src/main/java/expo/modules/updates/EnabledUpdatesController.kt
+@@ -170,6 +170,15 @@ class EnabledUpdatesController(
+     weakActivity = WeakReference(reactContext.currentActivity)
+   }
+ 
++  /** Called only after launchAssetFile has completed startup selection. */
++  fun startNativeMonitoring() = startupProcedure.startNativeMonitoring()
++
++  suspend fun rejectNativeLaunch(updateId: UUID) = startupProcedure.rejectNativeLaunch(updateId)
++
++  /** Acknowledges a frame committed by an installed native renderer for this launch. */
++  fun onNativeContentRendered(updateId: UUID): Boolean =
++    startupProcedure.onNativeContentRendered(updateId)
++
+   override fun onReactInstanceException(exception: Exception) {
+     startupProcedure.onReactInstanceException(exception)
+   }
+diff --git a/node_modules/expo-updates/android/src/main/java/expo/modules/updates/errorrecovery/ErrorRecovery.kt b/node_modules/expo-updates/android/src/main/java/expo/modules/updates/errorrecovery/ErrorRecovery.kt
+index c216e1c..768754a 100644
+--- a/node_modules/expo-updates/android/src/main/java/expo/modules/updates/errorrecovery/ErrorRecovery.kt
++++ b/node_modules/expo-updates/android/src/main/java/expo/modules/updates/errorrecovery/ErrorRecovery.kt
+@@ -37,6 +37,12 @@ class ErrorRecovery(
+     }
+   }
+ 
++  /** Native-only host: no React marker or module registry is registered. */
++  fun startNativeMonitoring() {
++    check(::handler.isInitialized)
++    shouldHandleReactInstanceException = true
++  }
++
+   fun startMonitoring(devSupportManager: DevSupportManager) {
+     registerContentAppearedListener()
+     registerErrorHandler(devSupportManager)
+@@ -62,7 +68,13 @@ class ErrorRecovery(
+     handler.sendMessage(handler.obtainMessage(ErrorRecoveryHandler.MessageType.EXCEPTION_ENCOUNTERED, exception))
+   }
+ 
+-  internal fun handleContentAppeared() {
++  private var contentAcknowledged = false
++
++  @Synchronized
++  internal fun handleContentAppeared(): Boolean {
++    if (!::handler.isInitialized || !shouldHandleReactInstanceException) return false
++    if (contentAcknowledged) return true
++    contentAcknowledged = true
+     handler.sendMessage(handler.obtainMessage(ErrorRecoveryHandler.MessageType.CONTENT_APPEARED))
+ 
+     unregisterContentAppearedListener()
+@@ -74,6 +86,7 @@ class ErrorRecovery(
+     // it's safe to use the handler thread for this since nothing else
+     // touches this class's fields
+     handler.postDelayed({ unregisterErrorHandler() }, 10000)
++    return true
+   }
+ 
+   private val contentAppearedListener = MarkerListener { name, _, _ ->
+diff --git a/node_modules/expo-updates/android/src/main/java/expo/modules/updates/procedures/StartupProcedure.kt b/node_modules/expo-updates/android/src/main/java/expo/modules/updates/procedures/StartupProcedure.kt
+index 365958f..d3d1a31 100644
+--- a/node_modules/expo-updates/android/src/main/java/expo/modules/updates/procedures/StartupProcedure.kt
++++ b/node_modules/expo-updates/android/src/main/java/expo/modules/updates/procedures/StartupProcedure.kt
+@@ -227,6 +227,20 @@ class StartupProcedure(
+     errorRecovery.startMonitoring(devSupportManager)
+   }
+ 
++  fun startNativeMonitoring() = errorRecovery.startNativeMonitoring()
++
++  suspend fun rejectNativeLaunch(updateId: java.util.UUID) {
++    val update = launchedUpdate ?: return
++    if (emergencyLaunchException != null || update.id != updateId) return
++    databaseHolder.withDatabase { it.updateDao().incrementFailedLaunchCount(update) }
++    logger.warn("Native portable launch rejected: $updateId")
++  }
++
++  fun onNativeContentRendered(updateId: java.util.UUID): Boolean {
++    if (emergencyLaunchException != null || launchedUpdate?.id != updateId) return false
++    return errorRecovery.handleContentAppeared()
++  }
++
+   fun onReactInstanceException(exception: Exception) {
+     errorRecovery.onReactInstanceException(exception)
+   }
+@@ -301,6 +315,7 @@ class StartupProcedure(
+         procedureScope.launch {
+           val launchedUpdate = launchedUpdate ?: return@launch
+           databaseHolder.withDatabase { it.updateDao().incrementSuccessfulLaunchCount(launchedUpdate) }
++          logger.info("Renderer launch acknowledged: ${launchedUpdate.id}")
+         }
+       }
+ 

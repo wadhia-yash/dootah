@@ -1,0 +1,16 @@
+name: V2 alpha CI
+on:
+  pull_request:
+  push:
+    branches: [main, pivot/dootah-v2]
+  workflow_dispatch:
+  schedule:
+    - cron: '30 2 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: v2-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  gates:
+    uses: ./.github/workflows/v2-gates.yml

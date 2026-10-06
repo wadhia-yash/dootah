@@ -1,0 +1,71 @@
+name: V2 signed release candidate (no publication)
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Intended public version (must match version.properties)
+        required: true
+        type: string
+      tag_intent:
+        description: Intended future tag (vVERSION); no tag will be created
+        required: true
+        type: string
+      source_commit:
+        description: Full SHA of the selected trusted branch revision
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: v2-release-candidate
+  cancel-in-progress: false
+jobs:
+  intent:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Validate source, version and unused tag intent
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_TAG: ${{ inputs.tag_intent }}
+          RELEASE_COMMIT: ${{ inputs.source_commit }}
+        run: python3 v2/ci/release.py intent
+  gates:
+    needs: intent
+    uses: ./.github/workflows/v2-gates.yml
+    with:
+      developer_id: ${{ vars.DOOTAH_DEVELOPER_ID }}
+      developer_name: ${{ vars.DOOTAH_DEVELOPER_NAME }}
+  sign:
+    needs: gates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: v2-release-signing
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: v2-sdk-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/unsigned
+      - name: Sign and verify the fully tested candidate
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_TAG: ${{ inputs.tag_intent }}
+          RELEASE_COMMIT: ${{ inputs.source_commit }}
+          DOOTAH_SIGNING_KEY_BASE64: ${{ secrets.DOOTAH_SIGNING_KEY_BASE64 }}
+          DOOTAH_SIGNING_PASSPHRASE: ${{ secrets.DOOTAH_SIGNING_PASSPHRASE }}
+          DOOTAH_SIGNING_FINGERPRINT: ${{ vars.DOOTAH_SIGNING_FINGERPRINT }}
+          DOOTAH_COORDINATE_LEDGER: ${{ vars.DOOTAH_COORDINATE_LEDGER }}
+        run: python3 v2/ci/release.py sign "$RUNNER_TEMP/unsigned" "$RUNNER_TEMP/signed"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: v2-signed-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/signed/
+          if-no-files-found: error
+          retention-days: 14

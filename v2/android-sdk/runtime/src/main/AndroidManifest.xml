@@ -1,0 +1,20 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+  <uses-permission android:name="android.permission.INTERNET" />
+  <!-- Inherited Expo/RN modules are never loaded by the native runtime; do not grant their
+       permissions or start their provider in consumer apps. App-declared entries are unaffected. -->
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" tools:node="remove" />
+  <application>
+    <provider android:name="expo.modules.filesystem.FileSystemFileProvider" tools:node="remove" />
+    <meta-data android:name="expo.modules.updates.ENABLED" android:value="true" />
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="${dootah_update_url}" />
+    <meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="${dootah_runtime_version}" />
+    <meta-data android:name="expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="${dootah_request_headers}" />
+    <meta-data android:name="expo.modules.updates.CODE_SIGNING_CERTIFICATE" android:value="${dootah_certificate}" />
+    <meta-data android:name="expo.modules.updates.CODE_SIGNING_METADATA" android:value="${dootah_signing_metadata}" />
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS" />
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0" />
+  </application>
+</manifest>

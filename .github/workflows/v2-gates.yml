@@ -1,0 +1,92 @@
+name: V2 required gates
+on:
+  workflow_call:
+    inputs:
+      developer_id:
+        type: string
+        default: ''
+      developer_name:
+        type: string
+        default: ''
+permissions:
+  contents: read
+jobs:
+  matrix:
+    name: V2 ${{ matrix.gate }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        gate: [sdk, server, security]
+    env:
+      DOCKER_DEFAULT_PLATFORM: linux/amd64
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.20.0'
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        if: matrix.gate == 'sdk'
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3.2.2
+        if: matrix.gate == 'sdk'
+        with:
+          # Explicit: the action's default also requests the removed legacy 'tools' package.
+          packages: platform-tools
+      - name: Install pinned Android build inputs
+        if: matrix.gate == 'sdk'
+        # 36.0.0 is the producer's pin; 35.0.0 is AGP 8.12.0's default for the staged consumer.
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0' 'build-tools;35.0.0' 'ndk;27.1.12297006' 'cmake;3.22.1'
+      - name: Run clean gate
+        id: gate
+        env:
+          GATE: ${{ matrix.gate }}
+          DOOTAH_DEVELOPER_ID: ${{ inputs.developer_id }}
+          DOOTAH_DEVELOPER_NAME: ${{ inputs.developer_name }}
+        run: python3 v2/ci/run.py "$GATE" "$RUNNER_TEMP/evidence/$GATE"
+      # The gate writes a result or failure receipt; bootstrap failures before it have no evidence.
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always() && steps.gate.outcome != 'skipped'
+        with:
+          name: v2-${{ matrix.gate }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/evidence/${{ matrix.gate }}/
+          if-no-files-found: error
+          retention-days: 14
+  required:
+    name: V2 required suites
+    needs: matrix
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Require every matrix job
+        env:
+          MATRIX_RESULT: ${{ needs.matrix.result }}
+        run: test "$MATRIX_RESULT" = success
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: v2-sdk-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results/sdk
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: v2-server-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results/server
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: v2-security-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results/security
+      - run: python3 v2/ci/combine.py "$RUNNER_TEMP/results" "$GITHUB_SHA"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: v2-required-suites-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/results/required-suites-result.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:networkSecurityConfig="@xml/dootah_local_network">
+        <activity android:name=".BenchmarkActivity" android:exported="true" />
+    </application>
+</manifest>

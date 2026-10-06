@@ -1,0 +1,275 @@
+{
+  "status": "INCOMPLETE \u2014 primary baseline replacement awaiting confirmation",
+  "baselineSha256": "fb96a573973a508f66e1299682858e2d40a2d189b7d7f883ef9f2e5eb8067549",
+  "installedBeforeSha256": "fb96a573973a508f66e1299682858e2d40a2d189b7d7f883ef9f2e5eb8067549",
+  "replacementSha256": "95c18eda921fd4f00b804ea8b7166f1e05d8db93df8f02b9a436f1704a9647f2",
+  "replacementInstalled": false,
+  "primaryDataClear": false,
+  "primaryReinstallAfterBaseline": false,
+  "stages": {
+    "baseline": {
+      "text": [
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "nativeHealthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "bc7fbdb9-38a3-459b-b693-2d98aa25c51d",
+      "lastUpdateTime": "2026-09-28 01:57:26"
+    },
+    "business-download": {
+      "text": [
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "nativeHealthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "bc7fbdb9-38a3-459b-b693-2d98aa25c51d",
+      "lastUpdateTime": "2026-09-28 01:57:26"
+    },
+    "business-active": {
+      "text": [
+        "Discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member explicit",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "nativeHealthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "fe83ad24-dfc6-e849-3be5-666263336d0c",
+      "lastUpdateTime": "2026-09-28 01:57:26"
+    },
+    "business-online": {
+      "text": [
+        "Discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member explicit",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "nativeHealthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "fe83ad24-dfc6-e849-3be5-666263336d0c",
+      "lastUpdateTime": "2026-09-28 01:57:26"
+    },
+    "regression-rollback-active": {
+      "text": [
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "nativeHealthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "bc7fbdb9-38a3-459b-b693-2d98aa25c51d",
+      "lastUpdateTime": "2026-09-28 01:57:26"
+    },
+    "dispatch-proof-download": {
+      "text": [
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "nativeHealthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "6e589808-a1b2-41fc-a7c5-4f83682d8464",
+      "lastUpdateTime": "2026-09-28 07:23:43"
+    },
+    "dispatch-proof-active": {
+      "text": [
+        "Special discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "nativeHealthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "a2815183-d67c-4b41-9be0-7e5c015b0785",
+      "lastUpdateTime": "2026-09-28 07:23:43"
+    },
+    "dispatch-proof-offline": {
+      "text": [
+        "Special discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "nativeHealthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "a2815183-d67c-4b41-9be0-7e5c015b0785",
+      "lastUpdateTime": "2026-09-28 07:23:43"
+    }
+  },
+  "businessSignatureAndAssetVerification": {
+    "signatureVerified": true,
+    "body": {
+      "id": "fe83ad24-dfc6-e849-3be5-666263336d0c",
+      "createdAt": "2026-09-28T01:44:42.016Z",
+      "runtimeVersion": "dootah-v2-logic-2",
+      "metadata": {
+        "branch": "development"
+      },
+      "assets": [],
+      "launchAsset": {
+        "hash": "tTVU7dHFA5Rm2SEWUo-ZRM3mBZFdFXO_kuAHQNhgF5o",
+        "key": "a5474893d07e677cd7737862740bec38",
+        "fileExtension": ".bundle",
+        "contentType": "application/javascript",
+        "url": "http://127.0.0.1:3100/assets?ext=bundle&h=tTVU7dHFA5Rm2SEWUo-ZRM3mBZFdFXO_kuAHQNhgF5o&platform=android"
+      },
+      "extra": {
+        "expoClient": {
+          "runtimeVersion": "dootah-v2-logic-2",
+          "android": {
+            "package": "dev.dootah.consumer"
+          }
+        },
+        "branch": "development"
+      }
+    },
+    "assetHash": "tTVU7dHFA5Rm2SEWUo-ZRM3mBZFdFXO_kuAHQNhgF5o",
+    "bytes": 873
+  },
+  "rollbackSignatureVerification": {
+    "signatureVerified": true,
+    "body": {
+      "type": "rollBackToEmbedded",
+      "parameters": {
+        "commitTime": "2026-09-28T01:48:59.258Z"
+      }
+    }
+  },
+  "regression": "produceState introduced Compose groups on pending native fallback; Member changed to Member explicit",
+  "fix": "native bounded snapshot result cache; group-free ReadOnlyComposable lookup",
+  "fixedDiagnosticNativeCounterRecomposition": "PASS",
+  "normalBuildUnsupportedEdit": "assembleDebug/D8 and assembleRelease/R8 PASS; publishing refused System.nanoTime()",
+  "phase6Complete": false,
+  "phase7Started": false,
+  "installedAfterSha256": "fb96a573973a508f66e1299682858e2d40a2d189b7d7f883ef9f2e5eb8067549",
+  "tests": {
+    "publisher": {
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "composeHook": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "runtime": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "nativeHealth": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "cleanup": {
+    "serverStopped": true,
+    "adbReverse3100Removed": true,
+    "validationNetworkSettingsRestored": true,
+    "primarySignedRollback": true,
+    "primaryOfflineRestoration": "PASS",
+    "primaryLastUpdateTime": "2026-09-28 01:57:26"
+  },
+  "diagnosticSignedRollback": {
+    "signatureVerified": true,
+    "body": {
+      "type": "rollBackToEmbedded",
+      "parameters": {
+        "commitTime": "2026-09-28T01:59:56.556Z"
+      }
+    }
+  },
+  "memoryKiB": {
+    "nativeAppPss": 39033,
+    "portableAppPss": 40111,
+    "sandboxPss": 16572,
+    "sandboxRss": 85040,
+    "note": "Approximate individual samples; heap limit is not RSS limit"
+  }
+}

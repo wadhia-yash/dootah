@@ -1,0 +1,20 @@
+{
+  "name": "dootah-v2-runtime-spike",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "export:android": "expo export --platform android",
+    "postinstall": "patch-package --error-on-fail"
+  },
+  "dependencies": {
+    "expo": "57.0.25",
+    "expo-brownfield": "57.0.23",
+    "expo-updates": "57.0.23",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
+  },
+  "devDependencies": {
+    "patch-package": "8.0.1"
+  }
+}

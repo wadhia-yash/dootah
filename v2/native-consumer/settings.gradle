@@ -1,0 +1,12 @@
+pluginManagement {
+    // The fixture always consumes the SDK version built from this checkout, never an older local artifact.
+    def sdk = new Properties()
+    new File(settingsDir, '../android-sdk/version.properties').withInputStream { sdk.load(it) }
+    plugins { id 'dev.dootah' version sdk.getProperty('dootah.sdk.version') }
+    repositories { maven { url '../android-sdk/build/maven' }; google(); mavenCentral(); gradlePluginPortal() }
+}
+dependencyResolutionManagement {
+    repositories { maven { url '../android-sdk/build/maven' }; google(); mavenCentral() }
+}
+rootProject.name = 'Dootah Native Consumer'
+include ':app'

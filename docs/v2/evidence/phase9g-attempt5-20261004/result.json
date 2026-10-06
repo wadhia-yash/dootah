@@ -1,0 +1,143 @@
+{
+  "classification": "PASS",
+  "startingHead": "a5006d8c333e19cda80f303822071432beac816f",
+  "sourceCheckoutInitiallyClean": true,
+  "githubHostedCI": "UNVERIFIED",
+  "githubEvidence": "Public workflow metadata HTTP 404",
+  "freshGradleProducer": true,
+  "freshGradleConsumer": true,
+  "freshNpmCache": true,
+  "freshBackendState": true,
+  "freshGoCaches": true,
+  "cliTestsPassed": 22,
+  "serverTestsPassed": 345,
+  "namedAzureExclusions": 4,
+  "imagePermissions": "PASS",
+  "httpsPreflight": "PASS",
+  "curlLive": 200,
+  "curlReady": 200,
+  "nodeHTTPS": "PASS",
+  "authenticatedCLI": "PASS",
+  "hostPublishing": {
+    "Caddy": "127.0.0.1:18080",
+    "Cloud": "NONE",
+    "xprem": "NONE",
+    "PostgreSQL": "NONE"
+  },
+  "freshApp": "RelayAlpha / example.dootah.relayalpha",
+  "artifactStage": "PASS",
+  "apkInstalls": 1,
+  "dataClears": 0,
+  "phase9HStarted": false,
+  "freshSigningState": true,
+  "originAgreement": "PASS",
+  "appBinding": "PASS",
+  "appSpecificProductionReferences": 0,
+  "documentationObservations": [
+    {
+      "document": "README.md",
+      "result": "CORRECT"
+    },
+    {
+      "document": "docs/getting-started/quickstart.md",
+      "result": "CORRECT"
+    },
+    {
+      "document": "docs/self-hosting/ngrok.md",
+      "result": "CORRECT"
+    },
+    {
+      "document": "v2/android-sdk/release/README.md",
+      "result": "CORRECT"
+    },
+    {
+      "document": "v2/publishing/ONBOARDING.md",
+      "result": "CORRECT"
+    },
+    {
+      "document": "docs/reference/support.md",
+      "result": "CORRECT"
+    },
+    {
+      "document": "docs/security/README.md",
+      "result": "CORRECT"
+    }
+  ],
+  "nativeBaseline": "PASS",
+  "sandboxDeviceProof": "PASS",
+  "manualDBEdits": false,
+  "manualHookIds": false,
+  "undocumentedProductWorkarounds": false,
+  "artifactVersion": "0.1.0-alpha.1",
+  "artifactPublications": 19,
+  "sha256ManifestDigest": "3cf1dfe495eed10a9031a213591732501325ea51cbdf42ae4fe51b6b49387790",
+  "artifactConsumption": "PASS",
+  "nativeBuild": "PASS",
+  "retention": "PASS",
+  "releaseImport": "PASS",
+  "contractEnvironmentRegistration": "PASS",
+  "apkSha256": "23fe0779a501edd9059a88decd868bba7e5e82398dd53d12707a04a2ab790eb2",
+  "retainedMetadata": {
+    "agpVersion": "8.12.0",
+    "appId": "edcbd5d4-2bf1-4dae-8996-cf5974077845",
+    "applicationId": "example.dootah.relayalpha",
+    "channel": "development",
+    "gradleVersion": "9.3.1",
+    "kotlinVersion": "2.1.20",
+    "runtimeVersion": "relay-alpha-native-1",
+    "sdkVersion": "0.1.0-alpha.1",
+    "variant": "debug"
+  },
+  "device": "Samsung SM-E426B visible through adb",
+  "installedApkSha256": "23fe0779a501edd9059a88decd868bba7e5e82398dd53d12707a04a2ab790eb2",
+  "firstInstallTime": "2026-10-04 22:46:30",
+  "sameInstalledApkInitiallyVerified": true,
+  "telemetryEnrollment": "PASS",
+  "nativeCounterBaseline": "PASS",
+  "enrollmentInteraction": "First UI submission did not enroll; a fresh documented one-use ticket was submitted after dismissing keyboard and locating the current Enroll button.",
+  "supportedAnalyze": "PASS",
+  "cloudPublication": "PASS",
+  "signedOTA": "PASS",
+  "visibleOTA": "PASS",
+  "sixTelemetryEvents": "PASS",
+  "sameApkHashOnline": true,
+  "sameInstallTimestampOnline": true,
+  "onlineRestart": "PASS",
+  "offlineCachedRestart": "PASS",
+  "offlineMethod": "Only Cloud stopped; ngrok and device networking remained enabled; public /ready returned 502. Cached OTA displayed Discount: 20 and native counter worked.",
+  "retrievalRestored": true,
+  "sandboxIsolation": "PASS",
+  "appMaps": {
+    "hermesLoaded": false,
+    "reactNativeLoaded": false,
+    "v8Loaded": false
+  },
+  "unrelatedNativeUI": "PASS",
+  "signedRollback": "PASS",
+  "nativeRestoration": "PASS",
+  "sameAPKAfterRollback": true,
+  "sameInstallTimestampAfterRollback": true,
+  "cleanRoomAcceptanceComplete": true,
+  "readmeOnlyOnboarding": "PASS",
+  "unsupportedEditRefused": "PASS",
+  "rollbackTelemetry": "PASS",
+  "postRollbackOfflineNative": "PASS",
+  "sameAPKFinal": true,
+  "sameInstallTimestampFinal": true,
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "renderer": "BasicText / Option A",
+  "externalPublicationClaims": "NONE",
+  "externalDeploymentClaims": "NONE",
+  "phase9HCanBegin": false,
+  "releaseBlockers": [
+    "GitHub-hosted V2 CI UNVERIFIED",
+    "Public artifact registry validation deferred",
+    "Production external deployment/TLS validation deferred"
+  ],
+  "documentationIssuesThisAttempt": [],
+  "genericBugsThisAttempt": [],
+  "cleanup": "PASS: native baseline selected, test app stopped, retrieval restored before teardown; ngrok and fresh stack/networks/volumes stopped/removed; temporary secrets, signing key and session/token files removed; no adb reverse rules created; device network settings untouched.",
+  "completedDate": "2026-10-05",
+  "demonstratedTransport": "Clean-room HTTPS OTA acceptance through a publicly trusted ngrok tunnel"
+}

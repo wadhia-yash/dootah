@@ -1,0 +1,7 @@
+__pycache__/
+.env
+*.log
+*.dump
+*.tgz
+secrets/*
+!secrets/README.md

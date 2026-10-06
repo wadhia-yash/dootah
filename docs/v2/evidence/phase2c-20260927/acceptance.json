@@ -1,0 +1,210 @@
+{
+  "device": "Samsung SM-E426B / Android 13 API 33 / arm64-v8a",
+  "package": "dev.dootah.v2.spike",
+  "runtimeVersion": "dootah-v2-spike-1",
+  "versionCode": 1,
+  "versionName": "0.0.0",
+  "baselineAPK_SHA256": "dd91ee94516c8cbb46437d4afff3f52b1062dcfa60ddc99b65fbfc7472b28539",
+  "baselineInstallTime": "2026-09-27 08:51:03 IST",
+  "approvedReplacementBeforeSuccessfulBaseline": true,
+  "reinstallAfterSuccessfulBaseline": false,
+  "appDataClear": false,
+  "manualClientDBMutation": false,
+  "signingCertificateSHA256": "C4728A1E1E4CC23557AFD8426789F87BA93EE189222ADFE8234E0859C7208475",
+  "serverURL": "http://127.0.0.1:3100/manifest",
+  "appId": "34e81d97-661f-4f3b-ad2c-8d4e7a6546a6",
+  "channel": "development",
+  "ota1": {
+    "updateId": 17904795930992,
+    "updateUUID": "a8907975-1861-8fdd-29b8-0bf6131b3136",
+    "runtimeVersion": "dootah-v2-spike-1",
+    "launchHash": "szSq84eTy53Qj3PF0wtvVVaSW2ShtjyRvl1UJ29Bdbg"
+  },
+  "ota2": {
+    "updateId": 17904797280162,
+    "updateUUID": "8b1e67eb-9e15-4eb9-df51-d3fb28c766f9",
+    "runtimeVersion": "dootah-v2-spike-1",
+    "launchHash": "jiUdNrO3Lv34drks0m3jL9PEFfsWWeZkxdQ52q4W7s0"
+  },
+  "rollback": {
+    "appId": "34e81d97-661f-4f3b-ad2c-8d4e7a6546a6",
+    "branch": "development",
+    "runtimeVersion": "dootah-v2-spike-1",
+    "updateId": "17904798064702",
+    "createdAt": 1790479806471389000
+  },
+  "directive": {
+    "parts": [
+      {
+        "type": "rollBackToEmbedded",
+        "parameters": {
+          "commitTime": "2026-09-27T03:30:06.471Z"
+        }
+      }
+    ],
+    "signature": true
+  },
+  "checks": {
+    "corrected-baseline": {
+      "pass": true,
+      "nativeComposeText": "Dootah Native Baseline",
+      "updateUUID": "d2569e0c-516e-4da4-826d-e6e759b2164a",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Compose frame committed; health accepted update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Renderer launch acknowledged: d2569e0c-516e-4da4-826d-e6e759b2164a"
+      ]
+    },
+    "wrong-runtime": {
+      "pass": true,
+      "nativeComposeText": "Dootah Native Baseline",
+      "updateUUID": "d2569e0c-516e-4da4-826d-e6e759b2164a",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Compose frame committed; health accepted update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Renderer launch acknowledged: d2569e0c-516e-4da4-826d-e6e759b2164a"
+      ]
+    },
+    "wrong-app": {
+      "pass": true,
+      "nativeComposeText": "Dootah Native Baseline",
+      "updateUUID": "d2569e0c-516e-4da4-826d-e6e759b2164a",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Compose frame committed; health accepted update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Renderer launch acknowledged: d2569e0c-516e-4da4-826d-e6e759b2164a"
+      ]
+    },
+    "invalid-manifest-signature": {
+      "pass": true,
+      "nativeComposeText": "Dootah Native Baseline",
+      "updateUUID": "d2569e0c-516e-4da4-826d-e6e759b2164a",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Code signing verification failed for manifest",
+        "Hermes bridge received update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Compose frame committed; health accepted update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Renderer launch acknowledged: d2569e0c-516e-4da4-826d-e6e759b2164a"
+      ]
+    },
+    "corrupt-asset": {
+      "pass": true,
+      "nativeComposeText": "Dootah Native Baseline",
+      "updateUUID": "d2569e0c-516e-4da4-826d-e6e759b2164a",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Manifest code signing signature verified successfully",
+        "Hermes bridge received update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Compose frame committed; health accepted update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Renderer launch acknowledged: d2569e0c-516e-4da4-826d-e6e759b2164a",
+        "Asset rejected at Expo SHA-256 mismatch check"
+      ]
+    },
+    "ota1-active": {
+      "pass": true,
+      "nativeComposeText": "Dootah xprem OTA 1",
+      "updateUUID": "a8907975-1861-8fdd-29b8-0bf6131b3136",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=a8907975-1861-8fdd-29b8-0bf6131b3136 title=Dootah xprem OTA 1",
+        "Compose frame committed; health accepted update=a8907975-1861-8fdd-29b8-0bf6131b3136 title=Dootah xprem OTA 1",
+        "Renderer launch acknowledged: a8907975-1861-8fdd-29b8-0bf6131b3136"
+      ]
+    },
+    "ota1-online": {
+      "pass": true,
+      "nativeComposeText": "Dootah xprem OTA 1",
+      "updateUUID": "a8907975-1861-8fdd-29b8-0bf6131b3136",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=a8907975-1861-8fdd-29b8-0bf6131b3136 title=Dootah xprem OTA 1",
+        "Compose frame committed; health accepted update=a8907975-1861-8fdd-29b8-0bf6131b3136 title=Dootah xprem OTA 1",
+        "Renderer launch acknowledged: a8907975-1861-8fdd-29b8-0bf6131b3136"
+      ]
+    },
+    "ota1-offline": {
+      "pass": true,
+      "nativeComposeText": "Dootah xprem OTA 1",
+      "updateUUID": "a8907975-1861-8fdd-29b8-0bf6131b3136",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=a8907975-1861-8fdd-29b8-0bf6131b3136 title=Dootah xprem OTA 1",
+        "Compose frame committed; health accepted update=a8907975-1861-8fdd-29b8-0bf6131b3136 title=Dootah xprem OTA 1",
+        "Renderer launch acknowledged: a8907975-1861-8fdd-29b8-0bf6131b3136"
+      ]
+    },
+    "ota2-active": {
+      "pass": true,
+      "nativeComposeText": "Dootah xprem OTA 2",
+      "updateUUID": "8b1e67eb-9e15-4eb9-df51-d3fb28c766f9",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=8b1e67eb-9e15-4eb9-df51-d3fb28c766f9 title=Dootah xprem OTA 2",
+        "Compose frame committed; health accepted update=8b1e67eb-9e15-4eb9-df51-d3fb28c766f9 title=Dootah xprem OTA 2",
+        "Renderer launch acknowledged: 8b1e67eb-9e15-4eb9-df51-d3fb28c766f9"
+      ]
+    },
+    "ota2-online": {
+      "pass": true,
+      "nativeComposeText": "Dootah xprem OTA 2",
+      "updateUUID": "8b1e67eb-9e15-4eb9-df51-d3fb28c766f9",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=8b1e67eb-9e15-4eb9-df51-d3fb28c766f9 title=Dootah xprem OTA 2",
+        "Compose frame committed; health accepted update=8b1e67eb-9e15-4eb9-df51-d3fb28c766f9 title=Dootah xprem OTA 2",
+        "Renderer launch acknowledged: 8b1e67eb-9e15-4eb9-df51-d3fb28c766f9"
+      ]
+    },
+    "invalid-rollback-signature": {
+      "pass": true,
+      "nativeComposeText": "Dootah xprem OTA 2",
+      "updateUUID": "8b1e67eb-9e15-4eb9-df51-d3fb28c766f9",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Code signing verification failed for directive",
+        "Hermes bridge received update=8b1e67eb-9e15-4eb9-df51-d3fb28c766f9 title=Dootah xprem OTA 2",
+        "Compose frame committed; health accepted update=8b1e67eb-9e15-4eb9-df51-d3fb28c766f9 title=Dootah xprem OTA 2",
+        "Renderer launch acknowledged: 8b1e67eb-9e15-4eb9-df51-d3fb28c766f9"
+      ]
+    },
+    "rollback-active": {
+      "pass": true,
+      "nativeComposeText": "Dootah Native Baseline",
+      "updateUUID": "d2569e0c-516e-4da4-826d-e6e759b2164a",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Compose frame committed; health accepted update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Renderer launch acknowledged: d2569e0c-516e-4da4-826d-e6e759b2164a"
+      ]
+    },
+    "rollback-online": {
+      "pass": true,
+      "nativeComposeText": "Dootah Native Baseline",
+      "updateUUID": "d2569e0c-516e-4da4-826d-e6e759b2164a",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Compose frame committed; health accepted update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Renderer launch acknowledged: d2569e0c-516e-4da4-826d-e6e759b2164a"
+      ]
+    },
+    "rollback-offline": {
+      "pass": true,
+      "nativeComposeText": "Dootah Native Baseline",
+      "updateUUID": "d2569e0c-516e-4da4-826d-e6e759b2164a",
+      "lastUpdateTime": "2026-09-27 08:51:03 IST",
+      "events": [
+        "Hermes bridge received update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Compose frame committed; health accepted update=d2569e0c-516e-4da4-826d-e6e759b2164a title=Dootah Native Baseline",
+        "Renderer launch acknowledged: d2569e0c-516e-4da4-826d-e6e759b2164a"
+      ]
+    }
+  },
+  "sameInstalledAPKBeforeAfter": true,
+  "EASDependency": false,
+  "ReactNativeUI": false
+}

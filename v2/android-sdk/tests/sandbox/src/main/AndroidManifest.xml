@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:label="Dootah Sandbox Proof" />
+    <instrumentation android:name=".SandboxProof" android:targetPackage="dev.dootah.sandboxproof" />
+</manifest>

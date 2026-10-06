@@ -1,0 +1,73 @@
+plugins { id 'groovy'; id 'java-gradle-plugin'; id 'maven-publish' }
+ext.dootahSdkDirectory = file('..')
+apply from: '../versions.gradle'
+def sdkVersion = dootahSdkVersion
+group = 'dev.dootah'
+version = sdkVersion
+repositories { google(); mavenCentral() }
+dependencies {
+    compileOnly 'com.android.tools.build:gradle:8.12.0'
+    implementation 'org.ow2.asm:asm-tree:9.8'
+    implementation 'org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.20'
+    testImplementation 'com.android.tools.build:gradle-api:8.12.0'
+    testImplementation 'org.ow2.asm:asm-util:9.8'
+    testImplementation gradleTestKit()
+    testImplementation 'junit:junit:4.13.2'
+}
+gradlePlugin {
+    plugins {
+        dootah {
+            id = 'dev.dootah'
+            implementationClass = 'dev.dootah.gradle.DootahPlugin'
+            displayName = 'Dootah Android OTA'
+            description = 'Bounded OTA updates for native Kotlin and Jetpack Compose applications'
+        }
+    }
+}
+java { withSourcesJar() }
+publishing { repositories { maven { url = dootahRepository } } }
+
+// The plugin adds the runtime-v2 artifact of its own version; one source for both.
+def versionResource = tasks.register('generateDootahVersionResource') {
+    def output = layout.buildDirectory.dir('generated/dootah-version')
+    inputs.property('version', sdkVersion)
+    outputs.dir(output)
+    doLast {
+        def file = output.get().file('dev/dootah/gradle/sdk-version.txt').asFile
+        file.parentFile.mkdirs()
+        file.text = sdkVersion
+    }
+}
+sourceSets.main.resources.srcDir(versionResource)
+
+// Fixture-backed tests need real compiled Compose classes from the native consumer. They run
+// only in composeFixtureTest, which fails (never skips) without fixtures.
+def fixtureTests = '**/ComposeEntryTest*'
+def failOnSkippedOrEmpty = { Test task ->
+    task.afterSuite { descriptor, result ->
+        if (descriptor.parent == null && (result.testCount == 0 || result.skippedTestCount > 0)) {
+            throw new GradleException("${task.name}: ${result.testCount} tests, ${result.skippedTestCount} skipped; required tests must run")
+        }
+    }
+}
+test {
+    exclude fixtureTests
+    failOnSkippedOrEmpty(it)
+}
+def composeFixtureTest = tasks.register('composeFixtureTest', Test) {
+    description = 'Runs instrumentation tests against real compiled Compose fixtures (-PcomposeFixtures=<classes dir>).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include fixtureTests
+    def fixtures = providers.gradleProperty('composeFixtures')
+    if (fixtures.isPresent()) {
+        def directory = file(fixtures.get())
+        inputs.dir directory
+        systemProperty 'composeFixtures', directory.absolutePath
+    }
+    failOnSkippedOrEmpty(it)
+}
+tasks.named('check') { dependsOn composeFixtureTest }
+
+apply from: '../release/inventory.gradle'

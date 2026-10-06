@@ -1,0 +1,39 @@
+{
+  "id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+  "organization_id": "27bd4871-a014-4626-9fb1-4044726e8ff4",
+  "app_id": "edcbd5d4-2bf1-4dae-8996-cf5974077845",
+  "environment_id": "2f59ed98-fe1d-44c7-90a9-a9cf3572dd7c",
+  "runtime": "relay-alpha-native-1",
+  "runtime_abi": 2,
+  "logic_abi": 1,
+  "revision": "relay-alpha-discount-20",
+  "hash": "c34f3ba84630f5cffcf328215d2aec9dda8b9a8cc39afb2128c648e54d7179e9",
+  "creator": "03fcbb30-4040-4387-b334-383d473e8c66",
+  "status": "active",
+  "percentage": 100,
+  "version": 2,
+  "created_at": "2026-10-04T17:18:24.575Z",
+  "contract_digest": "d472670cb2e136e791bbcb62fc7e14b8831d3d38ab0040fc26e68ed06fcff9b4",
+  "metrics": {
+    "windowDays": 30,
+    "asOf": "2026-10-05T02:44:14.760Z",
+    "compatible": 1,
+    "eligible": 1,
+    "downloaded": 1,
+    "activated": 1,
+    "healthy": 1,
+    "rejected": 0,
+    "rollbackCount": 0,
+    "adopted": 1,
+    "adoptionPercent": 100,
+    "healthPercent": 100,
+    "provenance": "authenticated_device_reports",
+    "crashFree": null
+  },
+  "operation": {
+    "id": "2a97fab4-e8f2-4545-a116-e35674d7ebb7",
+    "action": "publish",
+    "status": "succeeded",
+    "created_at": "2026-10-04T17:18:24.575Z"
+  }
+}

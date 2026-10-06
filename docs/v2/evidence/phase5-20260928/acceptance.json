@@ -1,0 +1,634 @@
+{
+  "phase": 5,
+  "result": "PASS",
+  "scope": "Read-only whole-function constant native BasicText publishing",
+  "dateRange": "2026-09-27/2026-09-28",
+  "device": "Samsung SM-E426B Android 13 arm64-v8a",
+  "packageName": "dev.dootah.consumer",
+  "runtimeVersion": "dootah-v2-hook-1",
+  "installed": {
+    "beforeSha256": "778b3414da61bcabc1f1a3e043c46b70bfb4cd364b06764f303f31ac791c3068",
+    "afterSha256": "778b3414da61bcabc1f1a3e043c46b70bfb4cd364b06764f303f31ac791c3068",
+    "lastUpdateTime": "2026-09-27 19:47:26",
+    "sameApk": true
+  },
+  "embeddedUpdateId": "421a1346-fe3b-4bbf-a04b-9b9093261d97",
+  "identityAgreement": [
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "ReceiptScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:24c995762d2e4acf9946c225a6cdd08ae9ac3d7a7021b6477e2cfb56ec9083f9",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "InternalScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:2aa29e027d29105b9007edfc0c7c93dc80144719252669d6122ae187319a0879",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "CheckoutScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "Overloaded",
+      "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:63a2bc6b77eeafd75a243cc3cce5255bbccb407f821adbba9dec3e29f6b2685a",
+      "nullable": "!",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "Overloaded",
+      "descriptor": "(ILandroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:63e1b136d02357acefdf3a4a7806f75b4a39d1bcb4b553fe6782bbf838ea4a52",
+      "nullable": "!",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "ExtensionScreen",
+      "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:87595fde2a07812647501fe9adbc9cc84132a4a5285ceb630293361e1f58f6a8",
+      "nullable": "!",
+      "extension": true,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "PrivateScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:95a02313872efd2a5eb08feec56e0e70815b2932ab63d2f02625f9d8fe60b111",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/MemberScreens",
+      "name": "Member",
+      "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V",
+      "id": "dth1:d7c9e7fb96105183462753b8644a566e2b780645b7b61b98c0d31cb477ac8fb4",
+      "nullable": "!",
+      "extension": false,
+      "isStatic": false,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "StatefulScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:ef2b7c07f02800b55104e150cbb68823b28384e5067d2d5e29a0c4a4a4c9b7c3",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "NullableDefault",
+      "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V",
+      "id": "dth1:f3c7bd7b6e0782c5c3af38dd64296917d780d6cb0a942687a09c4c301a1b2522",
+      "nullable": "?",
+      "extension": false,
+      "isStatic": true,
+      "installed": false
+    }
+  ],
+  "tests": {
+    "jvm": {
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    "node": {
+      "tests": 2,
+      "failed": 0
+    },
+    "android": {
+      "isolated": true,
+      "tasksExecuted": 85,
+      "durationSeconds": 138,
+      "d8": "PASS",
+      "r8": "PASS",
+      "publishingToolsBlocked": true,
+      "blockedInvocations": 0,
+      "installed": false
+    }
+  },
+  "stages": [
+    {
+      "stage": "baseline",
+      "kind": "native",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "421a1346-fe3b-4bbf-a04b-9b9093261d97",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline functions=[]",
+        "I Dootah  : Compose frame committed; health accepted update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline"
+      ],
+      "backendUnavailableObserved": true
+    },
+    {
+      "stage": "first-download",
+      "kind": "native",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "421a1346-fe3b-4bbf-a04b-9b9093261d97",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline functions=[]",
+        "I Dootah  : Compose frame committed; health accepted update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline"
+      ],
+      "downloadComplete": true
+    },
+    {
+      "stage": "first-active",
+      "kind": "ota",
+      "texts": [
+        "Checkout via Kotlin OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "091c5eeb-f800-680d-1ac2-4e48777ff7e3",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=091c5eeb-f800-680d-1ac2-4e48777ff7e3 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "I Dootah  : Compose frame committed; health accepted update=091c5eeb-f800-680d-1ac2-4e48777ff7e3 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "first-online",
+      "kind": "ota",
+      "texts": [
+        "Checkout via Kotlin OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "091c5eeb-f800-680d-1ac2-4e48777ff7e3",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=091c5eeb-f800-680d-1ac2-4e48777ff7e3 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "I Dootah  : Compose frame committed; health accepted update=091c5eeb-f800-680d-1ac2-4e48777ff7e3 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "first-offline",
+      "kind": "ota",
+      "texts": [
+        "Checkout via Kotlin OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "091c5eeb-f800-680d-1ac2-4e48777ff7e3",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=091c5eeb-f800-680d-1ac2-4e48777ff7e3 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "I Dootah  : Compose frame committed; health accepted update=091c5eeb-f800-680d-1ac2-4e48777ff7e3 title=Dootah dispatch"
+      ],
+      "backendUnavailableObserved": true
+    },
+    {
+      "stage": "multiple-download",
+      "kind": "ota",
+      "texts": [
+        "Checkout via Kotlin OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "091c5eeb-f800-680d-1ac2-4e48777ff7e3",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=091c5eeb-f800-680d-1ac2-4e48777ff7e3 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "I Dootah  : Compose frame committed; health accepted update=091c5eeb-f800-680d-1ac2-4e48777ff7e3 title=Dootah dispatch"
+      ],
+      "downloadComplete": true
+    },
+    {
+      "stage": "multiple-active",
+      "kind": "multiple",
+      "texts": [
+        "Checkout via Kotlin OTA",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "6c874265-954f-563f-b632-25d0aa758502",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=6c874265-954f-563f-b632-25d0aa758502 title=Dootah dispatch functions=[dth1:24c995762d2e4acf9946c225a6cdd08ae9ac3d7a7021b6477e2cfb56ec9083f9, dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85, dth1:63a2bc6b77eeafd75a243cc3cce5255bbccb407f821adbba9dec3e29f6b2685a]",
+        "I Dootah  : Compose frame committed; health accepted update=6c874265-954f-563f-b632-25d0aa758502 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "rollback-delivery",
+      "kind": "multiple",
+      "texts": [
+        "Checkout via Kotlin OTA",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "6c874265-954f-563f-b632-25d0aa758502",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=6c874265-954f-563f-b632-25d0aa758502 title=Dootah dispatch functions=[dth1:24c995762d2e4acf9946c225a6cdd08ae9ac3d7a7021b6477e2cfb56ec9083f9, dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85, dth1:63a2bc6b77eeafd75a243cc3cce5255bbccb407f821adbba9dec3e29f6b2685a]",
+        "I Dootah  : Compose frame committed; health accepted update=6c874265-954f-563f-b632-25d0aa758502 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "rollback-active",
+      "kind": "native",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "421a1346-fe3b-4bbf-a04b-9b9093261d97",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline functions=[]",
+        "I Dootah  : Compose frame committed; health accepted update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline"
+      ]
+    },
+    {
+      "stage": "rollback-restart",
+      "kind": "native",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateId": "421a1346-fe3b-4bbf-a04b-9b9093261d97",
+      "selectedEvents": [
+        "I Dootah  : Hermes bridge received update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline functions=[]",
+        "I Dootah  : Compose frame committed; health accepted update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline"
+      ],
+      "backendUnavailableObserved": true
+    }
+  ],
+  "releases": [
+    {
+      "updateId": 17905226755612,
+      "updateUUID": "091c5eeb-f800-680d-1ac2-4e48777ff7e3",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "launchHash": "38pMJnvczUO9yRJX8J6KyElFwDMy38O0Eu15zdryR4s",
+      "contractSha256": "04592f73c3be5a0ab0423a1f33600d24ff8518db980de471e7fffa675bd80320",
+      "portableIrSha256": "010bc40920034cf802f592e1a231cc57018dc0d337d783ac7210c43d471175e1",
+      "jsSha256": "b584512a00a7bd1d6786fbfda62dac9766bb46304bb36a9b0d75a826f517149b",
+      "channel": "development",
+      "functions": [
+        "dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85"
+      ]
+    },
+    {
+      "updateId": 17905228782652,
+      "updateUUID": "6c874265-954f-563f-b632-25d0aa758502",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "launchHash": "XW-l-WjlUaMtkiXpYVczmkUU9EhdrSc9bz7X1MB88E4",
+      "contractSha256": "04592f73c3be5a0ab0423a1f33600d24ff8518db980de471e7fffa675bd80320",
+      "portableIrSha256": "be4709d0fba7fb43e8d8871aac499d4533dd9a986bc76d5ed1bdbad9c15b64d7",
+      "jsSha256": "766a7a6aab8a428c545b95160efe64902e4330255456c41a2bee0ed54c92f11e",
+      "channel": "development",
+      "functions": [
+        "dth1:24c995762d2e4acf9946c225a6cdd08ae9ac3d7a7021b6477e2cfb56ec9083f9",
+        "dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85",
+        "dth1:63a2bc6b77eeafd75a243cc3cce5255bbccb407f821adbba9dec3e29f6b2685a"
+      ]
+    }
+  ],
+  "remoteVerification": {
+    "first": {
+      "signatureVerified": true,
+      "body": {
+        "id": "091c5eeb-f800-680d-1ac2-4e48777ff7e3",
+        "createdAt": "2026-09-27T15:24:35.585Z",
+        "runtimeVersion": "dootah-v2-hook-1",
+        "metadata": {
+          "branch": "development"
+        },
+        "assets": [],
+        "launchAsset": {
+          "hash": "38pMJnvczUO9yRJX8J6KyElFwDMy38O0Eu15zdryR4s",
+          "key": "483c5094df97932a2f0b47f0e974bd2b",
+          "fileExtension": ".bundle",
+          "contentType": "application/javascript",
+          "url": "http://127.0.0.1:3100/assets?ext=bundle&h=38pMJnvczUO9yRJX8J6KyElFwDMy38O0Eu15zdryR4s&platform=android"
+        },
+        "extra": {
+          "expoClient": {
+            "name": "Dootah Publisher",
+            "slug": "dootah-publisher",
+            "version": "0.0.0",
+            "runtimeVersion": "dootah-v2-hook-1",
+            "android": {
+              "package": "dev.dootah.consumer"
+            }
+          },
+          "branch": "development"
+        }
+      },
+      "assetHash": "38pMJnvczUO9yRJX8J6KyElFwDMy38O0Eu15zdryR4s",
+      "bytes": 1433737
+    },
+    "multiple": {
+      "signatureVerified": true,
+      "body": {
+        "id": "6c874265-954f-563f-b632-25d0aa758502",
+        "createdAt": "2026-09-27T15:27:58.291Z",
+        "runtimeVersion": "dootah-v2-hook-1",
+        "metadata": {
+          "branch": "development"
+        },
+        "assets": [],
+        "launchAsset": {
+          "hash": "XW-l-WjlUaMtkiXpYVczmkUU9EhdrSc9bz7X1MB88E4",
+          "key": "4a526befaf4e156054d3f6d8f3609bdd",
+          "fileExtension": ".bundle",
+          "contentType": "application/javascript",
+          "url": "http://127.0.0.1:3100/assets?ext=bundle&h=XW-l-WjlUaMtkiXpYVczmkUU9EhdrSc9bz7X1MB88E4&platform=android"
+        },
+        "extra": {
+          "expoClient": {
+            "name": "Dootah Publisher",
+            "slug": "dootah-publisher",
+            "version": "0.0.0",
+            "runtimeVersion": "dootah-v2-hook-1",
+            "android": {
+              "package": "dev.dootah.consumer"
+            }
+          },
+          "branch": "development"
+        }
+      },
+      "assetHash": "XW-l-WjlUaMtkiXpYVczmkUU9EhdrSc9bz7X1MB88E4",
+      "bytes": 1433955
+    },
+    "rollback": {
+      "signatureVerified": true,
+      "body": {
+        "type": "rollBackToEmbedded",
+        "parameters": {
+          "commitTime": "2026-09-27T19:18:29.169Z"
+        }
+      }
+    }
+  },
+  "rollback": {
+    "appId": "34e81d97-661f-4f3b-ad2c-8d4e7a6546a6",
+    "branch": "development",
+    "runtimeVersion": "dootah-v2-hook-1",
+    "updateId": "17905367091682",
+    "createdAt": 1790536709169703000
+  },
+  "safety": [
+    {
+      "case": "syntax",
+      "refused": true,
+      "exitCode": 1,
+      "reason": "Kotlin syntax error"
+    },
+    {
+      "case": "unsupported",
+      "refused": true,
+      "exitCode": 1,
+      "reason": "Changed whole function unsupported"
+    },
+    {
+      "case": "unknown-id",
+      "refused": true,
+      "exitCode": 1,
+      "reason": "Function identity not installed"
+    },
+    {
+      "case": "abi",
+      "refused": true,
+      "exitCode": 1,
+      "reason": "Runtime/IR ABI mismatch"
+    },
+    {
+      "case": "stale-apk",
+      "refused": true,
+      "exitCode": 1,
+      "reason": "Stale installed contract"
+    },
+    {
+      "case": "contract-digest",
+      "refused": true,
+      "exitCode": 1,
+      "reason": "Contract digest mismatch"
+    },
+    {
+      "case": "structural-change",
+      "refused": true,
+      "exitCode": 1,
+      "reason": "Non-body change requires new installed contract"
+    },
+    {
+      "case": "invalid-generated-payload",
+      "refused": true,
+      "evidence": "Node tests: ABI, capabilities, shape, unknown/removed IDs, malformed strings, duplicate/oversized entries"
+    },
+    {
+      "case": "unsupported-publish",
+      "refused": true,
+      "evidence": "Publish command refused before export/network; no receipt"
+    },
+    {
+      "case": "backend-unavailable",
+      "refused": true,
+      "evidence": "Export succeeded; fetch failed; no receipt"
+    }
+  ],
+  "finalToolArtifactCheck": {
+    "portableIrEqual": true,
+    "generatedJsByteIdentical": true,
+    "jsSha256": "766a7a6aab8a428c545b95160efe64902e4330255456c41a2bee0ed54c92f11e",
+    "hermesVersion": 98,
+    "hermesCompilerSourceHashEqual": true,
+    "hermesByteIdentical": false,
+    "reason": "Expo/Hermes embeds a randomized temporary source path in debug information"
+  },
+  "contractHashes": {
+    "accepted": "04592f73c3be5a0ab0423a1f33600d24ff8518db980de471e7fffa675bd80320",
+    "finalWithHermesVersion": "8174687f2a5668ea703d68c0766fdfe2a2bb4333fb84f6fbf409a569c2cb2281"
+  },
+  "cleanup": {
+    "packageNetworkingRestored": true,
+    "denyChainDisabled": true,
+    "adbReverseRemoved": true,
+    "screenTimeoutMs": 300000,
+    "serverContainer": "dootah-v2-server-phase2c",
+    "serverStopped": true,
+    "persistentStatePreserved": true
+  },
+  "limitations": [
+    "BasicText constant subset; Material Text/layout/parameter/state semantics refused",
+    "Trusted retained build provenance; no fleet attestation",
+    "Hermes debug paths nondeterministic; IR and JS deterministic",
+    "Inherited RN/Expo capability exposure and Phase 2C cache risk remain"
+  ],
+  "diagnostics": [
+    "Android apkanalyzer printed invalid XML escaping for JSON metadata; importer uses APK binary manifest parser instead",
+    "Final Hermes compatibility check exposed a Groovy primitive-array API mismatch during host import; corrected before final import/bundle/tests; no device/runtime changes",
+    "Final read-only grammar review added refusals for ambiguous imports, local modifiers and invalid escapes; focused regressions pass, accepted source remains eligible"
+  ],
+  "phase6Started": false
+}

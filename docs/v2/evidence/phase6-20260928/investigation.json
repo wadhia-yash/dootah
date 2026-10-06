@@ -1,0 +1,127 @@
+{
+  "date": "2026-09-28",
+  "phase": 6,
+  "status": "STOP: runtime capability isolation FAIL",
+  "startingCommit": "c605709",
+  "device": {
+    "model": "SM-E426B",
+    "android": 13,
+    "package": "dev.dootah.consumer",
+    "versionName": "0.4.0",
+    "lastUpdateTime": "2026-09-27 19:47:26",
+    "timezone": "Asia/Kolkata"
+  },
+  "runtimeVersion": "dootah-v2-hook-1",
+  "apkSha256": "778b3414da61bcabc1f1a3e043c46b70bfb4cd364b06764f303f31ac791c3068",
+  "sameApkBeforeAfter": true,
+  "reinstall": false,
+  "dataClear": false,
+  "probe": {
+    "purpose": "adversarial security diagnostic, not business-logic acceptance",
+    "handwrittenJs": true,
+    "sourceSha256": "dcd7fa92f7f824e6bee7a1f3e2fc6a700863e846586ba6d9ee51ebeb33e450f7",
+    "exportedEntryMatchesSource": true,
+    "release": {
+      "updateId": 17905381715252,
+      "updateUUID": "1c1441a7-1e8b-2438-07a9-41fb2490adbc",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "launchHash": "JWxW8CL745CSl3CZDcWC8w3P0ADBZ7Q4LzwSLm4IAR8"
+    },
+    "hostSignatureVerified": true,
+    "deviceSignatureVerified": true,
+    "launchAssetHashVerified": true,
+    "bytes": 1316302,
+    "observationCount": 73,
+    "exposureEvidenceSha256": "062dc03e18231223ec4bb70a5ebd873dafe64e0229492c82076b2289ff79c997",
+    "networkRequestObservedByTestServer": true,
+    "cacheMarkerRoundTripAndDeletion": true
+  },
+  "securityGate": {
+    "capabilityIsolation": "FAIL",
+    "arbitraryInstalledRnModuleLookup": "AVAILABLE",
+    "arbitraryInstalledExpoModuleLookup": "AVAILABLE",
+    "eval": "AVAILABLE",
+    "functionConstructor": "AVAILABLE",
+    "bundledDynamicImport": "AVAILABLE",
+    "operationBudget": "NOT IMPLEMENTED"
+  },
+  "rollback": {
+    "receipt": {
+      "appId": "34e81d97-661f-4f3b-ad2c-8d4e7a6546a6",
+      "branch": "development",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "updateId": "17905382517382",
+      "createdAt": 1790538251739187000
+    },
+    "directive": {
+      "type": "rollBackToEmbedded",
+      "parameters": {
+        "commitTime": "2026-09-27T19:44:11.739Z"
+      }
+    },
+    "signatureVerified": true,
+    "embeddedUpdateId": "421a1346-fe3b-4bbf-a04b-9b9093261d97",
+    "originalNativeUiRestored": true,
+    "nativeFrameHealthAccepted": true
+  },
+  "stages": {
+    "probe-download": {
+      "originalNativeUi": true,
+      "nativeFrameHealth": true,
+      "remoteProbeHealth": false,
+      "fatalException": false,
+      "lastUpdateTimeUnchanged": true
+    },
+    "probe-active": {
+      "originalNativeUi": true,
+      "nativeFrameHealth": false,
+      "remoteProbeHealth": false,
+      "fatalException": false,
+      "lastUpdateTimeUnchanged": true
+    },
+    "rollback-delivery": {
+      "originalNativeUi": true,
+      "nativeFrameHealth": false,
+      "remoteProbeHealth": false,
+      "fatalException": false,
+      "lastUpdateTimeUnchanged": true
+    },
+    "rollback-active": {
+      "originalNativeUi": true,
+      "nativeFrameHealth": true,
+      "remoteProbeHealth": false,
+      "fatalException": false,
+      "lastUpdateTimeUnchanged": true
+    },
+    "rollback-restart": {
+      "originalNativeUi": true,
+      "nativeFrameHealth": true,
+      "remoteProbeHealth": false,
+      "fatalException": false,
+      "lastUpdateTimeUnchanged": true
+    }
+  },
+  "tests": {
+    "physicalExposureAssertions": {
+      "passed": 8,
+      "failed": 0,
+      "meaning": "Unsafe behavior reproduced; NOT security-negative tests passing"
+    },
+    "phase6BusinessLogic": "NOT RUN: architectural stop",
+    "phase6CombinedUiLogic": "NOT RUN: architectural stop",
+    "phase6CapabilityAndTypedInputRejection": "NOT RUN: not implemented",
+    "normalAndroidBuild": "Existing Phase 5 PASS; not rerun, no implementation changes",
+    "phase6Performance": "NOT RUN: no portable-logic implementation"
+  },
+  "cleanup": {
+    "serverContainerStopped": true,
+    "probeLoopbackServerStopped": true,
+    "testAdbReversePortsRemoved": true,
+    "nativeRollbackSurvivesFurtherServerUnavailableRestart": true,
+    "packageNetworkSettingsChanged": false
+  },
+  "phase6Complete": false,
+  "phase7Started": false,
+  "completionCommit": null,
+  "resume": "Phase 6: choose and prove native execution isolation before expanding business logic; then finish all remaining Phase 6 gates."
+}

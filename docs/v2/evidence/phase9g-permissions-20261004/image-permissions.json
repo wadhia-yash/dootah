@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "images": [
+    {
+      "image": "dootah-cloud:9d",
+      "payloadEntries": 213,
+      "runtimeUid": 10001,
+      "immutablePayloadPassed": true,
+      "secretIsolationPassed": true
+    },
+    {
+      "image": "dootah-xprem:9d",
+      "payloadEntries": 7,
+      "runtimeUid": 10001,
+      "immutablePayloadPassed": true,
+      "secretIsolationPassed": true
+    }
+  ]
+}

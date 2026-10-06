@@ -1,0 +1,29 @@
+{
+  "device": "Samsung SM-E426B Android 13",
+  "appProcess": {
+    "pid": 14208,
+    "uid": 10715
+  },
+  "isolatedService": {
+    "pid": 14260,
+    "service": "org.chromium.android_webview.js_sandbox.service.JsSandboxService0",
+    "isolatedIdentity": "u0a715i617",
+    "boundClient": "example.dootah.relayalpha"
+  },
+  "appMapsReadable": true,
+  "loadedLibraries": {
+    "libhermes": false,
+    "libreactnative": false,
+    "libv8": false
+  },
+  "sdkSourceVerified": "Consumed runtime-v2 0.1.0-alpha.1 sources use AndroidX JavaScriptSandbox, a fresh bounded isolate and string-only evaluation; no native callbacks, module loaders or JVM objects passed into remote logic.",
+  "installedCapabilities": [
+    "logic.pure.v1",
+    "compose.basicText.v1"
+  ],
+  "selectedNativeLogEvidence": [
+    "10-05 08:14:42.238 14208 14243 I Dootah  : Native update selected update=9510e53e-6188-5da2-afe6-5ccb1e88a5ff embedded=false sandbox=true",
+    "10-05 08:14:42.668 14208 14208 I Dootah  : Compose frame committed; health accepted update=9510e53e-6188-5da2-afe6-5ccb1e88a5ff title=Dootah portable logic"
+  ],
+  "limitations": "Observation plus existing source boundary review; no new adversarial capability or broad security certification."
+}

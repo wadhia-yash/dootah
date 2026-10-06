@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: tenant isolation and scoped tokens across all control/read paths
+ok 1 - tenant isolation and scoped tokens across all control/read paths
+  ---
+  duration_ms: 294.298625
+  type: 'test'
+  ...
+# Subtest: sessions require CSRF and exact origin; untrusted ids and oversized bodies fail
+ok 2 - sessions require CSRF and exact origin; untrusted ids and oversized bodies fail
+  ---
+  duration_ms: 15.728
+  type: 'test'
+  ...
+# Subtest: installation authorization, tenant boundaries, deduplication and bounded telemetry
+ok 3 - installation authorization, tenant boundaries, deduplication and bounded telemetry
+  ---
+  duration_ms: 58.618583
+  type: 'test'
+  ...
+# Subtest: same-organization app scopes deny sibling apps and invalid list filters fail validation
+ok 4 - same-organization app scopes deny sibling apps and invalid list filters fail validation
+  ---
+  duration_ms: 11.837542
+  type: 'test'
+  ...
+# Subtest: membership changes restrict existing tokens; last owner cannot be removed
+ok 5 - membership changes restrict existing tokens; last owner cannot be removed
+  ---
+  duration_ms: 84.53875
+  type: 'test'
+  ...
+# Subtest: rollout is deterministic, monotonic and bounded for all supported percentages
+ok 6 - rollout is deterministic, monotonic and bounded for all supported percentages
+  ---
+  duration_ms: 97.710667
+  type: 'test'
+  ...
+# Subtest: password hashing uses salt and verifies exact bytes
+ok 7 - password hashing uses salt and verifies exact bytes
+  ---
+  duration_ms: 222.283416
+  type: 'test'
+  ...
+# Subtest: viewer cannot mutate even with a mutation scope
+ok 8 - viewer cannot mutate even with a mutation scope
+  ---
+  duration_ms: 0.32375
+  type: 'test'
+  ...
+# Subtest: database constraints reject cross-tenant parents and runtime cannot mutate audit or upstream data
+ok 9 - database constraints reject cross-tenant parents and runtime cannot mutate audit or upstream data
+  ---
+  duration_ms: 89.362958
+  type: 'test'
+  ...
+# Subtest: expired credentials are rejected and token secrets are stored only as digests
+ok 10 - expired credentials are rejected and token secrets are stored only as digests
+  ---
+  duration_ms: 84.86175
+  type: 'test'
+  ...
+# Subtest: shared PostgreSQL limiter persists across callers
+ok 11 - shared PostgreSQL limiter persists across callers
+  ---
+  duration_ms: 25.667792
+  type: 'test'
+  ...
+# Subtest: database cohort agrees exactly with the HTTP rollout algorithm
+ok 12 - database cohort agrees exactly with the HTTP rollout algorithm
+  ---
+  duration_ms: 37.724583
+  type: 'test'
+  ...
+# Subtest: real signed backend: tenant release denial, idempotency, controls, rollback and terminal kill
+ok 13 - real signed backend: tenant release denial, idempotency, controls, rollback and terminal kill
+  ---
+  duration_ms: 5190.616044
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5267.608003

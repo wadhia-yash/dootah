@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: production accepts explicit HTTPS configuration and container host
+ok 1 - production accepts explicit HTTPS configuration and container host
+  ---
+  duration_ms: 1.094584
+  type: 'test'
+  ...
+# Subtest: production rejects HTTP even with local bypass
+ok 2 - production rejects HTTP even with local bypass
+  ---
+  duration_ms: 0.345459
+  type: 'test'
+  ...
+# Subtest: production requires DB config and never includes rejected secrets in errors
+ok 3 - production requires DB config and never includes rejected secrets in errors
+  ---
+  duration_ms: 0.468458
+  type: 'test'
+  ...
+# Subtest: production mode and host are explicit; origin excludes credentials paths and queries
+ok 4 - production mode and host are explicit; origin excludes credentials paths and queries
+  ---
+  duration_ms: 0.148167
+  type: 'test'
+  ...
+# Subtest: development preserves explicit loopback HTTP
+ok 5 - development preserves explicit loopback HTTP
+  ---
+  duration_ms: 0.074
+  type: 'test'
+  ...
+# Subtest: file secrets require private permissions and unambiguous inputs
+ok 6 - file secrets require private permissions and unambiguous inputs
+  ---
+  duration_ms: 1.831916
+  type: 'test'
+  ...
+# Subtest: malformed bindings are redacted and fail closed; empty bindings bootstrap allowed
+ok 7 - malformed bindings are redacted and fail closed; empty bindings bootstrap allowed
+  ---
+  duration_ms: 2.474875
+  type: 'test'
+  ...
+# Subtest: missing Java or validator cannot report readiness
+ok 8 - missing Java or validator cannot report readiness
+  ---
+  duration_ms: 0.225167
+  type: 'test'
+  ...
+# Subtest: runtime readiness rejects migration owner and unavailable DB without leaking errors
+ok 9 - runtime readiness rejects migration owner and unavailable DB without leaking errors
+  ---
+  duration_ms: 0.3405
+  type: 'test'
+  ...
+# Subtest: bindings enforce private endpoint, public origin, app exclusivity and certificate
+ok 10 - bindings enforce private endpoint, public origin, app exclusivity and certificate
+  ---
+  duration_ms: 126.296458
+  type: 'test'
+  ...
+# Subtest: HTTPS and strict loopback origin checks
+ok 11 - HTTPS and strict loopback origin checks
+  ---
+  duration_ms: 2.131084
+  type: 'test'
+  ...
+# Subtest: private files reject permissive modes, symlinks and overwrites
+ok 12 - private files reject permissive modes, symlinks and overwrites
+  ---
+  duration_ms: 19.290959
+  type: 'test'
+  ...
+# Subtest: login, origin binding, session CSRF and logout; credentials never in result
+ok 13 - login, origin binding, session CSRF and logout; credentials never in result
+  ---
+  duration_ms: 49.826375
+  type: 'test'
+  ...
+# Subtest: org/app lists, creation and environment filters use only supported customer APIs
+ok 14 - org/app lists, creation and environment filters use only supported customer APIs
+  ---
+  duration_ms: 14.147625
+  type: 'test'
+  ...
+# Subtest: release controls preserve optimistic version and rollback idempotency
+ok 15 - release controls preserve optimistic version and rollback idempotency
+  ---
+  duration_ms: 14.808583
+  type: 'test'
+  ...
+# Subtest: scoped token and one-use ticket output are private and redacted; backend helper is authenticated
+ok 16 - scoped token and one-use ticket output are private and redacted; backend helper is authenticated
+  ---
+  duration_ms: 10.686958
+  type: 'test'
+  ...
+# Subtest: publisher uses shared file authentication and rejects app/channel/runtime mismatch before publication
+ok 17 - publisher uses shared file authentication and rejects app/channel/runtime mismatch before publication
+  ---
+  duration_ms: 11.077333
+  type: 'test'
+  ...
+# Subtest: deterministic JS sends only semantic data, with escaped strings
+ok 18 - deterministic JS sends only semantic data, with escaped strings
+  ---
+  duration_ms: 4.393625
+  type: 'test'
+  ...
+# Subtest: unknown identities, capabilities, schema, ABI, values and stale APK fail closed
+ok 19 - unknown identities, capabilities, schema, ABI, values and stale APK fail closed
+  ---
+  duration_ms: 4.010791
+  type: 'test'
+  ...
+# Subtest: audit.py requires the upstream checkout
+ok 20 - audit.py requires the upstream checkout
+  ---
+  duration_ms: 54.496958
+  type: 'test'
+  ...
+# Subtest: build.sh requires a git upstream checkout before building
+ok 21 - build.sh requires a git upstream checkout before building
+  ---
+  duration_ms: 12.570042
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 226.8435

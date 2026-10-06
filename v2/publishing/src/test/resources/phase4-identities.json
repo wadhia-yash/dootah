@@ -1,0 +1,126 @@
+{
+  "apkSha256": "778b3414da61bcabc1f1a3e043c46b70bfb4cd364b06764f303f31ac791c3068",
+  "classes": {
+    "dev/dootah/consumer/ComposableSingletons$MainActivityKt$lambda$1482218160$1.class": "58f2015416e5f4f7401da24ecc0d5af4b6700d56d465056bd0c86314c6792aac",
+    "dev/dootah/consumer/GenericMember.class": "032a218522204a3b2549f14f151417415673f09080aa3c9d2ce6d55129745b7a",
+    "dev/dootah/consumer/MainActivity.class": "05667612d96bddb770853917a05c2171100b5c3b15ea91dcf1ced7fc34171700",
+    "dev/dootah/consumer/ComposeFormsKt$StatefulScreen$2.class": "574a0d2c83a539d53b3e8fff5f3ddc0ef1f64f99d4c79f7623e1f538e23d26bb",
+    "dev/dootah/consumer/ComposableSingletons$MainActivityKt.class": "4806504bd459ad45872d64e4879c81b8c5212b05a072fcc62173ba6c0c7accf9",
+    "dev/dootah/consumer/StringMember.class": "feca1a342e9a302ae99f691639c3789a4f4f3a882babfb3ae58427f75dc2526b",
+    "dev/dootah/consumer/ComposableSingletons$MainActivityKt$lambda$-562332668$1.class": "3c9956333ac8a588f5cb1b28b273586e8462517928bfad89626b2ea03d353d5b",
+    "dev/dootah/consumer/MemberScreens.class": "08b22b0a34756b1a3df35376a080da992826f2e9932bef3b423d35a7a0cf3ba1",
+    "dev/dootah/consumer/ComposeFormsKt.class": "f5c07644c62e5928daac01d30f463c6570ba0249f79b6f24dca6d11a3fbf7c85"
+  },
+  "functions": [
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "ReceiptScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:24c995762d2e4acf9946c225a6cdd08ae9ac3d7a7021b6477e2cfb56ec9083f9",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "InternalScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:2aa29e027d29105b9007edfc0c7c93dc80144719252669d6122ae187319a0879",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "CheckoutScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "Overloaded",
+      "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:63a2bc6b77eeafd75a243cc3cce5255bbccb407f821adbba9dec3e29f6b2685a",
+      "nullable": "!",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "Overloaded",
+      "descriptor": "(ILandroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:63e1b136d02357acefdf3a4a7806f75b4a39d1bcb4b553fe6782bbf838ea4a52",
+      "nullable": "!",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "ExtensionScreen",
+      "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:87595fde2a07812647501fe9adbc9cc84132a4a5285ceb630293361e1f58f6a8",
+      "nullable": "!",
+      "extension": true,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "PrivateScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:95a02313872efd2a5eb08feec56e0e70815b2932ab63d2f02625f9d8fe60b111",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/MemberScreens",
+      "name": "Member",
+      "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V",
+      "id": "dth1:d7c9e7fb96105183462753b8644a566e2b780645b7b61b98c0d31cb477ac8fb4",
+      "nullable": "!",
+      "extension": false,
+      "isStatic": false,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "StatefulScreen",
+      "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+      "id": "dth1:ef2b7c07f02800b55104e150cbb68823b28384e5067d2d5e29a0c4a4a4c9b7c3",
+      "nullable": "",
+      "extension": false,
+      "isStatic": true,
+      "installed": true
+    },
+    {
+      "path": "dev/dootah/consumer/ComposeForms.kt",
+      "owner": "dev/dootah/consumer/ComposeFormsKt",
+      "name": "NullableDefault",
+      "descriptor": "(Ljava/lang/String;Landroidx/compose/runtime/Composer;II)V",
+      "id": "dth1:f3c7bd7b6e0782c5c3af38dd64296917d780d6cb0a942687a09c4c301a1b2522",
+      "nullable": "?",
+      "extension": false,
+      "isStatic": true,
+      "installed": false
+    }
+  ]
+}

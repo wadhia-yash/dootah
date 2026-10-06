@@ -1,0 +1,4 @@
+native    CheckoutScreen (changed): Only immutable locals/helpers
+1 analyzed; 0 changed OTA-capable; 1 native. Runtime relay-alpha-native-1; channel development.
+Evidence: private local analyzer output retained outside Git
+Dootah refused: A changed function is unsupported. No OTA published; native implementation remains installed.

@@ -1,0 +1,27 @@
+plugins { id 'groovy'; id 'application' }
+repositories { mavenCentral() }
+dependencies {
+    implementation localGroovy()
+    implementation 'org.json:json:20250517'
+    // Parser only. Never invokes compilation, FIR, IR, or compiler plugins.
+    implementation 'org.jetbrains.kotlin:kotlin-compiler-embeddable:2.1.20'
+    implementation 'org.ow2.asm:asm-tree:9.8'
+    implementation 'net.dongliu:apk-parser:2.6.10'
+    testImplementation 'junit:junit:4.13.2'
+}
+sourceSets.main.java {
+    srcDir '../android-sdk/gradle-plugin/src/main/java'
+    include 'dev/dootah/identity/FunctionIdentity.java'
+    srcDir '../portable/src/main/java'
+    include 'dev/dootah/portable/**'
+}
+application { mainClass = 'dev.dootah.publish.Main' }
+distributions.main.contents {
+    from('.') { include '*.mjs'; exclude '*.test.mjs'; into 'tooling' }
+    from('../server/publish.mjs') { rename { 'xprem.mjs' }; into 'tooling' }
+    from('ONBOARDING.md')
+    from('distribution/dootah') { into 'bin'; filePermissions { unix('rwxr-xr-x') } }
+}
+test {
+    systemProperty 'repository', rootDir.parentFile.parentFile.absolutePath
+}

@@ -1,0 +1,27 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.VIEW"/>
+      <category android:name="android.intent.category.BROWSABLE"/>
+      <data android:scheme="https"/>
+    </intent>
+  </queries>
+  <application android:usesCleartextTraffic="true" android:name=".MainApplication" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round" android:allowBackup="true" android:theme="@style/AppTheme" android:supportsRtl="true" android:enableOnBackInvokedCallback="false">
+    <meta-data android:name="expo.modules.updates.ENABLED" android:value="true"/>
+    <meta-data android:name="expo.modules.updates.ENABLE_BSDIFF_PATCH_SUPPORT" android:value="true"/>
+    <meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="@string/expo_runtime_version"/>
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS"/>
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0"/>
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" android:value="http://127.0.0.1:3100/manifest"/>
+    <meta-data android:name="expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" android:value="{&quot;expo-app-id&quot;: &quot;34e81d97-661f-4f3b-ad2c-8d4e7a6546a6&quot;, &quot;expo-channel-name&quot;: &quot;development&quot;}"/>
+    <meta-data android:name="expo.modules.updates.CODE_SIGNING_CERTIFICATE" android:value="-----BEGIN CERTIFICATE-----&#10;MIIC4DCCAcigAwIBAgIIf5dtHBm6x7EwDQYJKoZIhvcNAQELBQAwGjEYMBYGA1UE&#10;AxMPRG9vdGFoIFBoYXNlIDJCMB4XDTI2MDkyNjE2MjYzN1oXDTM2MDkyNjE2MjYz&#10;N1owGjEYMBYGA1UEAxMPRG9vdGFoIFBoYXNlIDJCMIIBIjANBgkqhkiG9w0BAQEF&#10;AAOCAQ8AMIIBCgKCAQEAu27ENUDLH0FVcZPK7YbCWVsDxY4v+Me57CcQwI/jHby1&#10;UciQt0u2Jv1IlPyPS/pNp0O+74dPBeIujswNwDtOd5H//bff4tRqXYHTrL+I8yiO&#10;Yg0cjNkp4UsIkeblhw+TxljDLLAAkpNyYljjQKBTaAaDrqWfobAPOQ60J1ty0Ach&#10;sS0g+BITo2QN99hCt+cBcWfUVhWs2FZMYNyetvWYvKFn9xaS/L0MrOxCTBLSwbsK&#10;wkUJPGSG2EhOYXdLWnToA5fgJXayiqownLgRuJr9GpqOdc0aVdcrlGrR9Iopwi+S&#10;XoKoxYJ7G0VblB5p9+PpmxloF3hEpiv8Q8mJ/hyJQwIDAQABoyowKDAOBgNVHQ8B&#10;Af8EBAMCB4AwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwMwDQYJKoZIhvcNAQELBQAD&#10;ggEBAJ6BQ0hFfXBVG+Qsf1ECPpO7nHtsWTXRCvUT++ifqXUlXzQX8nxhzRp/wGAy&#10;bKbJ8zmKmclk03BKIGGjRWZ3DOSP+oDi/x9b/KpHKLt/rvTEMZNEl9tCQepKGKSD&#10;AubHKCijO4HBEjiG6Z6zsYlu3XGdHmeyJxYIhZdixGC7eEmy68W0XDiJ4o33HwC8&#10;ZgNZoPA4hanPi3+rUXI+zLa1bNm9OwZ4NJBo/UZ8gRuogcBY6TFx5p3k2qGiWKw0&#10;+tgakEW0uBQdjur3PeALfB5YySzgz8ejU+HPTPjNS0PW0Z4VklfDnPL1CFwF+a6E&#10;vMbCA94Xswh/E72+CYbzwv0YTi4=&#10;-----END CERTIFICATE-----&#10;"/>
+    <meta-data android:name="expo.modules.updates.CODE_SIGNING_METADATA" android:value="{&quot;keyid&quot;: &quot;main&quot;, &quot;alg&quot;: &quot;rsa-v1_5-sha256&quot;}"/>
+    <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode|smallestScreenSize|assetsPaths" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/AppTheme" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

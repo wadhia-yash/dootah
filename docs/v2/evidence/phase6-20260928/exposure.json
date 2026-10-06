@@ -1,0 +1,945 @@
+{
+  "globalNames": [
+    "$$require_external",
+    "$SHBuiltin",
+    "AbortController",
+    "AbortSignal",
+    "AggregateError",
+    "Array",
+    "ArrayBuffer",
+    "BigInt",
+    "BigInt64Array",
+    "BigUint64Array",
+    "Blob",
+    "Boolean",
+    "ByteLengthQueuingStrategy",
+    "CharacterData",
+    "Collator",
+    "CountQueuingStrategy",
+    "CustomEvent",
+    "DOMRect",
+    "DOMRectList",
+    "DOMRectReadOnly",
+    "DataView",
+    "Date",
+    "DateTimeFormat",
+    "Document",
+    "Element",
+    "Error",
+    "ErrorUtils",
+    "EvalError",
+    "Event",
+    "EventCounts",
+    "EventTarget",
+    "ExpoModulesCore_CodedError",
+    "File",
+    "FileReader",
+    "Float32Array",
+    "Float64Array",
+    "FormData",
+    "Function",
+    "HTMLCollection",
+    "HTMLElement",
+    "Headers",
+    "HermesAsyncIteratorsInternal",
+    "HermesInternal",
+    "Infinity",
+    "Int16Array",
+    "Int32Array",
+    "Int8Array",
+    "Intl",
+    "JSON",
+    "Map",
+    "Math",
+    "NaN",
+    "Node",
+    "NodeList",
+    "Number",
+    "NumberFormat",
+    "Object",
+    "Performance",
+    "PerformanceEntry",
+    "PerformanceEventTiming",
+    "PerformanceLongTaskTiming",
+    "PerformanceMark",
+    "PerformanceMeasure",
+    "PerformanceObserver",
+    "PerformanceObserverEntryList",
+    "PerformanceResourceTiming",
+    "Promise",
+    "Proxy",
+    "QuitError",
+    "RN$AppRegistry",
+    "RN$Bridgeless",
+    "RN$LegacyInterop_UIManager_getConstants",
+    "RN$LegacyInterop_UIManager_getConstantsForViewManager",
+    "RN$LegacyInterop_UIManager_getDefaultEventTypes",
+    "RN$SurfaceRegistry",
+    "RN$enableMicrotasksInReact",
+    "RN$handleException",
+    "RN$hasHandledFatalException",
+    "RN$inExceptionHandler",
+    "RN$isNativeEventTargetEventDispatchingEnabled",
+    "RN$isRuntimeReady",
+    "RN$notifyOfFatalException",
+    "RN$registerCallableModule",
+    "RN$registerExceptionListener",
+    "RN$useAlwaysAvailableJSErrorHandling",
+    "RangeError",
+    "ReadableByteStreamController",
+    "ReadableStream",
+    "ReadableStreamBYOBReader",
+    "ReadableStreamBYOBRequest",
+    "ReadableStreamDefaultController",
+    "ReadableStreamDefaultReader",
+    "ReferenceError",
+    "Reflect",
+    "RegExp",
+    "Request",
+    "Response",
+    "Set",
+    "String",
+    "Symbol",
+    "SyntaxError",
+    "TaskAttributionTiming",
+    "Text",
+    "TextEncoder",
+    "TimeoutError",
+    "TransformStream",
+    "TransformStreamDefaultController",
+    "TypeError",
+    "URIError",
+    "URL",
+    "URLSearchParams",
+    "Uint16Array",
+    "Uint32Array",
+    "Uint8Array",
+    "Uint8ClampedArray",
+    "WeakMap",
+    "WeakRef",
+    "WeakSet",
+    "WebSocket",
+    "WritableStream",
+    "WritableStreamDefaultController",
+    "WritableStreamDefaultWriter",
+    "XMLHttpRequest",
+    "__BUNDLE_START_TIME__",
+    "__DEV__",
+    "__METRO_GLOBAL_PREFIX__",
+    "__c",
+    "__d",
+    "__fbBatchedBridge",
+    "__fbGenNativeModule",
+    "__fetchSegment",
+    "__nativeComponentRegistry__hasComponent",
+    "__r",
+    "__rctDeviceEventEmitter",
+    "__registerSegment",
+    "alert",
+    "atob",
+    "btoa",
+    "cancelAnimationFrame",
+    "cancelIdleCallback",
+    "clearImmediate",
+    "clearInterval",
+    "clearTimeout",
+    "console",
+    "decodeURI",
+    "decodeURIComponent",
+    "encodeURI",
+    "encodeURIComponent",
+    "escape",
+    "eval",
+    "expo",
+    "fetch",
+    "gc",
+    "globalThis",
+    "isFinite",
+    "isNaN",
+    "nativeFabricUIManager",
+    "nativeLoggingHook",
+    "nativeModuleProxy",
+    "nativePerformanceNow",
+    "nativeRuntimeScheduler",
+    "navigator",
+    "parseFloat",
+    "parseInt",
+    "performance",
+    "print",
+    "process",
+    "queueMicrotask",
+    "requestAnimationFrame",
+    "requestIdleCallback",
+    "self",
+    "setImmediate",
+    "setInterval",
+    "setTimeout",
+    "undefined",
+    "unescape",
+    "window"
+  ],
+  "global.nativeModuleProxy": {
+    "ok": true,
+    "result": {
+      "type": "object",
+      "configurable": false,
+      "writable": false,
+      "getter": "undefined"
+    }
+  },
+  "global.__turboModuleProxy": {
+    "ok": true,
+    "result": {
+      "type": "undefined",
+      "getter": "undefined"
+    }
+  },
+  "global.expo": {
+    "ok": true,
+    "result": {
+      "type": "object",
+      "configurable": false,
+      "writable": false,
+      "getter": "undefined"
+    }
+  },
+  "global.__r": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "writable": true,
+      "getter": "undefined"
+    }
+  },
+  "global.__d": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "writable": true,
+      "getter": "undefined"
+    }
+  },
+  "global.require": {
+    "ok": true,
+    "result": {
+      "type": "undefined",
+      "getter": "undefined"
+    }
+  },
+  "global.fetch": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "getter": "function"
+    }
+  },
+  "global.XMLHttpRequest": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "getter": "function"
+    }
+  },
+  "global.WebSocket": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "getter": "function"
+    }
+  },
+  "global.setTimeout": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "writable": true,
+      "getter": "undefined"
+    }
+  },
+  "global.setInterval": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "writable": true,
+      "getter": "undefined"
+    }
+  },
+  "global.queueMicrotask": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "getter": "function"
+    }
+  },
+  "global.eval": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "writable": true,
+      "getter": "undefined"
+    }
+  },
+  "global.Function": {
+    "ok": true,
+    "result": {
+      "type": "function",
+      "configurable": true,
+      "writable": true,
+      "getter": "undefined"
+    }
+  },
+  "global.HermesInternal": {
+    "ok": true,
+    "result": {
+      "type": "object",
+      "configurable": false,
+      "writable": false,
+      "getter": "undefined"
+    }
+  },
+  "global.RN$Bridgeless": {
+    "ok": true,
+    "result": {
+      "type": "boolean",
+      "configurable": false,
+      "writable": false,
+      "getter": "undefined"
+    }
+  },
+  "global.nativeCallSyncHook": {
+    "ok": true,
+    "result": {
+      "type": "undefined",
+      "getter": "undefined"
+    }
+  },
+  "global.__fbBatchedBridge": {
+    "ok": true,
+    "result": {
+      "type": "object",
+      "configurable": true,
+      "writable": false,
+      "getter": "undefined"
+    }
+  },
+  "global.localStorage": {
+    "ok": true,
+    "result": {
+      "type": "undefined",
+      "getter": "undefined"
+    }
+  },
+  "global.indexedDB": {
+    "ok": true,
+    "result": {
+      "type": "undefined",
+      "getter": "undefined"
+    }
+  },
+  "global.Context": {
+    "ok": true,
+    "result": {
+      "type": "undefined",
+      "getter": "undefined"
+    }
+  },
+  "global.Activity": {
+    "ok": true,
+    "result": {
+      "type": "undefined",
+      "getter": "undefined"
+    }
+  },
+  "global.Java": {
+    "ok": true,
+    "result": {
+      "type": "undefined",
+      "getter": "undefined"
+    }
+  },
+  "global.Packages": {
+    "ok": true,
+    "result": {
+      "type": "undefined",
+      "getter": "undefined"
+    }
+  },
+  "native.PlatformConstants": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.DeviceInfo": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.AppState": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.Appearance": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.Networking": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.WebSocketModule": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.BlobModule": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.FileReaderModule": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.Clipboard": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.IntentAndroid": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.PermissionsAndroid": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.ShareModule": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.ToastAndroid": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.Vibration": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.ExpoModulesCore": {
+    "ok": true,
+    "result": {
+      "nativeModules": true,
+      "turboRegistry": true,
+      "directGlobal": true
+    }
+  },
+  "native.AsyncSQLiteDBStorage": {
+    "ok": true,
+    "result": {
+      "nativeModules": false,
+      "turboRegistry": false,
+      "directGlobal": false
+    }
+  },
+  "native.CameraModule": {
+    "ok": true,
+    "result": {
+      "nativeModules": false,
+      "turboRegistry": false,
+      "directGlobal": false
+    }
+  },
+  "native.LocationModule": {
+    "ok": true,
+    "result": {
+      "nativeModules": false,
+      "turboRegistry": false,
+      "directGlobal": false
+    }
+  },
+  "native.BluetoothModule": {
+    "ok": true,
+    "result": {
+      "nativeModules": false,
+      "turboRegistry": false,
+      "directGlobal": false
+    }
+  },
+  "native.Contacts": {
+    "ok": true,
+    "result": {
+      "nativeModules": false,
+      "turboRegistry": false,
+      "directGlobal": false
+    }
+  },
+  "native.DootahUnknownOperation": {
+    "ok": true,
+    "result": {
+      "nativeModules": false,
+      "turboRegistry": false,
+      "directGlobal": false
+    }
+  },
+  "expo.ExpoFetchModule": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "NativeRequest",
+        "NativeResponse",
+        "__expo_module_name__",
+        "addListener",
+        "emit",
+        "listenerCount",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "startObserving",
+        "stopObserving",
+        "unstable_createBlobData"
+      ]
+    }
+  },
+  "expo.ExponentFileSystem": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "__expo_module_name__",
+        "addListener",
+        "bundleDirectory",
+        "cacheDirectory",
+        "copyAsync",
+        "createSAFFileAsync",
+        "deleteAsync",
+        "documentDirectory",
+        "downloadAsync",
+        "downloadResumablePauseAsync",
+        "downloadResumableStartAsync",
+        "emit",
+        "getContentUriAsync",
+        "getFreeDiskStorageAsync",
+        "getInfoAsync",
+        "getTotalDiskCapacityAsync",
+        "listenerCount",
+        "makeDirectoryAsync",
+        "makeSAFDirectoryAsync",
+        "moveAsync",
+        "networkTaskCancelAsync",
+        "readAsStringAsync",
+        "readDirectoryAsync",
+        "readSAFDirectoryAsync",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "requestDirectoryPermissionsAsync",
+        "startObserving",
+        "stopObserving",
+        "uploadAsync",
+        "uploadTaskStartAsync",
+        "writeAsStringAsync"
+      ]
+    }
+  },
+  "expo.FileSystem": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "FileSystemDirectory",
+        "FileSystemDownloadTask",
+        "FileSystemFile",
+        "FileSystemFileHandle",
+        "FileSystemUploadTask",
+        "FileSystemWatcher",
+        "__expo_module_name__",
+        "addListener",
+        "availableDiskSpace",
+        "bundleDirectory",
+        "cacheDirectory",
+        "cancelDownloadAsync",
+        "documentDirectory",
+        "downloadFileAsync",
+        "emit",
+        "info",
+        "listenerCount",
+        "pickDirectoryAsync",
+        "pickFileAsync",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "startObserving",
+        "stopObserving",
+        "totalDiskSpace"
+      ]
+    }
+  },
+  "expo.ExponentConstants": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "__expo_module_name__",
+        "addListener",
+        "deviceName",
+        "emit",
+        "executionEnvironment",
+        "getWebViewUserAgentAsync",
+        "listenerCount",
+        "manifest",
+        "platform",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "sessionId",
+        "startObserving",
+        "statusBarHeight",
+        "stopObserving",
+        "systemFonts",
+        "systemVersion"
+      ]
+    }
+  },
+  "expo.ExpoUpdates": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "__expo_module_name__",
+        "addListener",
+        "channel",
+        "checkAutomatically",
+        "checkForUpdateAsync",
+        "clearLogEntriesAsync",
+        "commitTime",
+        "emergencyLaunchReason",
+        "emit",
+        "fetchUpdateAsync",
+        "getExtraParamsAsync",
+        "hideReloadScreen",
+        "initialContext",
+        "isEmbeddedLaunch",
+        "isEmergencyLaunch",
+        "isEnabled",
+        "isUsingEmbeddedAssets",
+        "launchDuration",
+        "listenerCount",
+        "localAssets",
+        "manifestString",
+        "readLogEntriesAsync",
+        "reload",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "runtimeVersion",
+        "setExtraParamAsync",
+        "setUpdateRequestHeadersOverride",
+        "setUpdateURLAndRequestHeadersOverride",
+        "shouldDeferToNativeForAPIMethodAvailabilityInDevelopment",
+        "showReloadScreen",
+        "startObserving",
+        "stopObserving",
+        "updateId"
+      ]
+    }
+  },
+  "expo.ExpoBrownfieldModule": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "__expo_module_name__",
+        "addListener",
+        "emit",
+        "listenerCount",
+        "popToNative",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "sendMessage",
+        "setNativeBackEnabled",
+        "startObserving",
+        "stopObserving"
+      ]
+    }
+  },
+  "expo.ExpoBrownfieldStateModule": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "SharedState",
+        "__expo_module_name__",
+        "addListener",
+        "deleteSharedState",
+        "emit",
+        "getSharedState",
+        "listenerCount",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "startObserving",
+        "stopObserving"
+      ]
+    }
+  },
+  "expo.ExpoAsset": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "__expo_module_name__",
+        "addListener",
+        "downloadAsync",
+        "emit",
+        "listenerCount",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "startObserving",
+        "stopObserving"
+      ]
+    }
+  },
+  "expo.ExpoFontLoader": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "__expo_module_name__",
+        "addListener",
+        "emit",
+        "getLoadedFonts",
+        "listenerCount",
+        "loadAsync",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "startObserving",
+        "stopObserving"
+      ]
+    }
+  },
+  "expo.ExpoFontUtils": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "__expo_module_name__",
+        "addListener",
+        "emit",
+        "listenerCount",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "renderToImageAsync",
+        "startObserving",
+        "stopObserving"
+      ]
+    }
+  },
+  "expo.ExpoKeepAwake": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "__expo_module_name__",
+        "activate",
+        "addListener",
+        "deactivate",
+        "emit",
+        "isActivated",
+        "listenerCount",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "startObserving",
+        "stopObserving"
+      ]
+    }
+  },
+  "expo.ExpoDomWebViewModule": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "ViewPrototypes",
+        "__expo_module_name__",
+        "addListener",
+        "emit",
+        "evalJsForWebViewAsync",
+        "listenerCount",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "startObserving",
+        "stopObserving"
+      ]
+    }
+  },
+  "expo.EASClient": {
+    "ok": true,
+    "result": {
+      "available": true,
+      "directGlobal": true,
+      "keys": [
+        "__expo_module_name__",
+        "addListener",
+        "clientID",
+        "deterministicUniformValue",
+        "emit",
+        "listenerCount",
+        "removeAllListeners",
+        "removeListener",
+        "removeSubscription",
+        "startObserving",
+        "stopObserving"
+      ]
+    }
+  },
+  "expo.ExpoCamera": {
+    "ok": true,
+    "result": {
+      "available": false,
+      "directGlobal": false,
+      "keys": []
+    }
+  },
+  "expo.ExpoLocation": {
+    "ok": true,
+    "result": {
+      "available": false,
+      "directGlobal": false,
+      "keys": []
+    }
+  },
+  "expo.ExpoContacts": {
+    "ok": true,
+    "result": {
+      "available": false,
+      "directGlobal": false,
+      "keys": []
+    }
+  },
+  "expo.DootahUnknownCapability": {
+    "ok": true,
+    "result": {
+      "available": false,
+      "directGlobal": false,
+      "keys": []
+    }
+  },
+  "dynamic.eval": {
+    "ok": true,
+    "result": true
+  },
+  "dynamic.function": {
+    "ok": true,
+    "result": true
+  },
+  "dynamic.constructorNative": {
+    "ok": true,
+    "result": true
+  },
+  "dynamic.import": {
+    "ok": true,
+    "result": true
+  },
+  "module.metroRequire": {
+    "ok": true,
+    "result": true
+  },
+  "nondeterminism": {
+    "ok": true,
+    "result": {
+      "clock": true,
+      "random": true,
+      "performance": true
+    }
+  },
+  "async.timer": {
+    "ok": true,
+    "result": true
+  },
+  "network.loopback": {
+    "ok": true,
+    "result": true
+  },
+  "filesystem.cacheRoundTrip": {
+    "ok": true,
+    "result": true
+  },
+  "complete": true
+}

@@ -1,0 +1,54 @@
+baseline 09-26 20:02:39.491 11592 11650 Updates state change: StartStartup
+baseline 09-26 20:02:39.538 11592 11675 Updates state change: Check
+baseline 09-26 20:02:39.737 11592 11592 I DootahV2: Hermes bridge received update=abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a title=Dootah Native Baseline
+baseline 09-26 20:02:39.749 11592 11675 Updates state change: CheckCompleteUnavailable
+baseline 09-26 20:02:39.760 11592 11675 Updates state change: EndStartup
+baseline 09-26 20:02:40.099 11592 11592 I DootahV2: Compose frame committed; health accepted update=abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a title=Dootah Native Baseline
+baseline 09-26 20:02:40.152 11592 11650 Renderer launch acknowledged: abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a
+download 09-26 20:03:22.436 13907 13932 Updates state change: StartStartup
+download 09-26 20:03:22.522 13907 13932 Updates state change: Check
+download 09-26 20:03:22.599 13907 13932 Updates state change: CheckCompleteAvailable
+download 09-26 20:03:22.599 13907 13932 Updates state change: Download
+download 09-26 20:03:22.620 13907 13907 I DootahV2: Hermes bridge received update=abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a title=Dootah Native Baseline
+download 09-26 20:03:23.028 13907 13907 I DootahV2: Compose frame committed; health accepted update=abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a title=Dootah Native Baseline
+download 09-26 20:03:23.031 13907 13966 Renderer launch acknowledged: abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a
+download 09-26 20:03:24.339 13907 13930 AppController appLoaderTask didLoadAsset: {assetInfo={name=app.bundle, successfulAssetCount=1, failedAssetCount=0, totalAssetCount=1}}
+download 09-26 20:03:24.361 13907 13966 Updates state change: DownloadComplete
+download 09-26 20:03:24.377 13907 13966 Updates state change: EndStartup
+activated 09-26 20:03:40.517 14245 14267 Updates state change: StartStartup
+activated 09-26 20:03:40.573 14245 14267 Updates state change: Check
+activated 09-26 20:03:40.645 14245 14267 Updates state change: CheckCompleteUnavailable
+activated 09-26 20:03:40.657 14245 14267 Updates state change: EndStartup
+activated 09-26 20:03:40.688 14245 14245 I DootahV2: Hermes bridge received update=8ab574db-4c1a-d433-4bbc-5a52b09d9e0c title=Dootah OTA V2
+activated 09-26 20:03:40.715 14245 14245 I DootahV2: Compose frame committed; health accepted update=8ab574db-4c1a-d433-4bbc-5a52b09d9e0c title=Dootah OTA V2
+activated 09-26 20:03:40.718 14245 14305 Renderer launch acknowledged: 8ab574db-4c1a-d433-4bbc-5a52b09d9e0c
+online 09-26 20:03:57.130 14385 14404 Updates state change: StartStartup
+online 09-26 20:03:57.226 14385 14404 Updates state change: Check
+online 09-26 20:03:57.321 14385 14404 Updates state change: CheckCompleteUnavailable
+online 09-26 20:03:57.329 14385 14404 Updates state change: EndStartup
+online 09-26 20:03:57.334 14385 14385 I DootahV2: Hermes bridge received update=8ab574db-4c1a-d433-4bbc-5a52b09d9e0c title=Dootah OTA V2
+online 09-26 20:03:57.360 14385 14385 I DootahV2: Compose frame committed; health accepted update=8ab574db-4c1a-d433-4bbc-5a52b09d9e0c title=Dootah OTA V2
+online 09-26 20:03:57.364 14385 14405 Renderer launch acknowledged: 8ab574db-4c1a-d433-4bbc-5a52b09d9e0c
+offline 09-26 20:04:24.818 14547 14568 Updates state change: StartStartup
+offline 09-26 20:04:24.893 14547 14568 Updates state change: Check
+offline 09-26 20:04:24.907 14547 14568 Failed to download remote update
+offline 09-26 20:04:24.910 14547 14568 Updates state change: CheckError
+offline 09-26 20:04:24.910 14547 14568 Failed to download remote update
+offline 09-26 20:04:24.916 14547 14568 Updates state change: EndStartup
+offline 09-26 20:04:25.003 14547 14547 I DootahV2: Hermes bridge received update=8ab574db-4c1a-d433-4bbc-5a52b09d9e0c title=Dootah OTA V2
+offline 09-26 20:04:25.035 14547 14547 I DootahV2: Compose frame committed; health accepted update=8ab574db-4c1a-d433-4bbc-5a52b09d9e0c title=Dootah OTA V2
+offline 09-26 20:04:25.042 14547 14571 Renderer launch acknowledged: 8ab574db-4c1a-d433-4bbc-5a52b09d9e0c
+rollback-download 09-26 20:04:48.492 14793 14814 Updates state change: StartStartup
+rollback-download 09-26 20:04:48.609 14793 14814 Updates state change: Check
+rollback-download 09-26 20:04:48.696 14793 14814 Updates state change: CheckCompleteAvailable
+rollback-download 09-26 20:04:48.704 14793 14793 I DootahV2: Hermes bridge received update=8ab574db-4c1a-d433-4bbc-5a52b09d9e0c title=Dootah OTA V2
+rollback-download 09-26 20:04:48.711 14793 14814 Updates state change: EndStartup
+rollback-download 09-26 20:04:48.736 14793 14793 I DootahV2: Compose frame committed; health accepted update=8ab574db-4c1a-d433-4bbc-5a52b09d9e0c title=Dootah OTA V2
+rollback-download 09-26 20:04:48.739 14793 14813 Renderer launch acknowledged: 8ab574db-4c1a-d433-4bbc-5a52b09d9e0c
+rollback-visible 09-26 20:05:53.123 15622 15643 Updates state change: StartStartup
+rollback-visible 09-26 20:05:53.148 15622 15643 Updates state change: Check
+rollback-visible 09-26 20:05:53.264 15622 15622 I DootahV2: Hermes bridge received update=abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a title=Dootah Native Baseline
+rollback-visible 09-26 20:05:53.730 15622 15622 I DootahV2: Compose frame committed; health accepted update=abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a title=Dootah Native Baseline
+rollback-visible 09-26 20:05:53.733 15622 15642 Renderer launch acknowledged: abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a
+rollback-visible 09-26 20:05:53.967 15622 15643 Updates state change: CheckCompleteUnavailable
+rollback-visible 09-26 20:05:53.974 15622 15643 Updates state change: EndStartup

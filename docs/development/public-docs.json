@@ -1,0 +1,35 @@
+{
+  "public": [
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "SECURITY.md",
+    "docs/README.md",
+    "docs/concepts/architecture.md",
+    "docs/concepts/delivery.md",
+    "docs/development/README.md",
+    "docs/getting-started/quickstart.md",
+    "docs/history/README.md",
+    "docs/reference/platform.md",
+    "docs/reference/status.md",
+    "docs/reference/support.md",
+    "docs/security/README.md",
+    "docs/self-hosting/README.md",
+    "docs/self-hosting/ngrok.md",
+    "v2/android-sdk/release/README.md",
+    "v2/ci/README.md",
+    "v2/deploy/DEPLOYMENT.md",
+    "v2/deploy/secrets/README.md",
+    "v2/examples/basic-text/README.md",
+    "v2/native-consumer/README.md",
+    "v2/publishing/ONBOARDING.md",
+    "v2/runtime-spike/patches/README.md",
+    "v2/server/XPREM-LICENSE.md"
+  ],
+  "historical_files": [
+    "v2/runtime-spike/README.md"
+  ],
+  "historical_roots": [
+    "docs/v2/"
+  ]
+}

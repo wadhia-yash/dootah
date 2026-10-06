@@ -1,0 +1,11 @@
+{
+  "classification": "UNSUPPORTED_BY_DESIGN",
+  "change": "val amount -> var amount inside existing CheckoutScreen body",
+  "analyzeExit": 1,
+  "publishExit": 1,
+  "reason": "Only immutable locals/helpers",
+  "refused": true,
+  "overrides": [],
+  "generatedJs": {},
+  "cloudReleaseListUnchanged": true
+}

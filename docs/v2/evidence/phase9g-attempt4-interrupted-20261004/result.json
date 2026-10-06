@@ -1,0 +1,15 @@
+{
+  "classification": "ENVIRONMENT_DEVICE",
+  "status": "INCOMPLETE",
+  "startingHead": "a5006d8c333e19cda80f303822071432beac816f",
+  "reason": "On continuation the temporary workspace and staging logs were absent; Docker was stopped. The staging result could not be recovered.",
+  "priorObservedCLItests": 22,
+  "priorObservedServerTests": 345,
+  "priorObservedNamedAzureExclusions": 4,
+  "priorObservedHTTPSPreflight": "PASS",
+  "artifactCandidate": "UNVERIFIED: interrupted staging, no preserved manifest",
+  "apkInstalls": 0,
+  "deviceChanges": false,
+  "cleanup": "Removed only the interrupted attempt containers, networks and volumes by exact project identity. Workspace already absent.",
+  "phase9HStarted": false
+}

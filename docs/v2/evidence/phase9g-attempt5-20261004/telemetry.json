@@ -1,0 +1,210 @@
+{
+  "provenance": "authenticated native device events; exactly one enrolled Samsung installation; no synthetic ingestion",
+  "events": [
+    {
+      "type": "update_checked",
+      "release_id": null,
+      "activation_id": "826a7e48-f55e-40b9-a7f5-cb710b48ecd4",
+      "occurred_at": "2026-10-05T02:44:41.767Z",
+      "received_at": "2026-10-05T02:44:43.987Z"
+    },
+    {
+      "type": "download_started",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "4d1ed386-cb40-4999-b7fb-eae758bfb044",
+      "occurred_at": "2026-10-04T17:18:41.296Z",
+      "received_at": "2026-10-04T17:18:43.089Z"
+    },
+    {
+      "type": "update_healthy",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "09f32b5b-bf60-4351-bc8e-190902133c03",
+      "occurred_at": "2026-10-05T02:47:20.040Z",
+      "received_at": "2026-10-05T02:47:21.412Z"
+    },
+    {
+      "type": "update_checked",
+      "release_id": null,
+      "activation_id": "54e5b996-1663-46b8-a7b6-6f3adb4efa60",
+      "occurred_at": "2026-10-05T02:45:51.283Z",
+      "received_at": "2026-10-05T02:46:44.564Z"
+    },
+    {
+      "type": "update_healthy",
+      "release_id": null,
+      "activation_id": "4d1ed386-cb40-4999-b7fb-eae758bfb044",
+      "occurred_at": "2026-10-04T17:18:41.796Z",
+      "received_at": "2026-10-04T17:18:43.089Z"
+    },
+    {
+      "type": "update_healthy",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "54e5b996-1663-46b8-a7b6-6f3adb4efa60",
+      "occurred_at": "2026-10-05T02:45:52.178Z",
+      "received_at": "2026-10-05T02:46:44.564Z"
+    },
+    {
+      "type": "update_activated",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "826a7e48-f55e-40b9-a7f5-cb710b48ecd4",
+      "occurred_at": "2026-10-05T02:44:42.216Z",
+      "received_at": "2026-10-05T02:44:43.987Z"
+    },
+    {
+      "type": "update_healthy",
+      "release_id": null,
+      "activation_id": "28fdccf6-1031-470a-b966-bccb222ea616",
+      "occurred_at": "2026-10-04T17:16:34.009Z",
+      "received_at": "2026-10-04T17:18:02.137Z"
+    },
+    {
+      "type": "rollback_applied",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "b25ff686-076a-4ea7-857d-d5e1253659dc",
+      "occurred_at": "2026-10-05T02:47:50.168Z",
+      "received_at": "2026-10-05T02:47:52.613Z"
+    },
+    {
+      "type": "download_completed",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "4d1ed386-cb40-4999-b7fb-eae758bfb044",
+      "occurred_at": "2026-10-04T17:18:41.409Z",
+      "received_at": "2026-10-04T17:18:43.089Z"
+    },
+    {
+      "type": "update_healthy",
+      "release_id": null,
+      "activation_id": "b25ff686-076a-4ea7-857d-d5e1253659dc",
+      "occurred_at": "2026-10-05T02:47:50.961Z",
+      "received_at": "2026-10-05T02:47:52.613Z"
+    },
+    {
+      "type": "update_activated",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "54e5b996-1663-46b8-a7b6-6f3adb4efa60",
+      "occurred_at": "2026-10-05T02:45:51.703Z",
+      "received_at": "2026-10-05T02:46:44.564Z"
+    },
+    {
+      "type": "update_checked",
+      "release_id": null,
+      "activation_id": "28fdccf6-1031-470a-b966-bccb222ea616",
+      "occurred_at": "2026-10-04T17:16:33.105Z",
+      "received_at": "2026-10-04T17:18:02.137Z"
+    },
+    {
+      "type": "update_checked",
+      "release_id": null,
+      "activation_id": "b25ff686-076a-4ea7-857d-d5e1253659dc",
+      "occurred_at": "2026-10-05T02:47:50.165Z",
+      "received_at": "2026-10-05T02:47:52.613Z"
+    },
+    {
+      "type": "update_activated",
+      "release_id": null,
+      "activation_id": "28fdccf6-1031-470a-b966-bccb222ea616",
+      "occurred_at": "2026-10-04T17:16:33.100Z",
+      "received_at": "2026-10-04T17:18:02.137Z"
+    },
+    {
+      "type": "update_checked",
+      "release_id": null,
+      "activation_id": "09f32b5b-bf60-4351-bc8e-190902133c03",
+      "occurred_at": "2026-10-05T02:47:19.207Z",
+      "received_at": "2026-10-05T02:47:21.412Z"
+    },
+    {
+      "type": "update_checked",
+      "release_id": null,
+      "activation_id": "c0663f93-b5fb-4d06-9050-014fd29120b8",
+      "occurred_at": "2026-10-05T02:49:10.364Z",
+      "received_at": "2026-10-05T02:49:52.983Z"
+    },
+    {
+      "type": "update_available",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "4d1ed386-cb40-4999-b7fb-eae758bfb044",
+      "occurred_at": "2026-10-04T17:18:41.295Z",
+      "received_at": "2026-10-04T17:18:43.089Z"
+    },
+    {
+      "type": "update_healthy",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "826a7e48-f55e-40b9-a7f5-cb710b48ecd4",
+      "occurred_at": "2026-10-05T02:44:42.668Z",
+      "received_at": "2026-10-05T02:44:43.987Z"
+    },
+    {
+      "type": "update_activated",
+      "release_id": null,
+      "activation_id": "4d1ed386-cb40-4999-b7fb-eae758bfb044",
+      "occurred_at": "2026-10-04T17:18:41.000Z",
+      "received_at": "2026-10-04T17:18:43.089Z"
+    },
+    {
+      "type": "update_activated",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "65f3df32-b4cc-42ee-9793-e4f024a4e146",
+      "occurred_at": "2026-10-04T17:19:07.630Z",
+      "received_at": "2026-10-04T17:19:09.432Z"
+    },
+    {
+      "type": "update_activated",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "09f32b5b-bf60-4351-bc8e-190902133c03",
+      "occurred_at": "2026-10-05T02:47:19.601Z",
+      "received_at": "2026-10-05T02:47:21.412Z"
+    },
+    {
+      "type": "update_activated",
+      "release_id": null,
+      "activation_id": "b25ff686-076a-4ea7-857d-d5e1253659dc",
+      "occurred_at": "2026-10-05T02:47:50.160Z",
+      "received_at": "2026-10-05T02:47:52.613Z"
+    },
+    {
+      "type": "update_activated",
+      "release_id": null,
+      "activation_id": "c0663f93-b5fb-4d06-9050-014fd29120b8",
+      "occurred_at": "2026-10-05T02:49:10.360Z",
+      "received_at": "2026-10-05T02:49:52.983Z"
+    },
+    {
+      "type": "update_checked",
+      "release_id": null,
+      "activation_id": "65f3df32-b4cc-42ee-9793-e4f024a4e146",
+      "occurred_at": "2026-10-04T17:19:07.317Z",
+      "received_at": "2026-10-04T17:19:09.432Z"
+    },
+    {
+      "type": "update_healthy",
+      "release_id": null,
+      "activation_id": "c0663f93-b5fb-4d06-9050-014fd29120b8",
+      "occurred_at": "2026-10-05T02:49:11.189Z",
+      "received_at": "2026-10-05T02:49:52.983Z"
+    },
+    {
+      "type": "update_checked",
+      "release_id": null,
+      "activation_id": "4d1ed386-cb40-4999-b7fb-eae758bfb044",
+      "occurred_at": "2026-10-04T17:18:41.004Z",
+      "received_at": "2026-10-04T17:18:43.089Z"
+    },
+    {
+      "type": "update_healthy",
+      "release_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+      "activation_id": "65f3df32-b4cc-42ee-9793-e4f024a4e146",
+      "occurred_at": "2026-10-04T17:19:08.095Z",
+      "received_at": "2026-10-04T17:19:09.432Z"
+    }
+  ],
+  "counts": {
+    "update_checked": 8,
+    "download_started": 1,
+    "update_healthy": 8,
+    "update_activated": 8,
+    "rollback_applied": 1,
+    "download_completed": 1,
+    "update_available": 1
+  }
+}

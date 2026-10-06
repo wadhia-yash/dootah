@@ -1,0 +1,1 @@
+{"name":"@dootah/cloud","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test test/*.test.mjs","migrate":"node admin.mjs migrate"},"dependencies":{"pg":"8.16.3"}}

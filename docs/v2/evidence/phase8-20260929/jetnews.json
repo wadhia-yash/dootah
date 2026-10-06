@@ -1,0 +1,670 @@
+{
+ "key": "jetnews",
+ "installedContract": {
+  "schema": 2,
+  "irAbi": 2,
+  "dispatchAbi": 2,
+  "capabilities": {
+   "logicAbi": 1,
+   "capabilities": {
+    "logic.pure.v1": {
+     "outputs": [
+      "String",
+      "Boolean",
+      "Int",
+      "String?",
+      "Boolean?",
+      "Int?"
+     ],
+     "inputs": [
+      "String",
+      "Boolean",
+      "Int",
+      "String?",
+      "Boolean?",
+      "Int?"
+     ],
+     "permissions": [],
+     "effect": "pure",
+     "implementation": "PortableProgram/JavaScriptSandbox",
+     "version": 1,
+     "limits": {
+      "operations": 512,
+      "depth": 24,
+      "stringUnits": 256
+     }
+    },
+    "compose.basicText.v1": {
+     "outputs": [
+      "Unit"
+     ],
+     "inputs": [
+      "String"
+     ],
+     "permissions": [],
+     "effect": "render",
+     "implementation": "ComposeDispatch/BasicText",
+     "version": 1,
+     "limits": {
+      "stringUnits": 256
+     }
+    }
+   },
+   "runtimeAbi": 2,
+   "limits": {
+    "async": false,
+    "entries": 32,
+    "collections": 0,
+    "loops": 0,
+    "parameters": 9,
+    "payloadBytes": 65536,
+    "recursion": 0
+   }
+  },
+  "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+  "embeddedId": "e1982016-5ea3-422a-a08d-a2b063b47f66",
+  "hermesBytecodeVersion": 98,
+  "packageName": "com.example.jetnews",
+  "runtimeVersion": "phase8-jetnews-1",
+  "appId": "6e48871d-8406-4566-bbac-42b97522a51a",
+  "channel": "development"
+ },
+ "identities": [
+  {
+   "owner": "com/example/jetnews/ui/interests/SelectTopicButtonKt",
+   "name": "SelectTopicButtonPreviewTemplate",
+   "descriptor": "(ZLandroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:39eb7c3977734263f64939e0ae647cc32493ca0e62f0e0f6d13e7a415da44ce8",
+   "nullable": "!",
+   "installed": true
+  },
+  {
+   "owner": "com/example/jetnews/ui/home/HomeScreensKt",
+   "name": "PostListDivider",
+   "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:90bbb49c052f170530e6cc8454f349eef617b4d4704fdb0bdc3541f23a36bb69",
+   "nullable": "",
+   "installed": true
+  },
+  {
+   "owner": "com/example/jetnews/ui/home/HomeScreensKt",
+   "name": "FullScreenLoading",
+   "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+   "id": "dth1:edffdc46ebd1a49c431e6d47511b1e9bd5bf9672af11bc1d85c1646d8fb2c544",
+   "nullable": "",
+   "installed": true
+  }
+ ],
+ "bytecode": {
+  "classes": 196,
+  "methods": 1542,
+  "hooked": 23,
+  "untouchedIdentical": 1519,
+  "hookedForms": {
+   "static/0args": 22,
+   "static/1args": 1
+  },
+  "hookedInHelpers": 0,
+  "composableNotHooked": 67,
+  "overloadGroups": 0,
+  "overloadDistinctIds": true,
+  "samples": [
+   {
+    "owner": "com/example/jetnews/ui/AppDrawerKt",
+    "method": "PreviewAppDrawer",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:c9ac49e240976b8ca2ddaf4e31784f5d2bb09087fa53a93f05a8fb5cf020a466"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/HomeScreensKt",
+    "method": "FullScreenLoading",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:edffdc46ebd1a49c431e6d47511b1e9bd5bf9672af11bc1d85c1646d8fb2c544"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/HomeScreensKt",
+    "method": "PostListDivider",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:90bbb49c052f170530e6cc8454f349eef617b4d4704fdb0bdc3541f23a36bb69"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/HomeScreensKt",
+    "method": "PreviewHomeListDrawerScreen",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:5fd4b6c38833c68b6c5b60149cc4e5f683d1cff9d76e919d08529237c5102857"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/HomeScreensKt",
+    "method": "PreviewHomeListNavRailScreen",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:de9aa516f081e87182b70d62886ff7e6f467553b094dad66bff765c5a385dc89"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/PostCardTopKt",
+    "method": "PostCardTopPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:4364a16994b5dcad968d4b98d528eda31256df80663e67479ea480edfa41928d"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/PostCardTopKt",
+    "method": "PostCardTopPreviews",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:f90ea85f4183f327593cf5cfd7d312f371e28a47a291ece1377f2a77196a274b"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/PostCardsKt",
+    "method": "BookmarkButtonPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:367cbd0b4e58ae4d4d1ed2dfa43f55dd558db16319bfe508e3d22245b56334c3"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/PostCardsKt",
+    "method": "BookmarkButtonBookmarkedPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:9488562d4acd74144a04e9f9f5c8b9878b8046e64e89be825de5afc6d83c6511"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/PostCardsKt",
+    "method": "SimplePostPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:5fd933ad622f8ebe3e9347a57fd46f2cd14ab4d5528ac3e6c6383d2df9d00e6b"
+   },
+   {
+    "owner": "com/example/jetnews/ui/home/PostCardsKt",
+    "method": "HistoryPostPreview",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:7c755d02d5af8e3559b7368e77540d18ad70454916a0c54dfff4cccab30e3114"
+   },
+   {
+    "owner": "com/example/jetnews/ui/post/PostContentKt",
+    "method": "PreviewPost",
+    "descriptor": "(Landroidx/compose/runtime/Composer;I)V",
+    "id": "dth1:4bcdf52e0cc8a591daab6148a9196aecdea5f1f7946188971e535fd1e2f8efff"
+   }
+  ],
+  "violationCount": 0
+ },
+ "lastPortableIr": {
+  "schema": "dootah.portable",
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "runtimeVersion": "phase8-jetnews-1",
+  "requires": [
+   "logic.pure.v1",
+   "compose.basicText.v1"
+  ],
+  "overrides": [
+   {
+    "functionId": "dth1:90bbb49c052f170530e6cc8454f349eef617b4d4704fdb0bdc3541f23a36bb69",
+    "parameters": [],
+    "expression": {
+     "op": "seq",
+     "args": [
+      {
+       "op": "concat",
+       "args": [
+        {
+         "op": "literal",
+         "type": "String",
+         "value": ""
+        },
+        {
+         "op": "literal",
+         "type": "String",
+         "value": "More from Jetnews"
+        }
+       ]
+      },
+      {
+       "op": "concat",
+       "args": [
+        {
+         "op": "concat",
+         "args": [
+          {
+           "op": "concat",
+           "args": [
+            {
+             "op": "literal",
+             "type": "String",
+             "value": ""
+            },
+            {
+             "op": "literal",
+             "type": "String",
+             "value": "· "
+            }
+           ]
+          },
+          {
+           "op": "string",
+           "args": [
+            {
+             "op": "concat",
+             "args": [
+              {
+               "op": "literal",
+               "type": "String",
+               "value": ""
+              },
+              {
+               "op": "literal",
+               "type": "String",
+               "value": "More from Jetnews"
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "op": "literal",
+         "type": "String",
+         "value": " ·"
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "deviceStages": [
+  {
+   "stage": "baseline",
+   "time": "2026-09-29 20:08:07 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=e1982016-5ea3-422a-a08d-a2b063b47f66 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "Popular on Jetnews"
+   ]
+  },
+  {
+   "stage": "ready-0pct",
+   "time": "2026-09-29 20:13:00 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=e1982016-5ea3-422a-a08d-a2b063b47f66 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "Popular on Jetnews"
+   ]
+  },
+  {
+   "stage": "ota-download",
+   "time": "2026-09-29 20:13:54 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=e1982016-5ea3-422a-a08d-a2b063b47f66 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": true,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "Popular on Jetnews"
+   ]
+  },
+  {
+   "stage": "ota-active",
+   "time": "2026-09-29 20:14:30 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=ff4bd790-d463-ad07-aad5-2f5373d9a267 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "· More from Jetnews ·",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "· More from Jetnews ·",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "· More from Jetnews ·",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "· More from Jetnews ·"
+   ]
+  },
+  {
+   "stage": "online-restart",
+   "time": "2026-09-29 20:15:17 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=ff4bd790-d463-ad07-aad5-2f5373d9a267 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "· More from Jetnews ·",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "· More from Jetnews ·",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "· More from Jetnews ·",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "· More from Jetnews ·"
+   ]
+  },
+  {
+   "stage": "cloud-down-restart",
+   "time": "2026-09-29 20:15:40 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=ff4bd790-d463-ad07-aad5-2f5373d9a267 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "· More from Jetnews ·",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "· More from Jetnews ·",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "· More from Jetnews ·",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "· More from Jetnews ·"
+   ]
+  },
+  {
+   "stage": "offline-restart",
+   "time": "2026-09-29 20:16:34 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=ff4bd790-d463-ad07-aad5-2f5373d9a267 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "· More from Jetnews ·",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "· More from Jetnews ·",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "· More from Jetnews ·",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "· More from Jetnews ·"
+   ]
+  },
+  {
+   "stage": "rollback-delivery",
+   "time": "2026-09-29 20:19:01 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=ff4bd790-d463-ad07-aad5-2f5373d9a267 embedded=false sandbox=true"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [
+    "rollback={commitTime=2026-09-29T14:48:28Z}"
+   ],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "· More from Jetnews ·",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "· More from Jetnews ·",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "· More from Jetnews ·",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "· More from Jetnews ·"
+   ]
+  },
+  {
+   "stage": "rollback-active",
+   "time": "2026-09-29 20:19:27 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=e1982016-5ea3-422a-a08d-a2b063b47f66 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "Popular on Jetnews"
+   ]
+  },
+  {
+   "stage": "rollback-offline-restart",
+   "time": "2026-09-29 20:19:58 IST",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "install": [
+    "firstInstallTime=2026-09-29 20:07:44",
+    "lastUpdateTime=2026-09-29 20:07:44",
+    "versionName=1.0"
+   ],
+   "selected": [
+    "update=e1982016-5ea3-422a-a08d-a2b063b47f66 embedded=true sandbox=false"
+   ],
+   "healthAcknowledged": true,
+   "rejected": [],
+   "fatalException": false,
+   "signatureVerified": false,
+   "codeSigningFailure": [],
+   "rollbackDirective": [],
+   "visibleTextSample": [
+    "Top stories for you",
+    "Redesigning the Android Studio Logo",
+    "Android Studio Team",
+    "May 10 - 5 min read",
+    "A Little Thing about Android Module Paths",
+    "Pietro Maggi - 1 min read",
+    "Dagger in Kotlin: Gotchas and Optimizations",
+    "Manuel Vivo - 3 min read",
+    "From Java Programming Language to Kotlin — the idiomatic way",
+    "Florina Muntenescu - 1 min read",
+    "Popular on Jetnews"
+   ]
+  }
+ ],
+ "cloud": {
+  "deviceEventCounts": {
+   "update_checked:embedded": 11,
+   "update_activated:embedded": 6,
+   "update_healthy:embedded": 6,
+   "update_activated:release": 5,
+   "update_healthy:release": 5,
+   "download_started:release": 1,
+   "download_completed:release": 1,
+   "rollback_applied:release": 1,
+   "update_available:release": 1
+  },
+  "eventInstallations": 1,
+  "release": {
+   "id": "8547187e-0573-46b2-8f2c-551656636638",
+   "status": "rolled_back",
+   "percentage": 100,
+   "runtime": "phase8-jetnews-1",
+   "runtime_abi": 2,
+   "logic_abi": 1,
+   "hash": "79c5ccd66f32d2d27001d426639b899585463841db1e9c55ce67e874a0d1d00b",
+   "revision": "4c1fe7586e2f+dootah-integration",
+   "contract_digest": "353db0c480a5ff890fe0ef313e9542d791c029a89fe70aa4a49b9d110a2782a9"
+  },
+  "metrics": {
+   "windowDays": 30,
+   "asOf": "2026-09-29T14:50:30.291Z",
+   "compatible": 1,
+   "eligible": 1,
+   "downloaded": 1,
+   "activated": 1,
+   "healthy": 1,
+   "rejected": 0,
+   "rollbackCount": 1,
+   "adopted": 0,
+   "adoptionPercent": 0,
+   "healthPercent": 100,
+   "provenance": "authenticated_device_reports",
+   "crashFree": null
+  },
+  "rollback-signature": {
+   "signatureVerified": true,
+   "tamperedRejected": true,
+   "directive": {
+    "type": "rollBackToEmbedded",
+    "parameters": {
+     "commitTime": "2026-09-29T14:48:28.349Z"
+    }
+   }
+  }
+ },
+ "measurementsRaw": [
+  "TotalTime: 1563 WaitTime: 1566 ",
+  "TotalTime: 1537 WaitTime: 1543 ",
+  "TotalTime: 1492 WaitTime: 1495 ",
+  "           TOTAL PSS:   134016            TOTAL RSS:   242444       TOTAL SWAP PSS:      833",
+  ""
+ ]
+}

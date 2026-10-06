@@ -1,0 +1,9 @@
+{
+  "<existing-cloud-app-uuid>": {
+    "appId": "<provisioned-xprem-app-uuid>",
+    "base": "http://xprem:3100",
+    "publicOrigin": "https://<your-domain>",
+    "apiKey": "<secret-from-private-provisioning-output>",
+    "certificate": "<provisioned-public-PEM-certificate>"
+  }
+}

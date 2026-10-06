@@ -1,0 +1,320 @@
+{
+ "phase": 8,
+ "date": "2026-09-29/30",
+ "startingCommit": "764b3c1",
+ "device": {
+  "model": "Samsung SM-E426B",
+  "android": "13",
+  "api": 33,
+  "abi": "arm64-v8a",
+  "physicalDevices": 1,
+  "emulatorResultsUsed": false
+ },
+ "frozen": {
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "capabilities": [
+   "logic.pure.v1",
+   "compose.basicText.v1"
+  ],
+  "grammarChanged": false,
+  "sandboxChanged": false,
+  "identityAlgorithmChanged": false,
+  "cloudModelChanged": false,
+  "expoHealthPatchChanged": false,
+  "compilerPluginOrFirIrMutation": false
+ },
+ "matrixFreezeSha256": "deb55169149cc4a872f275a4359fcd741b1c308900b5e9cc3d9e322ff7b9942f",
+ "matrixFrozenSectionReverified": true,
+ "sdkPatches": {
+  "0.7.1-local": [
+   "kotlin-metadata-jvm 2.4.20 + unreadable-metadata warning",
+   "ActivityLifecycleCallbacks frame observer; DootahActivity no longer required"
+  ],
+  "0.7.2-local": [
+   "reject non-arm64 ABI split outputs"
+  ],
+  "0.7.3-local": [
+   "remove inherited storage/SYSTEM_ALERT_WINDOW permissions and FileSystemFileProvider"
+  ],
+  "0.7.4-local": [
+   "expose Guava api to keep consumer compile/runtime classpaths consistent"
+  ]
+ },
+ "apps": {
+  "jetnews": {
+   "upstream": "android/compose-samples JetNews",
+   "sha": "4c1fe7586e2fbf1c934925ef8ab64d3803361423",
+   "toolchain": {
+    "gradle": "9.5.0",
+    "agp": "9.3.1",
+    "kotlin": "2.3.20",
+    "kotlinMetadata": "2.4.0",
+    "composeBom": "2026.08.00",
+    "minSdk": "26->29",
+    "targetSdk": 33,
+    "compileSdk": 37,
+    "modules": 1,
+    "jdk": 21
+   },
+   "sdk": "0.7.1-local (rebuilt and compared on 0.7.4-local)",
+   "acceptedVariant": "debug/D8 (upstream release crashes natively)",
+   "apkSha256": "3b3e452199709dbe930080b4b8b564639b635aa10b76023b65f87e7bc5da4f34",
+   "package": "com.example.jetnews",
+   "installed": "2026-09-29 20:07:44 IST",
+   "embeddedUpdate": "e1982016-5ea3-422a-a08d-a2b063b47f66",
+   "runtime": "phase8-jetnews-1",
+   "release": {
+    "cloudRelease": "8547187e-0573-46b2-8f2c-551656636638",
+    "transportUpdate": "ff4bd790-d463-ad07-aad5-2f5373d9a267",
+    "target": "PostListDivider()",
+    "edit": "HorizontalDivider body -> BasicText(\"\u00b7 $section \u00b7\") with a local constant",
+    "rollbackCommit": "2026-09-29T14:48:28.349Z"
+   },
+   "categories": {
+    "A": "PASS",
+    "B": "PASS (native release/R8 crash is UPSTREAM_APP_BUILD_ISSUE)",
+    "C": "PASS",
+    "D": "PASS",
+    "E": "PASS",
+    "F": "PASS",
+    "G": "PASS (rollout 0/100, no partial)",
+    "H": "PASS"
+   }
+  },
+  "mihon": {
+   "upstream": "mihonapp/mihon",
+   "sha": "449c4e08e76deb06ac9ec520efafe3f8d6e181ec",
+   "toolchain": {
+    "gradle": "9.7.1",
+    "agp": "9.4.1",
+    "kotlin": "2.4.20",
+    "kotlinMetadata": "2.4.0",
+    "composeBom": "2026.09.00 (alpha BOM)",
+    "minSdk": "26->29",
+    "targetSdk": 36,
+    "compileSdk": "37.2",
+    "modules": 17,
+    "jdk": 21,
+    "configurationCache": "stored"
+   },
+   "sdk": "0.7.2-local (rebuilt and compared on 0.7.4-local)",
+   "acceptedVariant": "release/R8 arm64 split",
+   "apkSha256": "f484340e9ef82f53eb79c3bed5e94a279d109982235a6a40e0e2528ae7d77535",
+   "package": "app.mihon",
+   "installed": "2026-09-29 20:59:00 IST",
+   "embeddedUpdate": "184046f7-b535-43b4-8d39-98781cd78229",
+   "runtime": "phase8-mihon-1",
+   "release": {
+    "cloudRelease": "6de6bbd3-ac48-45a1-875c-2e41da6e040a",
+    "transportUpdate": "b7ae0702-7ce4-a238-1bb6-e26aa44eb308",
+    "target": "PreferenceGroupHeader(title: String)",
+    "edit": "Material Text/Box -> conditional BasicText over the real title input",
+    "rollbackCommit": "2026-09-29T15:40:11.413Z"
+   },
+   "rollout": {
+    "phoneBucket": 4158,
+    "sequence": [
+     "0% (not offered)",
+     "40% (phone excluded)",
+     "50% (phone downloads)",
+     "100% (active)",
+     "pause (0 new offers; cached release keeps running)",
+     "resume (restored 100%)"
+    ],
+    "syntheticInstallations": 20,
+    "cohortMismatches": 0
+   },
+   "categories": {
+    "A": "PASS (splits restricted to arm64)",
+    "B": "PASS",
+    "C": "PASS",
+    "D": "PASS",
+    "E": "PASS",
+    "F": "PASS",
+    "G": "PASS",
+    "H": "PASS"
+   }
+  },
+  "readyou": {
+   "upstream": "ReadYouApp/ReadYou",
+   "sha": "d2b979ccad9a3e54b9499929a9dc2824578b0fd9",
+   "toolchain": {
+    "gradle": "8.13",
+    "agp": "8.13.0",
+    "kotlin": "2.2.0",
+    "composeBom": "2025.10.01",
+    "minSdk": "26->29",
+    "targetSdk": 34,
+    "compileSdk": 36,
+    "modules": 1,
+    "jdk": 21,
+    "foreignAsmTransform": "Hilt"
+   },
+   "sdk": "0.7.4-local",
+   "acceptedVariant": "githubRelease/R8",
+   "apkSha256": "a9219d28fe8ccf3a76d9e8cd682426ced98f5b169ba5f2c2c44abdd7f4f2d182",
+   "package": "me.ash.reader",
+   "installed": "2026-09-29 21:47:24 IST",
+   "embeddedUpdate": "487d3a28-1819-458f-bf95-871ffed39624",
+   "runtime": "phase8-readyou-1",
+   "release": {
+    "cloudRelease": "1cc4d5d7-1ada-4fff-bd86-1968aac615b6",
+    "transportUpdate": "ecb088bd-93ab-2ae8-ae16-fdda667c1f04",
+    "target": "StickyHeader(dateString: String, isShowFeedIcon: Boolean, articleListTonalElevation: Int)",
+    "edit": "Material Row/Text -> BasicText using all three inputs",
+    "rollbackCommit": "2026-09-29T16:24:14.162Z"
+   },
+   "categories": {
+    "A": "PASS",
+    "B": "PASS (after SDK fixes 4a/4b)",
+    "C": "PASS",
+    "D": "PASS",
+    "E": "PASS",
+    "F": "PASS",
+    "G": "PASS (rollout 0/100)",
+    "H": "PASS (incl. tampered manifest)"
+   }
+  },
+  "nia": {
+   "upstream": "android/nowinandroid",
+   "sha": "12f80da6518e161ed16a06a68e71fb8a873576d6",
+   "toolchain": {
+    "gradle": "9.7.1",
+    "agp": "9.3.2",
+    "kotlin": "2.3.0",
+    "composeBom": "2025.09.01",
+    "minSdk": "23->29",
+    "targetSdk": 36,
+    "compileSdk": 36,
+    "modules": 35,
+    "jdk": 21,
+    "isolatedProjects": true,
+    "configurationCache": "problems=fail, stored",
+    "foreignAsmTransforms": [
+     "Hilt",
+     "Firebase Performance"
+    ]
+   },
+   "sdk": "0.7.4-local",
+   "acceptedVariant": "demoRelease/R8",
+   "apkSha256": "59094c202ab665a1f9bb9fe6525a080db6f180aee5c1e3a5b93897ea1540b18d",
+   "package": "com.google.samples.apps.nowinandroid.demo",
+   "installed": "2026-09-29 22:27:55 IST",
+   "embeddedUpdate": "4fc76b20-1e0f-4a3c-85f5-cd76e0749144",
+   "runtime": "phase8-nia-1",
+   "categories": {
+    "A": "PASS",
+    "B": "PASS",
+    "C": "PASS (0 eligible app-module hooks; Dootah pass byte-transparent)",
+    "D": "PASS (import refuses: no installed identities)",
+    "E": "NOT_APPLICABLE (UNSUPPORTED_BY_DESIGN: UI in library modules)",
+    "F": "NOT_APPLICABLE",
+    "G": "PARTIAL (enrollment + embedded telemetry; no release)",
+    "H": "PASS (embedded online/offline/Cloud-down)"
+   }
+  },
+  "tivi": {
+   "upstream": "chrisbanes/tivi",
+   "sha": "a0c62c2c763c83e3a0ecf79b283224374bb06c4a",
+   "toolchain": {
+    "gradle": "8.11",
+    "agp": "8.7.2",
+    "kotlin": "2.0.21",
+    "composeMultiplatform": "1.7.0",
+    "minSdk": 24,
+    "compileSdk": 34,
+    "jdk": 21,
+    "kmp": true
+   },
+   "native": "PASS (qaDebug + standardRelease/R8; standardDebug disabled upstream)",
+   "categories": {
+    "A": "FAIL (TOOLCHAIN_COMPATIBILITY: Dootah graph requires AGP >= 8.9.1 and compileSdk >= 36)",
+    "B": "FAIL (checkAarMetadata; licensee rejects Dootah artifacts without license metadata)",
+    "C": "NOT_ATTEMPTED (build stops before instrumentation; census: 0 app-module composables)",
+    "D": "NOT_APPLICABLE",
+    "E": "NOT_APPLICABLE",
+    "F": "NOT_APPLICABLE",
+    "G": "NOT_APPLICABLE",
+    "H": "NOT_APPLICABLE"
+   }
+  }
+ },
+ "sizes": {
+  "jetnews": {
+   "releaseNative": 3992017,
+   "releaseDootah074": 26145907,
+   "debugNative": 16564054,
+   "debugDootah": 100147394
+  },
+  "mihon": {
+   "arm64ReleaseNative": 51835165,
+   "arm64ReleaseDootah074": 82474746
+  },
+  "readyou": {
+   "releaseNative": 11099839,
+   "releaseDootah": 41602016
+  },
+  "nia": {
+   "demoReleaseNative": 5039454,
+   "demoReleaseDootah": 28086762
+  },
+  "instrumentationDexDelta": {
+   "app": "jetnews debug",
+   "hooks": 23,
+   "uncompressedDexBytes": 3044,
+   "apkBytesDelta": 0
+  }
+ },
+ "buildSeconds": {
+  "note": "single runs on an 8 GB laptop; integrated runs rebuilt the app module with --no-build-cache while library modules were often up to date, so deltas are not controlled",
+  "jetnews": {
+   "native": 181,
+   "dootah071": 320,
+   "dootah074": 248
+  },
+  "mihon": {
+   "native": 1065,
+   "dootah072": 749,
+   "dootah074release": 516
+  },
+  "readyou": {
+   "native": 737,
+   "dootah074": 775
+  },
+  "nia": {
+   "native": 825,
+   "dootah074": 685
+  },
+  "tivi": {
+   "native": 622
+  }
+ },
+ "startupPss": {
+  "note": "am start -W, 3 cold launches on accepted APKs; no native control on device",
+  "jetnews-debug": "1492-1563 ms, PSS 134016 KiB",
+  "mihon": "806-870 ms, PSS 95287 KiB",
+  "readyou": "363-425 ms, PSS 82693 KiB",
+  "nia": "260-277 ms, PSS 99964 KiB"
+ },
+ "regressionSuites": {
+  "gradlePlugin": "8/8 with real fixtures, 0 skipped",
+  "runtime": "5/5",
+  "nativeHealth": "3/3",
+  "publisher": "18/18",
+  "portableNode": "2/2",
+  "cloud": "13/13, 0 skipped",
+  "producerGates": "pass on 0.7.4, fail on 0.7.3"
+ },
+ "cloudNegativesRejected": 11,
+ "appSpecificProductionHacks": 0,
+ "deferred": [
+  "installed BasicText renderer is unthemed (black default text): OTA labels are low-contrast in dark-themed apps (Mihon, Read You)",
+  "verification_failed telemetry never classified for real code-signing rejections",
+  "Dootah artifacts publish no license metadata (product license decision required)",
+  "SDK floor AGP >= 8.9.1 / compileSdk >= 36 inherited from pinned Expo/RN graph",
+  "library-module composables are not instrumented (by design)"
+ ],
+ "screenshotsCommitted": false,
+ "screenshotsReason": "device status bar shows personal notification icons; visible text recorded per stage"
+}

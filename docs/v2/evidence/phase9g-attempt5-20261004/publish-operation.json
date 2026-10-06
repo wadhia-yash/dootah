@@ -1,0 +1,15 @@
+{
+  "id": "2a97fab4-e8f2-4545-a116-e35674d7ebb7",
+  "organization_id": "27bd4871-a014-4626-9fb1-4044726e8ff4",
+  "resource_id": "83c314e3-ba2c-476a-acdf-33aed5947fd8",
+  "actor": "03fcbb30-4040-4387-b334-383d473e8c66",
+  "action": "publish",
+  "status": "succeeded",
+  "receipt": {
+    "signatureVerified": true,
+    "type": "release"
+  },
+  "created_at": "2026-10-04T17:18:24.575Z",
+  "attempts": 1,
+  "next_attempt_at": "2026-10-04T17:18:55.180Z"
+}

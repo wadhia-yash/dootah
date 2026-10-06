@@ -1,0 +1,57 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 785653919 Realtime: 3110153737
+
+** MEMINFO in pid 15907 [dev.dootah.v2.spike] **
+                   Pss  Private  Private  SwapPss      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap    17897    17852        0       40    18952    28564    26442     2121
+  Dalvik Heap     2200     2152        0      108     3132     9774     3630     6144
+ Dalvik Other     1198     1176        0        2     1556
+        Stack      828      828        0        0      836
+       Ashmem       24        0        0        0      548
+    Other dev       23        0       20        0      404
+     .so mmap     2936      260      504       30    37728
+    .jar mmap     1324        0       28        0    37156
+    .apk mmap    12643      376    11756        0    16184
+    .ttf mmap      126        0        0        0      704
+    .dex mmap    23876        0    23864        0    24544
+    .oat mmap      412        0       20        0    14352
+    .art mmap     4805     4492       28      211    14436
+   Other mmap      240       40      152        0     1476
+    GL mtrack     5108     5108        0        0     5108
+      Unknown     2196     2104       80        5     2636
+        TOTAL    76232    34388    36452      396   179752    38338    30072     8265
+
+ App Summary
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:     6672                          17568
+         Native Heap:    17852                          18952
+                Code:    36808                         130712
+               Stack:      828                            836
+            Graphics:     5108                           5108
+       Private Other:     3572
+              System:     5392
+             Unknown:                                    6576
+
+           TOTAL PSS:    76232            TOTAL RSS:   179752       TOTAL SWAP PSS:      396
+
+ Objects
+               Views:       10         ViewRootImpl:        1
+         AppContexts:        5           Activities:        1
+              Assets:       27        AssetManagers:        0
+       Local Binders:       16        Proxy Binders:       45
+       Parcel memory:       10         Parcel count:       32
+    Death Recipients:        0      OpenSSL Sockets:        0
+            WebViews:        0
+
+ SQL
+         MEMORY_USED:      271
+  PAGECACHE_OVERFLOW:       98          MALLOC_SIZE:       46
+
+ DATABASES
+      pgsz     dbsz   Lookaside(b)          cache  Dbname
+         4       64            113       18/59/12  /data/user/0/dev.dootah.v2.spike/databases/updates.db
+         4        8                         0/0/0    (attached) temp
+         4       64            124        40/18/6  /data/user/0/dev.dootah.v2.spike/databases/updates.db (2)

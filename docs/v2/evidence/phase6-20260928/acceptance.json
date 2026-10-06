@@ -1,0 +1,463 @@
+{
+  "status": "PASS",
+  "date": "2026-09-28",
+  "device": "Samsung SM-E426B",
+  "package": "dev.dootah.consumer",
+  "runtimeVersion": "dootah-v2-logic-2",
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "executionProcess": {
+    "appUid": "u0_a700",
+    "appPid": 1883,
+    "sandboxUid": "u0_i9235",
+    "sandboxPid": 1964,
+    "sandboxProcess": "com.google.android.webview:js_sandboxed_process0"
+  },
+  "apkSha256": "95c18eda921fd4f00b804ea8b7166f1e05d8db93df8f02b9a436f1704a9647f2",
+  "installedBeforeSha256": "95c18eda921fd4f00b804ea8b7166f1e05d8db93df8f02b9a436f1704a9647f2",
+  "installedAfterSha256": "95c18eda921fd4f00b804ea8b7166f1e05d8db93df8f02b9a436f1704a9647f2",
+  "lastUpdateTime": "2026-09-28 19:32:40",
+  "replacementAuthorizedByContinuation": true,
+  "reinstallDuringAcceptedSequence": false,
+  "dataClear": false,
+  "manualAcceptanceJS": false,
+  "manualFunctionIds": false,
+  "stages": {
+    "baseline": {
+      "text": [
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "9f64f236-92d9-4ac1-8845-9a3d71583710",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    },
+    "business": {
+      "text": [
+        "Discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "c8a8070d-4009-1fde-c987-8785687cdd18",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    },
+    "combined": {
+      "text": [
+        "Special discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "b004c6c3-6e90-7426-63e3-ac5ef4c174b1",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    },
+    "online": {
+      "text": [
+        "Special discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "b004c6c3-6e90-7426-63e3-ac5ef4c174b1",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    },
+    "offline": {
+      "text": [
+        "Special discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "b004c6c3-6e90-7426-63e3-ac5ef4c174b1",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    },
+    "invalid-signature": {
+      "text": [
+        "Special discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "b004c6c3-6e90-7426-63e3-ac5ef4c174b1",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    },
+    "invalid-manifest": {
+      "text": [
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "9f64f236-92d9-4ac1-8845-9a3d71583710",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    },
+    "recovered-combined": {
+      "text": [
+        "Special discount: 20",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "61b90859-403a-39c5-fc37-1f86da40d6a3",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    },
+    "rollback": {
+      "text": [
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "9f64f236-92d9-4ac1-8845-9a3d71583710",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    },
+    "rollback-offline": {
+      "text": [
+        "Discount: 10",
+        "Receipt via Kotlin OTA",
+        "String overload via Kotlin OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "healthAcknowledged": true,
+      "fatalException": false,
+      "updateId": "9f64f236-92d9-4ac1-8845-9a3d71583710",
+      "lastUpdateTime": "2026-09-28 19:32:40"
+    }
+  },
+  "recomposition": [
+    "Special discount: 20",
+    "Receipt via Kotlin OTA",
+    "String overload via Kotlin OTA",
+    "Int: 7",
+    "Unsupported stays native",
+    "Default",
+    "Extension native",
+    "Member",
+    "Member explicit",
+    "Bridge native",
+    "Generic: Generic native",
+    "Private",
+    "Count: 1"
+  ],
+  "signedReleases": {
+    "business": {
+      "signatureVerified": true,
+      "id": "c8a8070d-4009-1fde-c987-8785687cdd18",
+      "type": "manifest",
+      "assetHash": "tTVU7dHFA5Rm2SEWUo-ZRM3mBZFdFXO_kuAHQNhgF5o"
+    },
+    "combined": {
+      "signatureVerified": true,
+      "id": "b004c6c3-6e90-7426-63e3-ac5ef4c174b1",
+      "type": "manifest",
+      "assetHash": "CFjxhQAVywNjRDkWHJ6uxew6NXRuLE0N1sDoFg-I5ow"
+    },
+    "recovered-combined": {
+      "signatureVerified": true,
+      "id": "61b90859-403a-39c5-fc37-1f86da40d6a3",
+      "type": "manifest",
+      "assetHash": "CKtVc0b3l33wFVeDf7PJ3SdmnIJcNtjyVwZzsBZ20yc"
+    },
+    "rollback": {
+      "signatureVerified": true,
+      "id": null,
+      "type": "rollBackToEmbedded",
+      "assetHash": null
+    }
+  },
+  "signedNegativeArtifacts": [
+    {
+      "case": "undeclared",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Capabilities",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906043647062,
+      "assetHash": "TcSoI73oyCsejao5tHVJHKu-QpyBA75afRS5BkSJznE",
+      "manifestSignatureVerified": true,
+      "updateId": "7d2a1973-2b21-b76a-6051-d456b5661f7a"
+    },
+    {
+      "case": "unknown-capability",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Capabilities",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906043929292,
+      "assetHash": "Va7LQ6s9pydfkFxM2udkpdmY0MvwTbC-R9A1reawAhQ",
+      "manifestSignatureVerified": true,
+      "updateId": "a58117b5-ba3d-0cba-5da9-0e95783bc8b5"
+    },
+    {
+      "case": "wrong-version",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Capabilities",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906044209432,
+      "assetHash": "UDCq6WPvlbMgMVfvOA5JDuLg7b0ZK6QYEg_AIOzIO1A",
+      "manifestSignatureVerified": true,
+      "updateId": "c528a457-22c5-d0be-904c-e0a0fffa2ec1"
+    },
+    {
+      "case": "unknown-operation",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Unknown operation: invokeNative",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906044491712,
+      "assetHash": "f_wcBRQGEriMlJHT13LL-0I98InOapzvFp0ZNfW83tQ",
+      "manifestSignatureVerified": true,
+      "updateId": "66f61638-2c9c-e354-3c24-e28ea268cafc"
+    },
+    {
+      "case": "abi",
+      "rejected": true,
+      "reason": "IllegalArgumentException: ABI",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906044772992,
+      "assetHash": "DC_bHx5X1x0QrIGqMax7ojiRHyRL9hi6W1atg3o5Saw",
+      "manifestSignatureVerified": true,
+      "updateId": "07cf91b5-fcc7-5095-300f-b30a401b8082"
+    },
+    {
+      "case": "malformed-value",
+      "rejected": true,
+      "reason": "IllegalArgumentException: String value",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906045057052,
+      "assetHash": "ezr_iAZN7qk3fSfTlRTC01eHhwWKfTUQoQTNGsAncBw",
+      "manifestSignatureVerified": true,
+      "updateId": "cccb8c2f-540f-5cc5-72c1-1f6518a32c5d"
+    },
+    {
+      "case": "input-mismatch",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Installed input ABI mismatch",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906045339892,
+      "assetHash": "s5j82WK6GbEwDc75WG5t-66fxhT2kXDHGoWs_Nc331I",
+      "manifestSignatureVerified": true,
+      "updateId": "5549ac58-2917-1174-fbac-7140c043d428"
+    },
+    {
+      "case": "budget",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Operation/depth budget",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906045622202,
+      "assetHash": "X5CYFtZmZnq7Gq9Ko6YkBtC-PMPcAmD2mra3DEByXHE",
+      "manifestSignatureVerified": true,
+      "updateId": "01e8c321-b1c7-541d-6a4b-f0939f2f80c4"
+    },
+    {
+      "case": "rn",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Artifact JSON/trailing data",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906046989042,
+      "assetHash": "quR25UoNOY8qJso0qasGh3Z2LRWdSThkcYUgweeMN7k",
+      "manifestSignatureVerified": true,
+      "updateId": "777a672c-a838-b629-0eaf-2625d9a2679f"
+    },
+    {
+      "case": "expo",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Artifact JSON/trailing data",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906047275362,
+      "assetHash": "-5cXGWyduFlYvWDOwtjUNWgduoGCTMiZ9j4EflTnBj0",
+      "manifestSignatureVerified": true,
+      "updateId": "99683633-9ee5-0c6e-bc18-31d49aa3ea77"
+    },
+    {
+      "case": "dynamic",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Artifact JSON/trailing data",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906047561562,
+      "assetHash": "zaqoJshCSKdINFTQQ47v3v8W_9Tj6S_59IGNVfpsptk",
+      "manifestSignatureVerified": true,
+      "updateId": "f9ce4312-277f-95e2-1afd-7ad83aed939b"
+    },
+    {
+      "case": "trailing",
+      "rejected": true,
+      "reason": "IllegalArgumentException: Artifact JSON/trailing data",
+      "nativeText": "Discount: 10",
+      "nativeRowsPreserved": true,
+      "healthAcknowledged": false,
+      "releaseId": 17906047845482,
+      "assetHash": "FPkMtldFmRoTRHj8wOTJb-eEHeYrydKSPXL5dkM0QOE",
+      "manifestSignatureVerified": true,
+      "updateId": "42a2e5fb-5df1-dd1f-2476-d0b164f9346b"
+    }
+  ],
+  "invalidManifestSignatureRejected": true,
+  "invalidDirectiveSignatureRejected": true,
+  "offlineNetworking": "App networking disabled and adb reverse removed; restored afterward",
+  "publisherTests": {
+    "tests": 18,
+    "failures": 0,
+    "skipped": 0
+  },
+  "instrumentationTests": {
+    "tests": 6,
+    "failures": 0,
+    "skipped": 0
+  },
+  "runtimeTests": {
+    "tests": 2,
+    "failures": 0,
+    "skipped": 0
+  },
+  "nativeHealthTests": {
+    "tests": 3,
+    "failures": 0
+  },
+  "unsupportedKotlinBuilds": {
+    "edit": "val unsupportedClock = System.nanoTime()",
+    "assembleDebugD8": "PASS",
+    "assembleReleaseR8": "PASS",
+    "publication": "REFUSED"
+  },
+  "performance": {
+    "source": "separate physical sandbox proof using production adapter",
+    "freshIsolateBridgeMs": 9.4,
+    "validateCompileMs": 0.368,
+    "endToEndMs": 10.88,
+    "primaryBaselinePssKiB": 39033,
+    "primaryPortablePssKiB": 40111,
+    "sandboxPssKiB": 16572,
+    "sandboxRssKiB": 85040
+  },
+  "priorCandidate": "First consumer candidate failed unrelated native member recomposition; signed rollback restored it. Preserved in continuation.json. This fixed replacement restarts acceptance."
+}

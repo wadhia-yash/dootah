@@ -1,0 +1,11 @@
+{
+  "publicVersion": "0.1.0-alpha.1",
+  "developmentVersion": "0.7.5-local",
+  "internalPrefix": "0.1.0-dootah",
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "internalVersion": "0.1.0-dootah.sha256-779c5c17cd9980650bc1cf7fdd17c158108ca6a4913b9157c837cc803ab707c1",
+  "stageManifestSha256": "90b91aefdecaf10adff5bd502601a286984fc2072d42fbea223afa2f13542a94",
+  "sourceCommit": "5f6e3e2b3ba6f7af0e2e8b8b14e9a225c8767550",
+  "signed": false
+}

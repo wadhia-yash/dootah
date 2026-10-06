@@ -1,0 +1,32 @@
+{
+  "phase": "9D",
+  "passed": true,
+  "restorePassed": true,
+  "checks": [
+    "Compose private topology and loopback-only acceptance proxy",
+    "PostgreSQL healthy",
+    "idempotent bootstrap and explicit migrations",
+    "xprem healthy, Cloud ready, trusted local HTTPS proxy",
+    "runtime secret snapshots stay private to UID 10001",
+    "non-root HTTP processes and no host ports for private services",
+    "authenticated org/app/environment creation and contract registration",
+    "operator provisioning, validated bindings, signed publish and rollback",
+    "invalid binding leaves prior config intact; API-key rotation preserves signing identity",
+    "liveness survives DB failure; readiness rejects DB failure and tolerates xprem outage",
+    "runtime roles cannot migrate and HTTP rejects migration owner",
+    "packaged production startup rejects HTTP, missing DB and unavailable Java",
+    "all Cloud tests including database privileges and signed backend",
+    "restart preserves state and signed delivery",
+    "credentials absent from service logs",
+    "fresh-volume database/storage/key/config restore with identical storage hashes and verified signatures"
+  ],
+  "cloudTests": {
+    "passed": 13,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtimeAbi": 2,
+  "logicAbi": 1,
+  "externalDeployment": false,
+  "cleanupPassed": true
+}

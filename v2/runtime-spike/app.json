@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Dootah V2 Runtime Spike",
+    "slug": "dootah-v2-runtime-spike",
+    "version": "0.0.0",
+    "runtimeVersion": "dootah-v2-spike-1",
+    "android": {
+      "package": "dev.dootah.v2.spike"
+    },
+    "updates": {
+      "url": "http://127.0.0.1:3100/manifest",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0,
+      "requestHeaders": {
+        "expo-app-id": "34e81d97-661f-4f3b-ad2c-8d4e7a6546a6",
+        "expo-channel-name": "development"
+      },
+      "codeSigningCertificate": "./xprem-public-certificate.pem",
+      "codeSigningMetadata": {
+        "keyid": "main",
+        "alg": "rsa-v1_5-sha256"
+      }
+    }
+  }
+}

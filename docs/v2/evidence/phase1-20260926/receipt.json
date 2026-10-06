@@ -1,0 +1,122 @@
+{
+  "device": {
+    "model": "SM-E426B",
+    "android": "13",
+    "api": 33,
+    "abi": "arm64-v8a"
+  },
+  "apk": {
+    "bytes": 34008015,
+    "sha256": "30b43e3974a59774542af8ca4017d34b1dcb4813cc6b11268872ac31e4605e32",
+    "installed_sha256_after_rollback": "30b43e3974a59774542af8ca4017d34b1dcb4813cc6b11268872ac31e4605e32"
+  },
+  "bundle": {
+    "bytes": 1433590,
+    "sha256_base64url": "XFvqGrkn6WAwNw8VBH9NTTnIYeBhia_a3Brhz9l2FtI",
+    "fixture_release": "1790433181487"
+  },
+  "rollback_fixture_release": "1790433287563",
+  "offline_method": "UID networking disabled and ADB reverse removed; restored before rollback",
+  "setup": "Original APK crashed. User authorized corrected baseline replacement. Test data reset once before baseline to clear original failed-launch state. No reinstall or data clear after baseline.",
+  "stages": [
+    {
+      "stage": "baseline",
+      "compose_text": "Dootah Native Baseline",
+      "update_id": "abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a",
+      "startup_ms": 574,
+      "last_update_time": "2026-09-26 20:02:09",
+      "first_install_time": "2026-09-26 19:54:51"
+    },
+    {
+      "stage": "download",
+      "compose_text": "Dootah Native Baseline",
+      "update_id": "abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a",
+      "startup_ms": 257,
+      "last_update_time": "2026-09-26 20:02:09",
+      "first_install_time": "2026-09-26 19:54:51"
+    },
+    {
+      "stage": "activated",
+      "compose_text": "Dootah OTA V2",
+      "update_id": "8ab574db-4c1a-d433-4bbc-5a52b09d9e0c",
+      "startup_ms": 286,
+      "last_update_time": "2026-09-26 20:02:09",
+      "first_install_time": "2026-09-26 19:54:51"
+    },
+    {
+      "stage": "online",
+      "compose_text": "Dootah OTA V2",
+      "update_id": "8ab574db-4c1a-d433-4bbc-5a52b09d9e0c",
+      "startup_ms": 250,
+      "last_update_time": "2026-09-26 20:02:09",
+      "first_install_time": "2026-09-26 19:54:51"
+    },
+    {
+      "stage": "offline",
+      "compose_text": "Dootah OTA V2",
+      "update_id": "8ab574db-4c1a-d433-4bbc-5a52b09d9e0c",
+      "startup_ms": 251,
+      "last_update_time": "2026-09-26 20:02:09",
+      "first_install_time": "2026-09-26 19:54:51"
+    },
+    {
+      "stage": "rollback-download",
+      "compose_text": "Dootah OTA V2",
+      "update_id": "8ab574db-4c1a-d433-4bbc-5a52b09d9e0c",
+      "startup_ms": 240,
+      "last_update_time": "2026-09-26 20:02:09",
+      "first_install_time": "2026-09-26 19:54:51"
+    },
+    {
+      "stage": "rollback-visible",
+      "compose_text": "Dootah Native Baseline",
+      "update_id": "abbbd47f-a56c-46e8-a121-f3f1d4b4ca3a",
+      "startup_ms": 287,
+      "last_update_time": "2026-09-26 20:02:09",
+      "first_install_time": "2026-09-26 19:54:51"
+    }
+  ],
+  "control_apk": {
+    "bytes": 7260041,
+    "sha256": "fb5998dd7b79c7f992947ceb4489548146110acc2b14773badead4e3a0421ded"
+  },
+  "measurements": [
+    {
+      "kind": "control",
+      "run": 1,
+      "startup_ms": 206,
+      "pss_kib": 54801
+    },
+    {
+      "kind": "spike",
+      "run": 1,
+      "startup_ms": 257,
+      "pss_kib": 76232
+    },
+    {
+      "kind": "control",
+      "run": 2,
+      "startup_ms": 190,
+      "pss_kib": 44386
+    },
+    {
+      "kind": "spike",
+      "run": 2,
+      "startup_ms": 255,
+      "pss_kib": 75704
+    },
+    {
+      "kind": "control",
+      "run": 3,
+      "startup_ms": 194,
+      "pss_kib": 44411
+    },
+    {
+      "kind": "spike",
+      "run": 3,
+      "startup_ms": 236,
+      "pss_kib": 75734
+    }
+  ],
+  "measurement_method": "Three alternating force-stop/cold-process launches per app; am start -W TotalTime; dumpsys meminfo TOTAL PSS after 12 seconds; other test app force-stopped; normal OS caches retained."
+}

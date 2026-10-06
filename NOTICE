@@ -1,0 +1,12 @@
+Dootah
+
+Dootah-owned code is licensed under the Apache License, Version 2.0.
+Third-party and upstream-derived code retains its own licenses and notices.
+The Apache license does not relicense those components.
+
+Android release distributions include a component inventory and original license
+texts under META-INF/dootah/ (and assets/dootah-licenses/ in Android archives).
+The maintained Expo Updates patch is identified in
+v2/runtime-spike/patches/README.md and retains the upstream MIT license.
+The server's xprem-derived code retains v2/server/XPREM-LICENSE.md; it is not
+included in the Android SDK distribution.

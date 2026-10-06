@@ -1,0 +1,1303 @@
+{
+  "phase": 4,
+  "status": "PASS",
+  "date": "2026-09-27",
+  "device": {
+    "model": "Samsung SM-E426B",
+    "android": "13",
+    "abi": "arm64-v8a"
+  },
+  "baseline": {
+    "package": "dev.dootah.consumer",
+    "versionCode": 1,
+    "versionName": "0.4.0",
+    "runtimeVersion": "dootah-v2-hook-1",
+    "installedAtIST": "2026-09-27 19:47:26",
+    "embeddedId": "421a1346-fe3b-4bbf-a04b-9b9093261d97",
+    "apkSha256": "778b3414da61bcabc1f1a3e043c46b70bfb4cd364b06764f303f31ac791c3068",
+    "apkBytes": 24123635
+  },
+  "toolchain": {
+    "kotlinComposeCompiler": "2.1.20",
+    "agp": "8.12.0",
+    "jdk": 21
+  },
+  "tests": {
+    "plugin": {
+      "total": 6,
+      "skipped": 0,
+      "failures": 0
+    },
+    "dispatchPayload": {
+      "total": 1,
+      "failures": 0
+    },
+    "debugD8": "PASS",
+    "releaseR8": "PASS",
+    "configurationCacheReuse": "PASS",
+    "repeatedTransformation": "PASS",
+    "finalExecutableBytesEqualAccepted": {
+      "classes.dex": true,
+      "lib/arm64-v8a/libandroidx.graphics.path.so": true,
+      "lib/arm64-v8a/libappmodules.so": true,
+      "lib/arm64-v8a/libc++_shared.so": true,
+      "lib/arm64-v8a/libexpo-modules-core.so": true,
+      "lib/arm64-v8a/libexpo-updates.so": true,
+      "lib/arm64-v8a/libfbjni.so": true,
+      "lib/arm64-v8a/libhermestooling.so": true,
+      "lib/arm64-v8a/libhermesvm.so": true,
+      "lib/arm64-v8a/libimagepipeline.so": true,
+      "lib/arm64-v8a/libjsi.so": true,
+      "lib/arm64-v8a/libnative-filters.so": true,
+      "lib/arm64-v8a/libnative-imagetranscoder.so": true,
+      "lib/arm64-v8a/libreactnative.so": true,
+      "lib/arm64-v8a/libzstd-kmp.so": true,
+      "assets/index.android.bundle": true
+    }
+  },
+  "stages": [
+    {
+      "stage": "baseline",
+      "kind": "native",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "421a1346-fe3b-4bbf-a04b-9b9093261d97"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": true,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 644,
+      "events": [
+        "Hermes bridge received update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline functions=[]",
+        "Compose frame committed; health accepted update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline"
+      ]
+    },
+    {
+      "stage": "baseline-online",
+      "kind": "native",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "421a1346-fe3b-4bbf-a04b-9b9093261d97"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 256,
+      "events": [
+        "Hermes bridge received update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline functions=[]",
+        "Compose frame committed; health accepted update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline"
+      ]
+    },
+    {
+      "stage": "ota-download",
+      "kind": "native",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 1"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "421a1346-fe3b-4bbf-a04b-9b9093261d97"
+      ],
+      "signatureVerified": true,
+      "downloadCompleted": true,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 245,
+      "events": [
+        "Hermes bridge received update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline functions=[]",
+        "Compose frame committed; health accepted update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline"
+      ]
+    },
+    {
+      "stage": "ota-active",
+      "kind": "ota",
+      "texts": [
+        "Dootah automatic dispatch OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "cdc179aa-8d21-c909-d88f-2da687288130"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 244,
+      "events": [
+        "Hermes bridge received update=cdc179aa-8d21-c909-d88f-2da687288130 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "Compose frame committed; health accepted update=cdc179aa-8d21-c909-d88f-2da687288130 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "ota-online",
+      "kind": "ota",
+      "texts": [
+        "Dootah automatic dispatch OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "cdc179aa-8d21-c909-d88f-2da687288130"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 246,
+      "events": [
+        "Hermes bridge received update=cdc179aa-8d21-c909-d88f-2da687288130 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "Compose frame committed; health accepted update=cdc179aa-8d21-c909-d88f-2da687288130 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "ota-offline",
+      "kind": "ota",
+      "texts": [
+        "Dootah automatic dispatch OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "cdc179aa-8d21-c909-d88f-2da687288130"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": true,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 283,
+      "events": [
+        "Hermes bridge received update=cdc179aa-8d21-c909-d88f-2da687288130 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "Compose frame committed; health accepted update=cdc179aa-8d21-c909-d88f-2da687288130 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "overload-download",
+      "kind": "ota",
+      "texts": [
+        "Dootah automatic dispatch OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "cdc179aa-8d21-c909-d88f-2da687288130"
+      ],
+      "signatureVerified": true,
+      "downloadCompleted": true,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 251,
+      "events": [
+        "Hermes bridge received update=cdc179aa-8d21-c909-d88f-2da687288130 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "Compose frame committed; health accepted update=cdc179aa-8d21-c909-d88f-2da687288130 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "overload-active",
+      "kind": "overload",
+      "texts": [
+        "Dootah automatic dispatch OTA",
+        "Native receipt",
+        "String overload OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "9765e955-d9e3-4ee7-22ae-34c328886ccb"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 266,
+      "events": [
+        "Hermes bridge received update=9765e955-d9e3-4ee7-22ae-34c328886ccb title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85, dth1:63a2bc6b77eeafd75a243cc3cce5255bbccb407f821adbba9dec3e29f6b2685a]",
+        "Compose frame committed; health accepted update=9765e955-d9e3-4ee7-22ae-34c328886ccb title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "wrong-download",
+      "kind": "overload",
+      "texts": [
+        "Dootah automatic dispatch OTA",
+        "Native receipt",
+        "String overload OTA",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "9765e955-d9e3-4ee7-22ae-34c328886ccb"
+      ],
+      "signatureVerified": true,
+      "downloadCompleted": true,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 240,
+      "events": [
+        "Hermes bridge received update=9765e955-d9e3-4ee7-22ae-34c328886ccb title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85, dth1:63a2bc6b77eeafd75a243cc3cce5255bbccb407f821adbba9dec3e29f6b2685a]",
+        "Compose frame committed; health accepted update=9765e955-d9e3-4ee7-22ae-34c328886ccb title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "wrong-active",
+      "kind": "wrong",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": false,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "696c46c4-1069-4aa1-8f95-791137aaba6e"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 239,
+      "events": [
+        "Hermes bridge received update=696c46c4-1069-4aa1-8f95-791137aaba6e title=Dootah dispatch functions=[dth1:0000000000000000000000000000000000000000000000000000000000000000]"
+      ]
+    },
+    {
+      "stage": "invalid-download",
+      "kind": "wrong",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": false,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "696c46c4-1069-4aa1-8f95-791137aaba6e"
+      ],
+      "signatureVerified": true,
+      "downloadCompleted": true,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 257,
+      "events": [
+        "Hermes bridge received update=696c46c4-1069-4aa1-8f95-791137aaba6e title=Dootah dispatch functions=[dth1:0000000000000000000000000000000000000000000000000000000000000000]"
+      ]
+    },
+    {
+      "stage": "invalid-active",
+      "kind": "invalid",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": false,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": false,
+      "payloadRejected": true,
+      "coldActivityTotalTimeMs": 259,
+      "events": []
+    },
+    {
+      "stage": "recovered-download",
+      "kind": "invalid",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": false,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [],
+      "signatureVerified": true,
+      "downloadCompleted": true,
+      "networkCheckFailed": false,
+      "payloadRejected": true,
+      "coldActivityTotalTimeMs": 244,
+      "events": []
+    },
+    {
+      "stage": "recovered-active",
+      "kind": "ota",
+      "texts": [
+        "Dootah automatic dispatch OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "20c057e2-608f-f150-a4ca-c8058d141f15"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 247,
+      "events": [
+        "Hermes bridge received update=20c057e2-608f-f150-a4ca-c8058d141f15 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "Compose frame committed; health accepted update=20c057e2-608f-f150-a4ca-c8058d141f15 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "rollback-delivery",
+      "kind": "ota",
+      "texts": [
+        "Dootah automatic dispatch OTA",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "20c057e2-608f-f150-a4ca-c8058d141f15"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 236,
+      "events": [
+        "Hermes bridge received update=20c057e2-608f-f150-a4ca-c8058d141f15 title=Dootah dispatch functions=[dth1:2c10315110b96541844254b7424bd34945adb697b298ea78ce4e0e5c26e4ca85]",
+        "Compose frame committed; health accepted update=20c057e2-608f-f150-a4ca-c8058d141f15 title=Dootah dispatch"
+      ]
+    },
+    {
+      "stage": "rollback-active",
+      "kind": "native",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "421a1346-fe3b-4bbf-a04b-9b9093261d97"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": false,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 238,
+      "events": [
+        "Hermes bridge received update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline functions=[]",
+        "Compose frame committed; health accepted update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline"
+      ]
+    },
+    {
+      "stage": "rollback-restart",
+      "kind": "native",
+      "texts": [
+        "Native checkout",
+        "Native receipt",
+        "String: native",
+        "Int: 7",
+        "Unsupported stays native",
+        "Default",
+        "Extension native",
+        "Member",
+        "Member explicit",
+        "Bridge native",
+        "Generic: Generic native",
+        "Private",
+        "Count: 0"
+      ],
+      "health": true,
+      "lastUpdateTime": "2026-09-27 19:47:26",
+      "fatal": false,
+      "launchedUpdateIds": [
+        "421a1346-fe3b-4bbf-a04b-9b9093261d97"
+      ],
+      "signatureVerified": false,
+      "downloadCompleted": false,
+      "networkCheckFailed": true,
+      "payloadRejected": false,
+      "coldActivityTotalTimeMs": 361,
+      "events": [
+        "Hermes bridge received update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline functions=[]",
+        "Compose frame committed; health accepted update=421a1346-fe3b-4bbf-a04b-9b9093261d97 title=Dootah Native Baseline"
+      ]
+    }
+  ],
+  "updates": {
+    "ota": {
+      "updateId": 17905187488862,
+      "updateUUID": "cdc179aa-8d21-c909-d88f-2da687288130",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "launchHash": "oG1oaG9lQj3G6_V1dtNVEFEA6YmHRIb42EnApwSsA-c",
+      "signatureVerified": true,
+      "verifiedAssetHash": "oG1oaG9lQj3G6_V1dtNVEFEA6YmHRIb42EnApwSsA-c",
+      "assetBytes": 1433741
+    },
+    "overload": {
+      "updateId": 17905189621692,
+      "updateUUID": "9765e955-d9e3-4ee7-22ae-34c328886ccb",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "launchHash": "8UJ-I-JYIig0Km0GD2bx-cH98RWpcH7sCUOB46JOf6k",
+      "signatureVerified": true,
+      "verifiedAssetHash": "8UJ-I-JYIig0Km0GD2bx-cH98RWpcH7sCUOB46JOf6k",
+      "assetBytes": 1433850
+    },
+    "wrong": {
+      "updateId": 17905190521102,
+      "updateUUID": "696c46c4-1069-4aa1-8f95-791137aaba6e",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "launchHash": "qIyfMCGmbm22z3xup-RW5jPH0LwH_QofzyoUQdV8G8U",
+      "signatureVerified": true,
+      "verifiedAssetHash": "qIyfMCGmbm22z3xup-RW5jPH0LwH_QofzyoUQdV8G8U",
+      "assetBytes": 1433753
+    },
+    "invalid": {
+      "updateId": 17905191443872,
+      "updateUUID": "1108200c-1135-807b-b3dc-62afcb854b33",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "launchHash": "IfHQ-wdnIIan39eSY4pbu9PnQC6aTWlGWtrBv9syoVg",
+      "signatureVerified": true,
+      "verifiedAssetHash": "IfHQ-wdnIIan39eSY4pbu9PnQC6aTWlGWtrBv9syoVg",
+      "assetBytes": 1433742
+    },
+    "recovered": {
+      "updateId": 17905192252272,
+      "updateUUID": "20c057e2-608f-f150-a4ca-c8058d141f15",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "launchHash": "oG1oaG9lQj3G6_V1dtNVEFEA6YmHRIb42EnApwSsA-c",
+      "signatureVerified": true,
+      "verifiedAssetHash": "oG1oaG9lQj3G6_V1dtNVEFEA6YmHRIb42EnApwSsA-c",
+      "assetBytes": 1433741
+    }
+  },
+  "rollback": {
+    "receipt": {
+      "appId": "34e81d97-661f-4f3b-ad2c-8d4e7a6546a6",
+      "branch": "development",
+      "runtimeVersion": "dootah-v2-hook-1",
+      "updateId": "17905205594992",
+      "createdAt": 1790520559508450000
+    },
+    "verification": {
+      "signatureVerified": true,
+      "body": {
+        "type": "rollBackToEmbedded",
+        "parameters": {
+          "commitTime": "2026-09-27T14:49:19.508Z"
+        }
+      }
+    }
+  },
+  "instrumentationSize": {
+    "instrumentedDebugBytes": 83585039,
+    "controlDebugBytes": 83585043,
+    "apkDeltaBytes": -4,
+    "entryDifferences": {
+      "classes3.dex": [
+        40456,
+        39556
+      ],
+      "assets/app.manifest": [
+        84,
+        84
+      ]
+    }
+  },
+  "disclosedDiagnostics": [
+    "Initial AGP annotation-summary filter skipped Kotlin classes; corrected before acceptance and OTA publication.",
+    "Initial diagnostic native health listener registered too early; attachment lifecycle fix preceded acceptance.",
+    "Final conservative applier guard left all nine release classes and all accepted executable APK entries byte-identical. Rebuilt embedded manifest differs; rebuild was not installed."
+  ],
+  "invariants": {
+    "noPerScreenDootahAnnotation": true,
+    "noConsumerManualDispatch": true,
+    "noCompilerPlugin": true,
+    "noFirIrMutation": true,
+    "noReactSurface": true,
+    "sameAcceptedApkThroughout": true,
+    "noClientDatabaseMutation": true,
+    "noSigningBypass": true,
+    "phase5Started": false
+  },
+  "finalInstalledCheck": {
+    "apkSha256": "778b3414da61bcabc1f1a3e043c46b70bfb4cd364b06764f303f31ac791c3068",
+    "lastUpdateTime": "2026-09-27 19:47:26",
+    "matchesAcceptedBaseline": true
+  },
+  "performance": {
+    "method": "Three process runs per mode; median final round for entry calls, rounds 2..6 for empty map lookup. Debug APKs; includes normal Compose work and ART warmup.",
+    "rawRounds": {
+      "enabled": [
+        [
+          {
+            "kind": "lookup",
+            "round": 0,
+            "ns": 139061231,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 1,
+            "ns": 15699077,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 2,
+            "ns": 1098385,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 3,
+            "ns": 1077923,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 4,
+            "ns": 1079077,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 5,
+            "ns": 1214462,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 6,
+            "ns": 1063770,
+            "iterations": 100000
+          },
+          {
+            "kind": "entry",
+            "round": 0,
+            "ns": 343340615,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 1,
+            "ns": 249063616,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 2,
+            "ns": 210777923,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 3,
+            "ns": 172941539,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 4,
+            "ns": 154286769,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 5,
+            "ns": 138498231,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 6,
+            "ns": 98445846,
+            "iterations": 10000
+          }
+        ],
+        [
+          {
+            "kind": "lookup",
+            "round": 0,
+            "ns": 132902538,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 1,
+            "ns": 13335384,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 2,
+            "ns": 1028923,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 3,
+            "ns": 1055693,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 4,
+            "ns": 1030692,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 5,
+            "ns": 1040615,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 6,
+            "ns": 1025846,
+            "iterations": 100000
+          },
+          {
+            "kind": "entry",
+            "round": 0,
+            "ns": 344368000,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 1,
+            "ns": 248634385,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 2,
+            "ns": 208791154,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 3,
+            "ns": 172171770,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 4,
+            "ns": 155431615,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 5,
+            "ns": 138292307,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 6,
+            "ns": 97083076,
+            "iterations": 10000
+          }
+        ],
+        [
+          {
+            "kind": "lookup",
+            "round": 0,
+            "ns": 138637923,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 1,
+            "ns": 15220230,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 2,
+            "ns": 1020616,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 3,
+            "ns": 1064923,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 4,
+            "ns": 1025923,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 5,
+            "ns": 1047693,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 6,
+            "ns": 1037923,
+            "iterations": 100000
+          },
+          {
+            "kind": "entry",
+            "round": 0,
+            "ns": 345128923,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 1,
+            "ns": 250838154,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 2,
+            "ns": 208826154,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 3,
+            "ns": 174348693,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 4,
+            "ns": 154097923,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 5,
+            "ns": 138686692,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 6,
+            "ns": 93877231,
+            "iterations": 10000
+          }
+        ]
+      ],
+      "control": [
+        [
+          {
+            "kind": "lookup",
+            "round": 0,
+            "ns": 134681538,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 1,
+            "ns": 16235923,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 2,
+            "ns": 1051077,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 3,
+            "ns": 1043923,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 4,
+            "ns": 1035769,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 5,
+            "ns": 1207000,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 6,
+            "ns": 1045923,
+            "iterations": 100000
+          },
+          {
+            "kind": "entry",
+            "round": 0,
+            "ns": 224629000,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 1,
+            "ns": 154727616,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 2,
+            "ns": 134279077,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 3,
+            "ns": 113349846,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 4,
+            "ns": 95939923,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 5,
+            "ns": 83712077,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 6,
+            "ns": 64797462,
+            "iterations": 10000
+          }
+        ],
+        [
+          {
+            "kind": "lookup",
+            "round": 0,
+            "ns": 141264616,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 1,
+            "ns": 15790385,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 2,
+            "ns": 1081308,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 3,
+            "ns": 1096231,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 4,
+            "ns": 1128000,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 5,
+            "ns": 1027385,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 6,
+            "ns": 1042231,
+            "iterations": 100000
+          },
+          {
+            "kind": "entry",
+            "round": 0,
+            "ns": 221534770,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 1,
+            "ns": 153907308,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 2,
+            "ns": 127081308,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 3,
+            "ns": 108056847,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 4,
+            "ns": 94456616,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 5,
+            "ns": 83994692,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 6,
+            "ns": 65428615,
+            "iterations": 10000
+          }
+        ],
+        [
+          {
+            "kind": "lookup",
+            "round": 0,
+            "ns": 133453231,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 1,
+            "ns": 15036076,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 2,
+            "ns": 1037769,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 3,
+            "ns": 1044385,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 4,
+            "ns": 1192385,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 5,
+            "ns": 1031692,
+            "iterations": 100000
+          },
+          {
+            "kind": "lookup",
+            "round": 6,
+            "ns": 1034077,
+            "iterations": 100000
+          },
+          {
+            "kind": "entry",
+            "round": 0,
+            "ns": 223236693,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 1,
+            "ns": 154219461,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 2,
+            "ns": 127875000,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 3,
+            "ns": 108960077,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 4,
+            "ns": 95602461,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 5,
+            "ns": 85245153,
+            "iterations": 10000
+          },
+          {
+            "kind": "entry",
+            "round": 6,
+            "ns": 65886769,
+            "iterations": 10000
+          }
+        ]
+      ]
+    },
+    "enabled": {
+      "entryFinalRoundNsPerCall": [
+        9844.5846,
+        9708.3076,
+        9387.7231
+      ],
+      "medianEntryNsPerCall": 9708.3076,
+      "medianEmptyLookupNs": 10.47693
+    },
+    "control": {
+      "entryFinalRoundNsPerCall": [
+        6479.7462,
+        6542.8615,
+        6588.6769
+      ],
+      "medianEntryNsPerCall": 6542.8615,
+      "medianEmptyLookupNs": 10.44385
+    },
+    "approximateHookDeltaNsPerCall": 3165.4461
+  },
+  "stateInteraction": {
+    "stage": "ota-active",
+    "nativeCounterAfterTap": "Count: 1",
+    "remoteCheckoutStillVisible": true
+  },
+  "cleanup": [
+    {
+      "action": "restore package networking",
+      "status": "PASS",
+      "note": "Temporary UID deny entry was already absent."
+    },
+    {
+      "action": "shell cmd connectivity set-chain3-enabled false",
+      "status": "PASS"
+    },
+    {
+      "action": "shell settings put system screen_off_timeout 300000",
+      "status": "PASS"
+    },
+    {
+      "action": "uninstall dev.dootah.consumer.validation",
+      "status": "PASS"
+    },
+    {
+      "action": "remove test ADB reverse",
+      "status": "PASS"
+    },
+    {
+      "action": "stop existing server container; preserve PostgreSQL and persistent state",
+      "status": "PASS"
+    }
+  ]
+}
