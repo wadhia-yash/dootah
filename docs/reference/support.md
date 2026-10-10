@@ -1,7 +1,8 @@
 # Supported Kotlin and Compose changes
 
-This matrix describes current source and tests, not a target for future support.
-The installed APK must contain the hook and both required capabilities. An eligible
+This matrix describes the working-tree Runtime ABI **3** extension. The bounded Box/Text structural OTA slice passed physical Mihon acceptance (see the
+[dated record](../v2/MINIMAL_STRUCTURAL_OTA.md)); the published alpha.1 and its prior evidence use ABI 2. A new baseline APK and runtime/environment are required.
+The installed APK must contain the hook and every required capability. An eligible
 hook is necessary but not sufficient: the source analyzer is deliberately narrower
 than bytecode instrumentation. Use `dootah analyze` against the exact retained release.
 
@@ -14,9 +15,13 @@ than bytecode instrumentation. Use `dootah analyze` against the exact retained r
 | Native default arguments | Calls using defaults execute the original body; explicitly supplied inputs can dispatch. Defaults/signatures are frozen by the retained source skeleton |
 | Simple members | Analyzer accepts a top-level non-generic class without supertypes/annotations, not inner/data/interface forms; no access to instance state in portable logic |
 | BasicText | Exactly `BasicText(text)` or `BasicText(text = ...)`, with an explicit unambiguous import or fully qualified name; one nonblank string result, at most 256 UTF-16 units |
-| Native baseline body | May use richer native Compose; an OTA replacement must fit BasicText and loses the original styling. Prefer BasicText in the first example |
-| Material `Text` | Unsupported for OTA fidelity; unchanged body remains native, changed unsupported body refuses publication |
-| Modifiers, styling, arbitrary layout, callbacks/events | Unsupported; no extra BasicText arguments, callback lambdas or arbitrary native invocation |
+| Native baseline body | Unsupported bodies remain native. BasicText replacement still loses richer styling; the bounded Box/Material3 Text path below preserves supported source properties |
+| Material3 `Text` | String `text`, `modifier`, and member tokens `colorScheme.secondary` / `tertiary`, `typography.bodyMedium` / `labelSmall`; omitted color/style retain Material3 defaults |
+| Structural UI | One root Box, Text, `if` / `if-else` or native component call; nested Box/Text children; `if` / `if-else` over Logic ABI 1 Boolean expressions; an empty branch renders nothing; empty Box and child addition/removal |
+| App-owned components (native adapters) | Not yet accepted on a device. A capitalised call written as a direct statement of an eligible scalar top-level hook (not inside a lambda) gets a build-generated Kotlin adapter. Arguments that read hook inputs (an input name or a string template) become typed String/Int/Boolean parameters; every other argument is frozen in the APK and omitted arguments keep Kotlin defaults. An update may change the surrounding logic and those values, or remove the call, but may not add a call shape the installed source did not make. Trailing lambdas/content slots, callbacks, `this`, file-private names, nullable-input arguments, wildcard-imported callees and calls in other modules get no adapter |
+| Layout | Box alignment tokens; ordered `fillMaxWidth()`, integer-Dp padding (all, horizontal/vertical, or start/top/end/bottom), and BoxScope `align` |
+| Frozen Dp values | Unambiguous same-package retained top-level immutable values with integer literal `.dp` initializers; no getters, delegates, imports from other modules, or computed values |
+| Other modifiers, styling, layouts, callbacks/events | Refused; no Row/Column, resources, state, callback lambdas, or arbitrary native invocation (native adapters invoke only installed, build-generated call shapes). BasicText still accepts only text |
 | Library-module composables | Not instrumented; application-module call sites do not make library bodies remotely replaceable |
 | Extension receivers | Some forms have native hooks, but Logic ABI 1 lowering refuses extension inputs |
 | Generics, inline/suspend/override functions, extra annotations | Source publication refused; instrumentation eligibility alone does not promise publishability |
@@ -38,7 +43,7 @@ than bytecode instrumentation. Use `dootah analyze` against the exact retained r
 | Evaluation | Initializers and helper arguments keep evaluation order, even unused failing expressions; all branches are validated, including unreachable ones |
 
 There is no general exported pure-function API: the current source path composes
-logic inside an eligible UI body and returns text to the installed renderer.
+logic inside an eligible UI body. The structural path keeps its tree native and returns typed scalar text/condition slots; it does not return host objects or commands.
 Nullable values can be compared/interpolated; there is no general Kotlin smart-cast,
 safe-call, Elvis or non-null assertion support.
 
@@ -72,7 +77,7 @@ Artifacts: 65,536 UTF-8 bytes; JSON nesting 64; at most 32 overrides, 9 inputs e
 256 UTF-16 units with valid surrogate pairs. Source lowering additionally limits
 nesting to 20. Sandbox source 64 KiB, result 16 KiB, isolate heap 8 MiB, evaluation
 wait 1 second then isolate closure. These are not a total app-memory or UI-latency SLA.
-See [security](../security/README.md).
+Structural limits: 64 nodes, depth 12, eight modifiers per node, sixteen slots including at most eight Strings; Dp integers 0–1024. Inactive branch slots must be null; only selected-branch expressions execute. All branches are validated. See [security](../security/README.md).
 
 The matrix is checked against [ComposeEntryVisitor](../../v2/android-sdk/gradle-plugin/src/main/groovy/dev/dootah/gradle/ComposeEntryVisitor.groovy),
 [SourceAnalyzer](../../v2/publishing/src/main/groovy/dev/dootah/publish/SourceAnalyzer.groovy),

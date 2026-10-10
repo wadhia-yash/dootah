@@ -2,6 +2,7 @@ package dev.dootah.runtime
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.platform.LocalView
@@ -64,6 +65,28 @@ fun Modifier.dootahFrame(value: RenderValue): Modifier {
             view.viewTreeObserver.registerFrameCommitCallback {
                 view.post { runtime.onFrameCommitted(value) }
             }
+        }
+    }
+}
+
+/**
+ * For roots that may draw nothing themselves (an empty conditional branch or an app-owned
+ * component): once this composition is applied, acknowledge the next frame the window commits.
+ */
+@Composable
+internal fun CommitAcknowledgement(value: RenderValue) {
+    val runtime = LocalView.current.context.applicationContext as DootahApplication
+    FrameCommitted(value.updateId != null) { runtime.onFrameCommitted(value) }
+}
+
+/** Calls [committed] on the main thread after the window commits the frame following this composition. */
+@Composable
+internal fun FrameCommitted(enabled: Boolean, committed: () -> Unit) {
+    val view = LocalView.current
+    SideEffect {
+        if (enabled && view.isHardwareAccelerated) {
+            view.viewTreeObserver.registerFrameCommitCallback { view.post(committed) }
+            view.invalidate()
         }
     }
 }

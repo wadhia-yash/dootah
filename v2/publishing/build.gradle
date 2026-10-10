@@ -12,6 +12,7 @@ dependencies {
 sourceSets.main.java {
     srcDir '../android-sdk/gradle-plugin/src/main/java'
     include 'dev/dootah/identity/FunctionIdentity.java'
+    include 'dev/dootah/adapters/**'
     srcDir '../portable/src/main/java'
     include 'dev/dootah/portable/**'
 }

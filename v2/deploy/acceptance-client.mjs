@@ -18,12 +18,8 @@ async function wait(a,op){
  }throw Error('operation timeout');
 }
 const id='dth1:'+'a'.repeat(64);
-const types=['String','Boolean','Int','String?','Boolean?','Int?'];
-const capabilities={runtimeAbi:2,logicAbi:1,capabilities:{
- 'logic.pure.v1':{version:1,effect:'pure',inputs:types,outputs:types,implementation:'PortableProgram/JavaScriptSandbox',permissions:[],limits:{operations:512,depth:24,stringUnits:256}},
- 'compose.basicText.v1':{version:1,effect:'render',inputs:['String'],outputs:['Unit'],implementation:'ComposeDispatch/BasicText',permissions:[],limits:{stringUnits:256}}},
- limits:{payloadBytes:65536,entries:32,parameters:9,loops:0,recursion:0,collections:0,async:false}};
-const artifact={schema:'dootah.portable',runtimeAbi:2,logicAbi:1,runtimeVersion:'dootah-v2-logic-2',requires:['logic.pure.v1','compose.basicText.v1'],overrides:[{functionId:id,parameters:[],expression:{op:'literal',type:'String',value:'Deployment acceptance'}}]};
+const capabilities={"logicAbi":1,"capabilities":{"logic.pure.v1":{"outputs":["String","Boolean","Int","String?","Boolean?","Int?"],"inputs":["String","Boolean","Int","String?","Boolean?","Int?"],"permissions":[],"effect":"pure","implementation":"PortableProgram/JavaScriptSandbox","version":1,"limits":{"operations":512,"depth":24,"stringUnits":256}},"compose.layout.v1":{"nodes":["box","if"],"alignments":["TopStart","TopCenter","TopEnd","CenterStart","Center","CenterEnd","BottomStart","BottomCenter","BottomEnd"],"permissions":[],"effect":"render","implementation":"ComposeDispatch/Box","modifiers":["padding","fillMaxWidth","align"],"version":1,"limits":{"slots":16,"nodes":64,"depth":12,"textSlots":8,"resultBytes":16384,"modifiers":8,"dp":1024}},"compose.basicText.v1":{"outputs":["Unit"],"inputs":["String"],"permissions":[],"effect":"render","implementation":"ComposeDispatch/BasicText","version":1,"limits":{"stringUnits":256}},"compose.material3.text.v1":{"permissions":[],"effect":"render","implementation":"ComposeDispatch/Material3.Text","styles":["bodyMedium","labelSmall"],"version":1,"colors":["secondary","tertiary"],"limits":{"stringUnits":256}}},"runtimeAbi":3,"limits":{"async":false,"entries":32,"collections":0,"loops":0,"parameters":9,"payloadBytes":65536,"recursion":0}};
+const artifact={schema:'dootah.portable',runtimeAbi:3,logicAbi:1,runtimeVersion:'dootah-v2-logic-2',requires:['logic.pure.v1','compose.basicText.v1'],overrides:[{functionId:id,parameters:[],expression:{op:'literal',type:'String',value:'Deployment acceptance'}}]};
 try {
  if(mode==='setup'){
   const tenants={}; const password=(await readFile('/tmp/initial-password','utf8')).trim();

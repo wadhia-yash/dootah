@@ -212,7 +212,7 @@ DOOTAH_INGRESS_PREFIX={ingress}
         assert state_before==state_after
         assert all(v.encode() not in c('logs','--no-color').stdout for v in values)
         ok('fresh-volume database/storage/key/config restore with identical storage hashes and verified signatures')
-        receipt={'phase':'9D','passed':True,'restorePassed':True,'checks':checks,'cloudTests':{'passed':cloud_passed,'failed':0,'skipped':0},'runtimeAbi':2,'logicAbi':1,'externalDeployment':False}
+        receipt={'phase':'9D','passed':True,'restorePassed':True,'checks':checks,'cloudTests':{'passed':cloud_passed,'failed':0,'skipped':0},'runtimeAbi':3,'logicAbi':1,'externalDeployment':False}
         (work/'acceptance.json').write_text(json.dumps(receipt,indent=2))
         print(f'PASS receipt: {work}/acceptance.json',flush=True)
     finally:

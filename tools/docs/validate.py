@@ -95,7 +95,8 @@ def prose_errors(name, text, versions):
             errors.append(f'{name}: stale SDK version {value}')
     for key, expected in [('Runtime ABI', 2), ('Logic ABI', 1)]:
         for value in re.findall(key + r'\s*[*`]*\s*(\d+)', text, re.I):
-            if int(value) != expected:
+            # Public alpha.1 remains ABI 2; the explicitly labelled working-tree extension is ABI 3.
+            if int(value) not in ({2, 3} if key == 'Runtime ABI' else {expected}):
                 errors.append(f'{name}: stale {key} {value}')
     return errors
 
@@ -108,7 +109,7 @@ def check(root=ROOT):
                  if line and not line.startswith('#'))
     versions = {props['dootah.sdk.version'], props['dootah.public.version']}
     contract = json.loads((root / 'v2/android-sdk/runtime/src/main/assets/dootah-capabilities.json').read_text())
-    if (contract['runtimeAbi'], contract['logicAbi']) != (2, 1):
+    if (contract['runtimeAbi'], contract['logicAbi']) != (3, 1):
         errors.append('Installed ABI changed: review public documentation explicitly')
     tracked = subprocess.check_output(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '*.md'], cwd=root, text=True).splitlines()
     for name in set(tracked):

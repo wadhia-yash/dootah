@@ -38,7 +38,7 @@ class SourceAnalyzer implements Closeable {
             }
         }.collect { item ->
             KtNamedFunction f = item.function
-            def result = [name:f.name, start:f.bodyExpression?.textRange?.startOffset,
+            def result = [path:path, name:f.name, start:f.bodyExpression?.textRange?.startOffset,
                 end:f.bodyExpression?.textRange?.endOffset, body:f.bodyExpression?.text,
                 function:f, container:item.container, file:file, imports:imports]
             try { result.putAll(identity(file, f, item.container, imports)) }
@@ -54,7 +54,7 @@ class SourceAnalyzer implements Closeable {
         def hazards = PsiTreeUtil.findChildrenOfType(file, KtNamedDeclaration).findAll {
             it.name in ['androidx', 'BasicText', 'Composable']
         }*.name
-        [skeleton:skeleton, entries:entries, hazards:hazards]
+        [skeleton:skeleton, entries:entries, hazards:hazards, file:file]
     }
 
     private static void collect(List declarations, KtClass container, List result) {

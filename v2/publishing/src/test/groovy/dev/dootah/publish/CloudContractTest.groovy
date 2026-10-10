@@ -8,7 +8,7 @@ import static org.junit.Assert.*
 class CloudContractTest {
     @org.junit.Rule public org.junit.rules.TemporaryFolder temp = new org.junit.rules.TemporaryFolder()
     private static Map contract(List functions) {
-        [schema:2, irAbi:2, dispatchAbi:2, capabilities:new JsonSlurper().parseText(PortableProgram.contract().toString()), functions:functions]
+        [schema:3, irAbi:3, dispatchAbi:2, capabilities:new JsonSlurper().parseText(PortableProgram.contract().toString()), functions:functions]
     }
     @Test void typesAreDerivedFromInstalledDescriptorsAndNullability() {
         def function = [id:'dth1:' + 'a' * 64, installed:true, extension:false,

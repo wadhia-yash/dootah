@@ -5,7 +5,7 @@ import { mkdtemp, readFile, chmod, rm, symlink, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { origin, readPrivate, writePrivate, client } from './auth.mjs';
-import { customer } from './customer.mjs';
+import { customer, importRecord } from './customer.mjs';
 import { mintEnrollmentTicket } from './enrollment.mjs';
 import { publishCloud } from './cloud.mjs';
 
@@ -105,4 +105,10 @@ test('publisher uses shared file authentication and rejects app/channel/runtime 
   assert(calls.every(c => c.method === 'GET'));
   const receipt = await publishCloud(config, contract, { schema:'test' });
   assert.equal(receipt.releaseId, 'release'); assert.equal(calls.at(-1).headers['idempotency-key'], 'stable');
+}));
+
+test('retained ABI 2 records cannot be imported as an ABI 3 baseline', () => fixture(async ({ directory }) => {
+  const record = join(directory, 'release.json');
+  await writePrivate(record, { schema: 1, runtimeAbi: 2, logicAbi: 1 });
+  await assert.rejects(importRecord(record, directory, join(directory, 'config.json')), /Retained release ABI mismatch/);
 }));

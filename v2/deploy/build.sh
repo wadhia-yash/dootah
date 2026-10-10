@@ -41,7 +41,7 @@ mkdir -p "$work/cloud/cloud/migrations" "$work/cloud/cloud/test"
 cp "$root/v2/cloud/migrations/"*.sql "$work/cloud/cloud/migrations/"
 cp "$root/v2/cloud/test/"*.test.mjs "$work/cloud/cloud/test/"
 cp "$root/v2/server/publish.mjs" "$work/cloud/server/"
-cp "$root/v2/cloud/Validate.java" "$root/v2/portable/src/main/java/dev/dootah/portable/PortableProgram.java" "$work/cloud/validator/"
+cp "$root/v2/cloud/Validate.java" "$root/v2/portable/src/main/java/dev/dootah/portable/"*.java "$work/cloud/validator/"
 curl --fail --silent --show-error --location https://repo.maven.apache.org/maven2/org/json/json/20250517/json-20250517.jar -o "$work/cloud/validator/json.jar"
 python3 - "$work/cloud/validator/json.jar" <<'PY'
 import hashlib,sys

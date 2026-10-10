@@ -91,6 +91,8 @@ test(
     await wait(a, op);
     let release = (await request(a, "releases/" + id)).body;
     assert.equal(release.status, "ready");
+    assert.equal(release.runtime_abi, artifact.runtimeAbi);
+    assert.equal(release.logic_abi, artifact.logicAbi);
     async function control(action, extra = {}) {
       release = (await request(a, "releases/" + id)).body;
       const r = await request(a, `releases/${id}/${action}`, "POST", {

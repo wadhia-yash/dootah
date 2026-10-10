@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.MethodInsnNode
 import java.security.MessageDigest
 import java.util.zip.ZipFile
 import dev.dootah.portable.PortableProgram
+import dev.dootah.adapters.AdapterGen
 import org.json.JSONObject
 import static dev.dootah.publish.SourceAnalyzer.require
 
@@ -55,7 +56,7 @@ class Contract {
 
     /** Only installed, Logic ABI 1 parameter forms enter the public Cloud contract. */
     static Map cloudContract(Map contract) {
-        require(contract.schema == 2 && contract.irAbi == 2 && contract.dispatchAbi == 2 &&
+        require(contract.schema == 3 && contract.irAbi == 3 && contract.dispatchAbi == 2 &&
             contract.capabilities == new JsonSlurper().parseText(PortableProgram.contract().toString()), 'Runtime/Logic ABI or capability mismatch')
         def functions = new TreeMap()
         contract.functions.findAll { it.installed && !it.extension }.each { f ->
@@ -80,8 +81,37 @@ class Contract {
         [capabilities: contract.capabilities, functions: functions]
     }
 
+    /**
+     * Adapters the build generated from these sources, kept only when the retained bytecode shows the
+     * generated method invoking a composable (a Composer parameter) and the APK carries its identity.
+     */
+    static Map adapters(Map sources, File classes, Map classHashes) {
+        def result = new TreeMap()
+        new SourceAnalyzer().withCloseable { analyzer ->
+            sources.each { String path, String text ->
+                def generated = AdapterGen.generate(analyzer.inspect(path, text).file, path)
+                if (generated.adapters.empty) return
+                String classPath = generated.qualifiedFacade().replace('.', '/') + '.class'
+                File file = new File(classes, classPath)
+                if (!classHashes.containsKey(classPath) || !file.isFile() || hash(file.bytes) != classHashes[classPath]) return
+                def node = new ClassNode()
+                new ClassReader(file.bytes).accept(node, 0)
+                generated.adapters.each { shape ->
+                    def method = node.methods.find { it.name == shape.method }
+                    boolean composable = method != null && method.instructions.any { it instanceof MethodInsnNode &&
+                        (it.name == shape.calleeName() || it.name.startsWith(shape.calleeName() + '-')) &&
+                        it.desc.contains('Landroidx/compose/runtime/Composer;') }
+                    if (composable) result[shape.id] = shape.signature()
+                }
+            }
+        }
+        result
+    }
+
     static Map create(File apk, File classes, Map expectedClassHashes, Map sources, Map manifest) {
         def methods = [:]
+        def candidates = adapters(sources, classes, expectedClassHashes)
+        def installedAdapterIds = new HashSet()
         def apkIds = new HashSet()
         def embedded
         def installedCapabilities
@@ -102,6 +132,7 @@ class Contract {
                     // IDs contain ASCII only; scan DEX string bytes, not deobfuscated names.
                     String data = new String(zip.getInputStream(e).readAllBytes(), 'ISO-8859-1')
                     (data =~ /dth1:[0-9a-f]{64}/).each { apkIds.add(it) }
+                    candidates.keySet().each { if (data.contains(it)) installedAdapterIds.add(it) }
                 }
             }
         }
@@ -143,22 +174,26 @@ class Contract {
             }
         }
         require(!functions.empty, 'No source/installed identity agreement')
-        [schema:installedCapabilities == null ? 1 : 2, irAbi:installedCapabilities == null ? 1 : 2,
+        def installedAdapters = installedCapabilities == null ? [:] : candidates.findAll { id, signature -> id in installedAdapterIds }
+        [schema:installedCapabilities == null ? 1 : 3, irAbi:installedCapabilities == null ? 1 : 3,
             dispatchAbi:installedCapabilities == null ? 1 : 2, capabilities:installedCapabilities ?: [CAPABILITY], apkSha256:hash(apk.bytes),
             embeddedId:embedded.id, hermesBytecodeVersion:hermesBytecodeVersion,
             packageName:manifest.packageName, runtimeVersion:manifest.runtimeVersion,
             appId:manifest.appId, channel:manifest.channel, updateUrl:manifest.updateUrl,
-            classes:expectedClassHashes, sources:sources, functions:functions.sort { it.id }]
+            classes:expectedClassHashes, sources:sources, functions:functions.sort { it.id }, adapters:installedAdapters]
     }
 
     static void validate(Map contract, Map config) {
-        require(contract.schema in [1,2] && contract.irAbi == contract.schema && contract.dispatchAbi == contract.schema, 'Runtime/IR ABI mismatch')
+        require(contract.schema in [1,3] && contract.irAbi == contract.schema && contract.dispatchAbi == (contract.schema == 3 ? 2 : 1), 'Runtime/IR ABI mismatch')
         require(contract.capabilities == (contract.schema == 1 ? [CAPABILITY] : new JsonSlurper().parseText(PortableProgram.contract().toString())), 'Unsupported installed capabilities')
         require(contract.apkSha256 == config.apkSha256 && contract.runtimeVersion == config.runtimeVersion &&
             contract.packageName == config.packageName && contract.appId == config.appId &&
             contract.channel == config.channel, 'Stale installed contract or release target mismatch')
         require(hash(new File(config.contract).bytes) == config.contractSha256, 'Contract digest mismatch; re-import the trusted installed build')
         require(contract.functions*.id.unique(false).size() == contract.functions.size(), 'Duplicate installed identities')
+        require(contract.adapters == null || (contract.adapters instanceof Map && contract.adapters.every { id, signature ->
+            id ==~ dev.dootah.portable.UiTree.ADAPTER_ID && signature instanceof String &&
+            (signature.empty || signature.split(',').every { PortableProgram.validType(it) }) }), 'Malformed installed adapter table')
     }
 
     static Map analyze(Map contract, Map current) {
@@ -168,8 +203,19 @@ class Contract {
         new SourceAnalyzer().withCloseable { analyzer ->
             require(!current.any { path, text -> !analyzer.inspect(path, text).hazards.empty },
                 'Project declarations shadow a rendering/package/annotation symbol; semantic resolution required')
+            def inspected = contract.sources.collectEntries { path, text -> [(path):analyzer.inspect(path,text)] }
+            def packages = inspected.values().groupBy { it.file.packageFqName.asString() }
+            def packageNames=packages.collectEntries { pkg, files -> [(pkg):files.collectMany { it.file.declarations*.name }.findAll { it!=null } as Set] }
+            def frozen=packages.collectEntries { pkg, files ->
+                def values=[:]
+                def names=files.collectMany { it.file.declarations*.name }.findAll { it!=null }
+                files.each { file -> UiLowering.constants(file.file,packageNames[pkg]).each { name,value ->
+                    if(names.count(name)==1) values[name]=value
+                } }
+                [(pkg):values]
+            }
             current.each { path, text ->
-                def baseline = analyzer.inspect(path, contract.sources[path])
+                def baseline = inspected[path]
                 def next = analyzer.inspect(path, text)
                 require(baseline.skeleton == next.skeleton, "Non-body change requires a new installed contract: $path")
                 next.entries.eachWithIndex { entry, i ->
@@ -178,9 +224,16 @@ class Contract {
                         require(entry.id != null, entry.reason ?: 'No compatible source identity')
                         require(contract.functions.any { it.installed && it.id == entry.id && it.path == path &&
                             it.owner == entry.owner && it.descriptor == entry.descriptor }, 'Unknown function identity; not installed')
-                        def tree = contract.schema == 2 ? LogicLowering.lower(entry) : analyzer.lower(entry)
+                        def tree
+                        if(contract.schema == 3) {
+                            try { tree=LogicLowering.lower(entry) }
+                            catch(IllegalArgumentException scalarRefusal) {
+                                def pkg=entry.file.packageFqName.asString()
+                                tree=UiLowering.lower(entry,frozen[pkg] ?: [:],packageNames[pkg] ?: [] as Set,contract.adapters ?: [:])
+                            }
+                        } else tree=analyzer.lower(entry)
                         status.status = status.changed ? 'portable' : 'unchanged'
-                        if (status.changed) overrides << (contract.schema == 2 ? [functionId:entry.id] + tree : [functionId:entry.id, requires:[CAPABILITY], tree:tree])
+                        if (status.changed) overrides << (contract.schema == 3 ? [functionId:entry.id] + tree : [functionId:entry.id, requires:[CAPABILITY], tree:tree])
                     } catch (IllegalArgumentException e) {
                         status.status = 'native'
                         status.reason = e.message
@@ -190,9 +243,9 @@ class Contract {
             }
         }
         def refused = report.any { it.changed && it.status == 'native' }
-        if (contract.schema == 2) {
-            def ir = [schema:'dootah.portable', runtimeAbi:2, logicAbi:1, runtimeVersion:contract.runtimeVersion,
-                requires:[PortableProgram.LOGIC, PortableProgram.TEXT], overrides:overrides.sort { it.functionId }]
+        if (contract.schema == 3) {
+            def ir = [schema:'dootah.portable', runtimeAbi:3, logicAbi:1, runtimeVersion:contract.runtimeVersion,
+                requires:requirements(overrides), overrides:overrides.sort { it.functionId }]
             def generated = [:]
             if (!overrides.empty) {
                 def program = new PortableProgram(json(ir), contract.runtimeVersion)
@@ -204,4 +257,19 @@ class Contract {
             runtimeVersion:contract.runtimeVersion, apkSha256:contract.apkSha256,
             overrides:overrides.sort { it.functionId }]]
     }
+    static List requirements(List overrides) {
+        def used=[PortableProgram.LOGIC] as Set
+        Closure visit
+        visit={ Map node ->
+            if(node.type=='text') used.add(PortableProgram.MATERIAL_TEXT)
+            if(node.type in ['box','if'] || node.modifiers) used.add(PortableProgram.LAYOUT)
+            if(node.type=='native') used.add(PortableProgram.NATIVE)
+            (node.children ?: []).each { visit(it) }
+            (node.then ?: []).each { visit(it) }
+            (node.else ?: []).each { visit(it) }
+        }
+        overrides.each { if(it.tree) visit(it.tree); else used.add(PortableProgram.TEXT) }
+        used.sort()
+    }
+
 }

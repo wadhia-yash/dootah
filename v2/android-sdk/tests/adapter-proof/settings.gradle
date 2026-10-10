@@ -1,0 +1,5 @@
+pluginManagement { repositories { gradlePluginPortal(); mavenCentral() } }
+dependencyResolutionManagement { repositories { mavenCentral(); google() } }
+rootProject.name = 'dootah-adapter-proof'
+// Two independent Compose fixtures; each generates, compiles and links its own adapter index.
+include 'generator', 'badges', 'forms'

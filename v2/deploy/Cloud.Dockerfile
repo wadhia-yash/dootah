@@ -5,7 +5,7 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 FROM eclipse-temurin:21-jdk-jammy@sha256:e0c60c487345d1dc9d0fc7b6f0496f3cc941e5132e09296cc17a6decc71b902b AS validator
 WORKDIR /compile
 COPY validator/ ./
-RUN javac -cp json.jar -d classes Validate.java PortableProgram.java
+RUN javac -cp json.jar -d classes Validate.java PortableProgram.java UiTree.java
 FROM eclipse-temurin:21-jre-jammy@sha256:f04fb34e053148344e83317976114ec3f37e4b830ec8bdab5a2fe3cecd7d010b
 RUN apt-get update && apt-get install -y --no-install-recommends gosu && rm -rf /var/lib/apt/lists/* && useradd -u 10001 -m dootah
 COPY --from=node /usr/local/bin/node /usr/local/bin/node

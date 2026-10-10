@@ -58,6 +58,8 @@ class ComposeEntryVisitor extends ClassNode {
     }
 
     private static boolean eligible(MethodNode m, f) {
+        // Generated native adapters are invoked by the SDK, never overridden themselves.
+        if (m.name.startsWith(dev.dootah.adapters.AdapterNames.METHOD_PREFIX)) return false
         if ((m.access & (ACC_ABSTRACT | ACC_NATIVE | ACC_SYNTHETIC | ACC_BRIDGE | ACC_SYNCHRONIZED)) != 0) return false
         if (!m.invisibleAnnotations?.any { it.desc == 'Landroidx/compose/runtime/Composable;' }) return false
         if (m.invisibleAnnotations.any { it.desc == 'Landroidx/compose/runtime/ReadOnlyComposable;' }) return false

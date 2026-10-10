@@ -15,9 +15,9 @@ owns native rendering, device access, updater configuration and the trust anchor
    assets. Native Expo Updates verifies/selects/caches the update.
 4. **Execute:** the launch asset is IR JSON, not an executable React entrypoint.
    The installed `PortableProgram` validates it and regenerates JavaScript. A fresh
-   AndroidX JavaScriptSandbox isolate receives scalar values and returns a string.
+   AndroidX JavaScriptSandbox isolate receives scalar values and returns a string encoding validated scalar results. Structural trees stay in the signed artifact and are validated natively.
 5. **Render:** `ComposeDispatch` validates the result and uses the installed native
-   `compose.basicText.v1` capability. Until a valid result exists, the original body
+   `compose.basicText.v1`, `compose.layout.v1`, or `compose.material3.text.v1` capabilities. Until a valid result exists, the original body
    executes. `logic.pure.v1` supplies bounded deterministic calculations, not device APIs.
 
 RN/Hermes/Expo dependencies remain packaged and contribute significant APK weight.
@@ -25,7 +25,7 @@ The current Application does not create a ReactHost or expose native registries 
 remote logic. The consumer has no React screen tree, Metro step or npm project.
 
 A compatible update requires agreement between source identity, retained contract,
-installed hook, runtime version, Runtime ABI **2**, Logic ABI **1**, capability names
+installed hook, runtime version, Runtime ABI **3**, Logic ABI **1**, capability names
 and portable input types. The configured `runtimeVersion` is an application-chosen
 compatibility string, distinct from SDK and ABI versions; do not change it for each
 OTA. A new incompatible native baseline needs an appropriate new runtime/environment.
@@ -33,3 +33,8 @@ OTA. A new incompatible native baseline needs an appropriate new runtime/environ
 See [supported source](../reference/support.md), [delivery](delivery.md) and
 [security](../security/README.md). Detailed implementation and dated experiments
 remain in [engineering history](../history/README.md).
+
+Runtime ABI 3 is a working-tree extension requiring a new baseline APK. The bounded
+structural slice passed [physical Mihon acceptance](../v2/MINIMAL_STRUCTURAL_OTA.md);
+previous acceptance records and the published alpha.1 describe ABI 2. The
+`tryRenderV2` hook signature remains unchanged.

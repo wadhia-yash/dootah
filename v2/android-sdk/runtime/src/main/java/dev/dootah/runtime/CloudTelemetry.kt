@@ -101,7 +101,7 @@ internal class CloudTelemetry(private val context: Context, private val controll
                 if (queue.size >= 64) queue.removeFirst()
                 queue.add(JSONObject().put("id", UUID.randomUUID().toString()).put("installationId", installation)
                     .put("updateId", id ?: JSONObject.NULL).put("type", type).put("activationId", activation)
-                    .put("timestamp", java.time.Instant.now().toString()).put("runtimeAbi", 2).put("logicAbi", 1)
+                    .put("timestamp", java.time.Instant.now().toString()).put("runtimeAbi", dev.dootah.portable.PortableProgram.ABI).put("logicAbi", 1)
                     .put("metadata", JSONObject()))
                 persist()
             } catch (_: Exception) { /* Reporting cannot change native recovery. */ }

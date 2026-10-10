@@ -4,7 +4,7 @@
     "publicVersion": "0.1.0-alpha.1",
     "developmentVersion": "0.7.5-local",
     "internalPrefix": "0.1.0-dootah",
-    "runtimeAbi": 2,
+    "runtimeAbi": 3,
     "logicAbi": 1
   },
   "suites": [
@@ -39,8 +39,9 @@
       "job": "sdk",
       "format": "junit",
       "report": "reports/gradle-plugin/*.xml",
-      "minimum": 9,
+      "minimum": 11,
       "classes": {
+        "AdapterGenerationTest": 2,
         "DootahPluginTest": 4,
         "FunctionIdentityTest": 1,
         "RetentionTest": 4
@@ -52,9 +53,9 @@
       "job": "sdk",
       "format": "junit",
       "report": "reports/compose-fixtures/*.xml",
-      "minimum": 4,
+      "minimum": 5,
       "classes": {
-        "ComposeEntryTest": 4
+        "ComposeEntryTest": 5
       },
       "sourceReport": "v2/android-sdk/gradle-plugin/build/test-results/composeFixtureTest/*.xml"
     },
@@ -63,11 +64,15 @@
       "job": "sdk",
       "format": "junit",
       "report": "reports/publisher-jvm/*.xml",
-      "minimum": 22,
+      "minimum": 44,
       "classes": {
+        "AdapterFixtureTest": 1,
+        "AdapterGenTest": 5,
+        "NativeLoweringTest": 4,
         "PublishingTest": 9,
         "LogicTest": 9,
-        "CloudContractTest": 4
+        "CloudContractTest": 4,
+        "StructuralUiTest": 12
       },
       "sourceReport": "v2/publishing/build/test-results/test/*.xml"
     },
@@ -89,7 +94,7 @@
       "job": "sdk",
       "format": "tap",
       "report": "reports/cli.tap",
-      "minimum": 7,
+      "minimum": 8,
       "command": [
         "node",
         "--test",

@@ -7,5 +7,5 @@ repo_dir="$(cd "$cloud_dir/../.." && pwd)"
 mkdir -p "$cloud_dir/build/validator"
 "$JAVA_HOME/bin/javac" -cp "$repo_dir/v2/publishing/build/install/dootah-publishing/lib/*" \
  -d "$cloud_dir/build/validator" "$cloud_dir/Validate.java" \
- "$repo_dir/v2/portable/src/main/java/dev/dootah/portable/PortableProgram.java"
+ "$repo_dir/v2/portable/src/main/java/dev/dootah/portable/"*.java
 printf 'Validator built in %s/build/validator\n' "$cloud_dir"

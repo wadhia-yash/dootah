@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import dev.dootah.portable.PortableProgram
+import dev.dootah.portable.UiTree
 import dev.dootah.runtime.sandbox.RestrictedSandbox
 import expo.modules.updates.UpdatesController
 import expo.modules.updates.EnabledUpdatesController
@@ -37,11 +38,11 @@ open class DootahApplication : Application() {
   private var sandbox: RestrictedSandbox? = null
   private var rejected: UUID? = null
   private data class Invocation(val id: String, val types: List<String>, val values: List<Any?>)
-  private val results = androidx.compose.runtime.mutableStateMapOf<Invocation, String>()
+  private val results = androidx.compose.runtime.mutableStateMapOf<Invocation, UiTree.Result>()
   private val pending = HashSet<Invocation>()
 
   // A miss only reads snapshot state and queues work; it creates no Compose groups.
-  internal fun lookup(value: RenderValue, id: String, types: List<String>, input: List<Any?>): String? {
+  internal fun lookup(value: RenderValue, id: String, types: List<String>, input: List<Any?>): UiTree.Result? {
     if (dispatchValue !== value) return null
     val program = value.program ?: return null
     try {
@@ -119,6 +120,7 @@ open class DootahApplication : Application() {
             .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
             .decode(java.nio.ByteBuffer.wrap(bytes)).toString()
           val program = PortableProgram(source, runtime)
+          requireInstalledAdapters(program, InstalledAdapters.registry)
           sandbox = RestrictedSandbox(this@DootahApplication)
           RenderValue("Dootah portable logic", id, program = program)
         }
@@ -132,13 +134,14 @@ open class DootahApplication : Application() {
     }
   }
 
-  internal suspend fun evaluate(value: RenderValue, id: String, types: List<String>, input: List<Any?>): String? =
+  internal suspend fun evaluate(value: RenderValue, id: String, types: List<String>, input: List<Any?>): UiTree.Result? =
     withContext(worker) {
       if (mutableValue.value !== value || rejected == value.updateId) return@withContext null
       try {
         val program = value.program ?: return@withContext null
-        val result = sandbox!!.evaluate(program.source(id, types, input))
-        program.result(result)
+        val result = program.renderResult(id, sandbox!!.evaluate(program.source(id, types, input)))
+        require(nativeCallsAccepted(result, InstalledAdapters.registry)) { "Native adapter arguments refused" }
+        result
       } catch (e: Exception) { reject(value.updateId, e); null }
     }
 
