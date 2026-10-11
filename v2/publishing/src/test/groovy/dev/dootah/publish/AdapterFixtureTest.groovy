@@ -29,14 +29,27 @@ class AdapterFixtureTest {
             assertEquals([], result.refused)
             same(new File(DEVICE, 'generated/dev/dootah/fixture/' + result.facade + '.kt'), AdapterGen.render(file, result))
             same(new File(DEVICE, 'generated/dev/dootah/generated/DootahAdapterIndex.kt'), AdapterGen.index([result]))
-            def adapters = result.adapters.collectEntries { [(it.id): it.signature()] }
+            def adapters = result.adapters.collectEntries { shape ->
+                [(shape.id): shape.signature()] + shape.children.values().collectEntries { [(it.id): it.signature()] } }
+            Closure artifact = { String edited, String function, File target ->
+                def entry = a.inspect(PATH, edited).entries.find { it.name == function }
+                def overrides = [[functionId: entry.id] + UiLowering.lower(entry, [:], [] as Set, adapters)]
+                same(target, JsonOutput.prettyPrint(JsonOutput.toJson([schema: 'dootah.portable', runtimeAbi: 3, logicAbi: 1,
+                    runtimeVersion: 'adapter-fixture', requires: Contract.requirements(overrides), overrides: overrides])) + '\n')
+                new JsonSlurper().parse(target).overrides[0].tree
+            }
             // The OTA edit: only the business rule changes; the installed component call is reused.
-            def entry = a.inspect(PATH, installed.replace('count > 0', 'count > 1')).entries.find { it.name == 'DownloadsBadge' }
-            def overrides = [[functionId: entry.id] + UiLowering.lower(entry, [:], [] as Set, adapters)]
-            def artifact = [schema: 'dootah.portable', runtimeAbi: 3, logicAbi: 1, runtimeVersion: 'adapter-fixture',
-                requires: Contract.requirements(overrides), overrides: overrides]
-            same(new File(DEVICE, 'assets/adapters.json'), JsonOutput.prettyPrint(JsonOutput.toJson(artifact)) + '\n')
-            assertEquals('native', new JsonSlurper().parse(new File(DEVICE, 'assets/adapters.json')).overrides[0].tree.then[0].type)
+            assertEquals('native', artifact(installed.replace('count > 0', 'count > 1'), 'DownloadsBadge',
+                new File(DEVICE, 'assets/adapters.json')).then[0].type)
+            // Nested: the installed Row's existing children are reordered and one becomes conditional.
+            String nested = installed.replace('''        CountBadge(text = "$count", color = MaterialTheme.colorScheme.tertiary)
+        Text(text = "items", modifier = Modifier.weight(1f))''', '''        Text(text = "items", modifier = Modifier.weight(1f))
+        if (count > 1) {
+            CountBadge(text = "$count", color = MaterialTheme.colorScheme.tertiary)
+        }''')
+            assertNotEquals(installed, nested)
+            def row = artifact(nested, 'BadgeRow', new File(DEVICE, 'assets/adapters-nested.json'))
+            assertEquals(['native', 'if'], row.children*.type)
         }
     }
 }

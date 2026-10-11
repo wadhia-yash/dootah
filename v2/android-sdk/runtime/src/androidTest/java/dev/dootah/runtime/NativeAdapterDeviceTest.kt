@@ -3,6 +3,7 @@ package dev.dootah.runtime
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -19,6 +20,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.unit.dp
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.dootah.fixture.BadgeRow
 import dev.dootah.fixture.DownloadsBadge
 import dev.dootah.portable.PortableProgram
 import dev.dootah.portable.UiTree
@@ -50,7 +52,10 @@ class NativeAdapterDeviceTest {
 
     @Test fun generatedIndexIsLinkedIntoTheApkAndMatchesTheArtifact() {
         assertNotSame(NativeAdapterRegistry.Empty, registry)
-        assertEquals(program.nativeAdapters(), registry.signatures)
+        val nestedRaw = instrumentation.context.assets.open("adapters-nested.json").bufferedReader().use { it.readText() }
+        val nested = PortableProgram(nestedRaw, "adapter-fixture")
+        // The fixture installs exactly the plain badge and the BadgeRow container with its two children.
+        assertEquals(program.nativeAdapters() + nested.nativeAdapters(), registry.signatures)
         requireInstalledAdapters(program, registry)
     }
 
@@ -129,5 +134,47 @@ class NativeAdapterDeviceTest {
         rule.onNodeWithText("5").assertExists()
         rule.onNodeWithText("6").assertExists()
         rule.onNodeWithText("3").assertDoesNotExist()
+    }
+
+    /**
+     * Nested content: the update reorders the installed Row's existing children and hides one by data.
+     * Children render inside the installed Row content lambda (RowScope.weight) as native components.
+     */
+    @Test fun nestedChildrenAreReorderedAndHiddenInsideTheInstalledRow() {
+        val nestedRaw = instrumentation.context.assets.open("adapters-nested.json").bufferedReader().use { it.readText() }
+        val nested = PortableProgram(nestedRaw, "adapter-fixture")
+        requireInstalledAdapters(nested, registry)
+        fun evaluateNested(count: Int): UiTree.Result {
+            val id = nested.functionIds().single()
+            val sandbox = RestrictedSandbox(instrumentation.targetContext)
+            val output = try { sandbox.evaluate(nested.source(id, listOf("Int"), listOf(count))) } finally { sandbox.close() }
+            return nested.renderResult(id, output).also { assertTrue(nativeCallsAccepted(it, registry)) }
+        }
+        val results = mapOf(1 to evaluateNested(1), 3 to evaluateNested(3))
+        val count = mutableIntStateOf(3)
+        val remote = mutableStateOf(false)
+        rule.setContent {
+            MaterialTheme(colorScheme = lightColorScheme(tertiary = Color(0xff605a7c))) {
+                Box(Modifier.width(240.dp).testTag("capture")) {
+                    if (remote.value) { val r = results.getValue(count.intValue); renderTree(r.root, r.slots) }
+                    else BadgeRow(count.intValue)
+                }
+            }
+        }
+        fun left(text: String) = rule.onNodeWithText(text).fetchSemanticsNode().boundsInRoot.left
+        // Installed order: badge, then the weighted label.
+        rule.runOnIdle { count.intValue = 3; remote.value = false }
+        val nativeBadge = rule.onNodeWithText("3").captureToImage().asAndroidBitmap()
+        assertTrue(left("3") < left("items"))
+        // Updated order: label first (still weighted by RowScope), the same native badge after it.
+        rule.runOnIdle { remote.value = true }
+        assertTrue(left("3") > left("items"))
+        assertTrue("Nested native badge pixels differ", nativeBadge.sameAs(rule.onNodeWithText("3").captureToImage().asAndroidBitmap()))
+        // count = 1: the conditional child is hidden; the other child remains.
+        rule.runOnIdle { count.intValue = 1 }
+        rule.onNodeWithText("1").assertDoesNotExist()
+        rule.onNodeWithText("items").assertExists()
+        rule.runOnIdle { remote.value = false }
+        rule.onNodeWithText("1").assertExists()
     }
 }

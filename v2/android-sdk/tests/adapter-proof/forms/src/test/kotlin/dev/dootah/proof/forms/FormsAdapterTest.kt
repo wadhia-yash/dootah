@@ -3,6 +3,7 @@ package dev.dootah.proof.forms
 import androidx.compose.runtime.*
 import dev.dootah.runtime.InstalledAdapters
 import dev.dootah.runtime.NativeAdapterHost
+import dev.dootah.runtime.NativeContent
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
 
@@ -28,8 +29,32 @@ class FormsAdapterTest {
     @BeforeTest fun clear() { Calls.clear() }
 
     @Test fun scalarSignaturesAreTypedFromHookInputs() {
-        assertEquals(setOf("String,Int,Boolean", "String", "Int"), registry.signatures.values.toSet())
-        assertEquals(3, registry.signatures.size)
+        // Plain adapters, plus the Panel container ("@content") and its three scoped children.
+        assertEquals(setOf("String,Int,Boolean", "String", "Int", "@content", ""), registry.signatures.values.toSet())
+        assertEquals(7, registry.signatures.size)
+    }
+
+    /** The update chooses which installed children render and in what order; receivers resolve as in source. */
+    @Test fun containerRendersSelectedChildrenInUpdateOrderInsideItsContentLambda() {
+        val panel = registry.signatures.entries.single { it.value == "@content" }.key
+        fun child(callee: String) = registry.signatures.keys.single { it.startsWith("$panel/dev.dootah.proof.forms.$callee#") }
+        val content = object : NativeContent {
+            @Composable
+            override fun render(child: @Composable (id: String, arguments: List<Any?>) -> Unit) {
+                child(child("Meter"), listOf(5))
+                child(child("Indented"), emptyList())
+                child(child("Chip"), listOf(2))
+            }
+        }
+        compose { assertTrue(NativeAdapterHost.render(registry, panel, emptyList(), content)) }
+        assertEquals(listOf("Panel(Inbox)", "Meter(5/100)", "Indented(1,flagged)", "Chip(Unread,2,false,neutral)"), Calls)
+        Calls.clear()
+        // Content is required for a container and refused for a plain adapter.
+        compose {
+            assertFalse(NativeAdapterHost.render(registry, panel, emptyList()))
+            assertFalse(NativeAdapterHost.render(registry, id("Meter", "Int"), listOf(1), content))
+        }
+        assertTrue(Calls.isEmpty())
     }
 
     @Test fun positionalNamedAndTypedArgumentsInvokeTheNativeComponent() {

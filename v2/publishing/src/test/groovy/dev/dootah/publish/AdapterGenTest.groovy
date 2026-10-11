@@ -61,9 +61,16 @@ private val Hidden = 1
 @Composable fun String.Extension() { Card(text = "x") }
 '''
         def result = generate('Hook.kt', source)
-        assertEquals(['demo.Card'], result.adapters*.callee)
-        assertEquals(['String'], result.adapters*.signature())
-        assertEquals(10, result.refused.size())
+        def plain = result.adapters.find { !it.container }, row = result.adapters.find { it.callee == 'demo.Row' }
+        def card = result.adapters.find { it.container && it.callee == 'demo.Card' }
+        assertEquals(3, result.adapters.size())
+        assertEquals('String', plain.signature())
+        // Containers: Row { Card(text = name) } and Card(text = name) { Inner(name) }; children are scoped to them.
+        assertEquals('@content', row.signature())
+        assertEquals('String,@content', card.signature())
+        assertTrue(row.children.keySet().every { it.startsWith(row.id + '/demo.Card#') } && row.children.size() == 1)
+        assertTrue(card.children.keySet().every { it.startsWith(card.id + '/demo.Inner#') } && card.children.size() == 1)
+        assertEquals(6, result.refused.size())
         assertTrue(render('Hook.kt', source).contains('Card(text = a0)'))
     }
 
@@ -90,5 +97,32 @@ import lib.ui.*
         assertTrue(AdapterGen.index([]).contains('dev.dootah.runtime.NativeAdapterRegistry.Empty'))
         def result = generate('src/main/kotlin/Badges.kt', fixture())
         assertTrue(AdapterGen.index([result]).contains('dev.dootah.proof.badges.' + result.registry))
+    }
+
+    /** Children are copied inside the installed content lambda, so implicit receivers (RowScope) resolve as in source. */
+    @Test void containerCopiesItsContentLambdaWithScopedChildren() {
+        def source = '''package demo
+import androidx.compose.runtime.Composable
+@Composable fun Details(title: String, count: Int, wide: Boolean) {
+    Row(modifier = Modifier.padding(4.dp)) {
+        Text(text = title, maxLines = 1)
+        if (wide) {
+            Text(text = "$count", modifier = Modifier.weight(1f))
+        } else Spacer(Modifier.width(2.dp))
+    }
+}
+@Composable fun Refused(title: String) { Row { val x = title; Text(x) } }
+'''
+        def result = generate('Details.kt', source)
+        assertEquals(1, result.adapters.size())
+        def row = result.adapters[0]
+        assertEquals(3, row.children.size())
+        assertEquals(['String', 'String', ''] as Set, row.children.values()*.signature() as Set)
+        assertTrue(result.refused.any { it.startsWith('Refused: Row: Unsupported content statement') })
+        def text = render('Details.kt', source)
+        assertTrue(text, text.contains('private fun ' + row.method + '(dootahContent: dev.dootah.runtime.NativeContent) {'))
+        assertTrue(text, text.contains('Row(modifier = Modifier.padding(4.dp)) {\n        dootahContent.render { dootahChild, dootahArguments ->'))
+        assertTrue(text, text.contains('Text(text = (dootahArguments[0] as kotlin.String), modifier = Modifier.weight(1f))'))
+        assertTrue(text, text.contains('"' + row.id + '" -> ' + row.method + '(content!!)'))
     }
 }

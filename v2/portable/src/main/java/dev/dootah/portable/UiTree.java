@@ -10,6 +10,9 @@ public final class UiTree {
     public static final int MAX_NODES=64, MAX_DEPTH=12, MAX_MODIFIERS=8, MAX_SLOTS=16, MAX_TEXT_SLOTS=8, MAX_ADAPTER_ARGUMENTS=9;
     // Build-generated adapter identity: callee qualified name + 64-bit shape digest (AdapterGen.ID_PATTERN).
     public static final String ADAPTER_ID="[A-Za-z_][A-Za-z0-9_.]{0,255}#[0-9a-f]{16}";
+    /** A child call scoped to its container adapter: "container/child". */
+    public static final String CHILD_ID=ADAPTER_ID+"/"+ADAPTER_ID;
+    public static final String CONTENT="@content";
     // Eight maximally escaped 256-unit strings + eight booleans + punctuation fit below 16 KiB.
     public static final int MAX_RESULT_BYTES=16384;
     public static final List<String> ALIGNMENTS=Collections.unmodifiableList(Arrays.asList(
@@ -40,6 +43,8 @@ public final class UiTree {
         return new JSONObject().put("version",1).put("effect","render").put("permissions",new JSONArray())
             .put("implementation","NativeAdapterRegistry/build-generated")
             .put("inputs",new JSONArray(Arrays.asList("String","Boolean","Int","String?","Boolean?","Int?")))
+            // Container adapters render installed child calls, selected and ordered by the update (one level).
+            .put("content",new JSONArray(Arrays.asList("native","if")))
             .put("limits",new JSONObject().put("arguments",MAX_ADAPTER_ARGUMENTS));
     }
     UiTree(JSONObject raw,List<String> types) throws JSONException {
@@ -63,35 +68,61 @@ public final class UiTree {
             keys(raw,"type","condition","then","else"); capabilities.add(LAYOUT);
             int condition=slot(raw.get("condition"),"Boolean");
             return new Node(kind,condition,null,null,null,Collections.emptyList(),
-                children(raw.getJSONArray("then"),depth,boxScope),children(raw.getJSONArray("else"),depth,boxScope),null,Collections.emptyList());
+                children(raw.getJSONArray("then"),depth,boxScope),children(raw.getJSONArray("else"),depth,boxScope),null,Collections.emptyList(),false);
         }
-        if(kind.equals("native")) {
-            keys(raw,"type","adapter","arguments"); capabilities.add(NATIVE);
-            String adapter=string(raw.get("adapter")); check(adapter.matches(ADAPTER_ID),"Adapter identity");
-            JSONArray raws=raw.getJSONArray("arguments"); check(raws.length()<=MAX_ADAPTER_ARGUMENTS,"Adapter argument count");
-            List<Integer> arguments=new ArrayList<>(); List<String> signature=new ArrayList<>();
-            for(int i=0;i<raws.length();i++) {
-                int index=integer(raws.get(i));
-                check(index>=0 && index<types.size() && references.add(index),"Typed/unique UI slot reference");
-                arguments.add(index); signature.add(types.get(index));
-            }
-            String joined=String.join(",",signature);
-            check(adapters.getOrDefault(adapter,joined).equals(joined),"Adapter signature disagreement");
-            adapters.put(adapter,joined);
-            return new Node(kind,-1,null,null,null,Collections.emptyList(),Collections.emptyList(),Collections.emptyList(),
-                adapter,Collections.unmodifiableList(arguments));
-        }
+        if(kind.equals("native")) return nativeCall(raw,depth,null);
         if(kind.equals("box")) {
             keys(raw,"type","alignment","modifiers","children"); capabilities.add(LAYOUT);
             String alignment=token(raw.get("alignment"),ALIGNMENTS,false);
             List<Mod> mods=modifiers(raw.getJSONArray("modifiers"),boxScope);
-            return new Node(kind,-1,alignment,null,null,mods,children(raw.getJSONArray("children"),depth,true),Collections.emptyList(),null,Collections.emptyList());
+            return new Node(kind,-1,alignment,null,null,mods,children(raw.getJSONArray("children"),depth,true),Collections.emptyList(),null,Collections.emptyList(),false);
         }
         check(kind.equals("text"),"Unknown UI node");
         keys(raw,"type","text","color","style","modifiers"); capabilities.add(MATERIAL_TEXT);
         return new Node(kind,slot(raw.get("text"),"String"),null,token(raw.get("color"),COLORS,true),
             token(raw.get("style"),STYLES,true),modifiers(raw.getJSONArray("modifiers"),boxScope),Collections.emptyList(),Collections.emptyList(),
-            null,Collections.emptyList());
+            null,Collections.emptyList(),false);
+    }
+    /** A top-level native call (parent null), optionally a container with children; or a child scoped to parent. */
+    private Node nativeCall(JSONObject raw,int depth,String parent) throws JSONException {
+        boolean container=raw.has("children");
+        check(parent==null || !container,"Nested content");
+        if(container) keys(raw,"type","adapter","arguments","children"); else keys(raw,"type","adapter","arguments");
+        capabilities.add(NATIVE);
+        String adapter=string(raw.get("adapter"));
+        check(parent==null ? adapter.matches(ADAPTER_ID) : adapter.matches(CHILD_ID) && adapter.startsWith(parent+"/"),"Adapter identity");
+        JSONArray raws=raw.getJSONArray("arguments"); check(raws.length()<=MAX_ADAPTER_ARGUMENTS,"Adapter argument count");
+        List<Integer> arguments=new ArrayList<>(); List<String> signature=new ArrayList<>();
+        for(int i=0;i<raws.length();i++) {
+            int index=integer(raws.get(i));
+            check(index>=0 && index<types.size() && references.add(index),"Typed/unique UI slot reference");
+            arguments.add(index); signature.add(types.get(index));
+        }
+        if(container) signature.add(CONTENT);
+        String joined=String.join(",",signature);
+        check(adapters.getOrDefault(adapter,joined).equals(joined),"Adapter signature disagreement");
+        adapters.put(adapter,joined);
+        List<Node> children=container ? content(raw.getJSONArray("children"),depth,adapter) : Collections.emptyList();
+        return new Node("native",-1,null,null,null,Collections.emptyList(),children,Collections.emptyList(),
+            adapter,Collections.unmodifiableList(arguments),container);
+    }
+    /** Container content: child calls of that container and if/if-else over them. */
+    private List<Node> content(JSONArray raw,int depth,String parent) throws JSONException {
+        check(raw.length()<=MAX_NODES,"UI child count"); List<Node> list=new ArrayList<>();
+        for(int i=0;i<raw.length();i++) {
+            JSONObject item=raw.getJSONObject(i);
+            check(depth+1<=MAX_DEPTH && ++nodes<=MAX_NODES,"UI tree budget");
+            if(string(item.get("type")).equals("if")) {
+                keys(item,"type","condition","then","else"); capabilities.add(LAYOUT);
+                int condition=slot(item.get("condition"),"Boolean");
+                list.add(new Node("if",condition,null,null,null,Collections.emptyList(),content(item.getJSONArray("then"),depth+1,parent),
+                    content(item.getJSONArray("else"),depth+1,parent),null,Collections.emptyList(),false));
+            } else {
+                check(string(item.get("type")).equals("native"),"Unknown content node");
+                list.add(nativeCall(item,depth+1,parent));
+            }
+        }
+        return Collections.unmodifiableList(list);
     }
     private List<Node> children(JSONArray raw,int depth,boolean boxScope) throws JSONException {
         check(raw.length()<=MAX_NODES,"UI child count"); List<Node> list=new ArrayList<>();
@@ -164,9 +195,12 @@ public final class UiTree {
         public final List<Mod> modifiers;
         public final List<Node> children,otherwise;
         public final List<Integer> arguments;
-        private Node(String k,int s,String a,String c,String t,List<Mod> m,List<Node> children,List<Node> otherwise,String adapter,List<Integer> arguments) {
+        /** A native container: renders [children] inside its installed content lambda. */
+        public final boolean container;
+        private Node(String k,int s,String a,String c,String t,List<Mod> m,List<Node> children,List<Node> otherwise,String adapter,
+                     List<Integer> arguments,boolean container) {
             kind=k;slot=s;alignment=a;color=c;style=t;modifiers=m;this.children=children;this.otherwise=otherwise;
-            this.adapter=adapter;this.arguments=arguments;
+            this.adapter=adapter;this.arguments=arguments;this.container=container;
         }
     }
     public static final class Mod {

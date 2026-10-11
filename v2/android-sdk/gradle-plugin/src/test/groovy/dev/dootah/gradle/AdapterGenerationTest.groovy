@@ -33,7 +33,7 @@ class AdapterGenerationTest {
 import androidx.compose.runtime.Composable
 @Composable fun Badge(text: String, color: String = "secondary") {}
 @Composable fun Downloads(count: Int) { if (count > 0) Badge(text = "$count") }
-@Composable fun Refused(count: Int) { Badge(text = "x") { } }
+@Composable fun Refused(count: Int) { Badge(text = "x") { val local = count } }
 '''
         new File(dir, 'Broken.kt').text = 'package demo\nfun broken( {'
         module

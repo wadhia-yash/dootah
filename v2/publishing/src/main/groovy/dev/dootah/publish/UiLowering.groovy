@@ -85,10 +85,36 @@ class UiLowering {
     Map nativeCall(KtCallExpression call) {
         KtNamedFunction function=entry.function
         require(AdapterGen.statementInHook(call,function),'Native component call must be a direct statement of the hook body')
-        def shape=AdapterGen.shape(call,entry.file,entry.path,AdapterGen.scope(function),AdapterGen.privateNames(entry.file),
-            { KtExpression e -> logic.expr(e,scope,0).type } as java.util.function.Function)
+        def names=AdapterGen.scope(function), hidden=AdapterGen.privateNames(entry.file)
+        def typer={ KtExpression e -> logic.expr(e,scope,0).type } as java.util.function.Function
+        if(call.lambdaArguments.empty) {
+            def shape=AdapterGen.shape(call,entry.file,entry.path,names,hidden,typer)
+            installed(shape)
+            return [type:'native',adapter:shape.id,arguments:dataSlots(shape)]
+        }
+        // A container: its installed content lambda renders the children this update selects and orders.
+        def shape=AdapterGen.containerShape(call,entry.file,entry.path,names,hidden,typer)
+        installed(shape)
+        def arguments=dataSlots(shape)
+        [type:'native',adapter:shape.id,arguments:arguments,
+            children:content(AdapterGen.contentBody(call).statements,shape,names,hidden,typer)]
+    }
+    void installed(AdapterGen.Shape shape) {
         require(adapters[shape.id]==shape.signature(),'No installed native adapter for this '+shape.callee+' call; a new APK is required')
-        [type:'native',adapter:shape.id,arguments:shape.arguments.findAll { it.type!=null }.collect { slot(it.expression,it.type) }]
+    }
+    List dataSlots(AdapterGen.Shape shape) { shape.arguments.findAll { it.type!=null }.collect { slot(it.expression,it.type) } }
+    List content(List statements,AdapterGen.Shape container,Set names,Set hidden,typer) {
+        statements.collect { KtExpression statement ->
+            require(++nodes<=64,'UI tree budget')
+            if(statement instanceof KtIfExpression) {
+                def branch={ KtExpression e -> e==null ? [] : content(e instanceof KtBlockExpression ? e.statements : [e],container,names,hidden,typer) }
+                return [type:'if',condition:slot(statement.condition,'Boolean'),then:branch(statement.then),else:branch(statement.else)]
+            }
+            require(statement instanceof KtCallExpression && AdapterGen.childCandidate(statement),'Unsupported content statement')
+            def child=AdapterGen.childShape(container,statement,entry.file,names,hidden,typer)
+            installed(child)
+            [type:'native',adapter:child.id,arguments:dataSlots(child)]
+        }
     }
     static Map arguments(KtCallExpression call,String first=null) {
         def result=[:]

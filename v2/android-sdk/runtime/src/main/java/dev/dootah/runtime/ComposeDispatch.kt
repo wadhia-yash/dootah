@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.dootah.portable.UiTree
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -47,11 +48,31 @@ internal fun requireInstalledAdapters(program: dev.dootah.portable.PortableProgr
 /** Every active native call names an installed adapter with matching scalar values. Checked before rendering. */
 internal fun nativeCallsAccepted(result: UiTree.Result, registry: NativeAdapterRegistry): Boolean {
     fun accepted(node: UiTree.Node): Boolean = when (node.kind) {
-        "native" -> NativeAdapterHost.accepts(registry, node.adapter, adapterArguments(node, result.slots))
+        "native" -> NativeAdapterHost.accepts(registry, node.adapter, adapterArguments(node, result.slots), node.container) &&
+            node.children.all(::accepted)
         "if" -> (if (result.slots[node.slot] as Boolean) node.children else node.otherwise).all(::accepted)
         else -> node.children.all(::accepted)
     }
     return result.root == null || accepted(result.root)
+}
+
+/** A container's validated children, in update order; each child keeps a stable key across reordering. */
+private class TreeContent(private val node: UiTree.Node, private val slots: List<Any>) : NativeContent {
+    @Composable
+    override fun render(child: @Composable (id: String, arguments: List<Any?>) -> Unit) =
+        emitChildren(node.children, slots, HashMap(), child)
+}
+
+@Composable
+private fun emitChildren(nodes: List<UiTree.Node>, slots: List<Any>, seen: HashMap<String, Int>,
+                         child: @Composable (id: String, arguments: List<Any?>) -> Unit) {
+    nodes.forEach { n ->
+        if (n.kind == "if") emitChildren(if (slots[n.slot] as Boolean) n.children else n.otherwise, slots, seen, child)
+        else {
+            val occurrence = seen.merge(n.adapter, 1, Int::plus)!!
+            key(n.adapter, occurrence) { child(n.adapter, adapterArguments(n, slots)) }
+        }
+    }
 }
 
 private fun adapterArguments(node: UiTree.Node, slots: List<Any>): List<Any?> =
@@ -70,7 +91,8 @@ internal fun renderTree(node: UiTree.Node, slots: List<Any>, root: Modifier = Mo
                         registry: NativeAdapterRegistry = InstalledAdapters.registry) {
     if (node.kind == "native") {
         // Verified before this result was published to composition; a refusal here composes nothing.
-        NativeAdapterHost.render(registry, node.adapter, adapterArguments(node, slots))
+        NativeAdapterHost.render(registry, node.adapter, adapterArguments(node, slots),
+            if (node.container) TreeContent(node, slots) else null)
         return
     }
     if (node.kind == "if") {

@@ -3,6 +3,7 @@
 package dev.dootah.fixture
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -12,18 +13,35 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @androidx.compose.runtime.Composable
+private fun dootahAdapter_8e20570244c48d05(dootahContent: dev.dootah.runtime.NativeContent) {
+    Row(modifier = Modifier.padding(4.dp)) {
+        dootahContent.render { dootahChild, dootahArguments ->
+            when (dootahChild) {
+                "androidx.compose.foundation.layout.Row#8e20570244c48d05/androidx.compose.material3.Text#f2eaf0bcbbd9571a" -> Text(text = "items", modifier = Modifier.weight(1f))
+                "androidx.compose.foundation.layout.Row#8e20570244c48d05/dev.dootah.fixture.CountBadge#87057e2c14154650" -> CountBadge(text = (dootahArguments[0] as kotlin.String), color = MaterialTheme.colorScheme.tertiary)
+                else -> kotlin.error("Unknown native child")
+            }
+        }
+    }
+}
+
+@androidx.compose.runtime.Composable
 private fun dootahAdapter_5775a1c464047e0b(a0: kotlin.String) {
     CountBadge(text = a0, color = MaterialTheme.colorScheme.tertiary)
 }
 
 internal object DootahAdapters_92e9f59b7d70 : dev.dootah.runtime.NativeAdapterRegistry {
     override val signatures: kotlin.collections.Map<kotlin.String, kotlin.String> = kotlin.collections.mapOf(
+        kotlin.Pair("androidx.compose.foundation.layout.Row#8e20570244c48d05", "@content"),
+        kotlin.Pair("androidx.compose.foundation.layout.Row#8e20570244c48d05/androidx.compose.material3.Text#f2eaf0bcbbd9571a", ""),
+        kotlin.Pair("androidx.compose.foundation.layout.Row#8e20570244c48d05/dev.dootah.fixture.CountBadge#87057e2c14154650", "String"),
         kotlin.Pair("dev.dootah.fixture.CountBadge#5775a1c464047e0b", "String"),
     )
 
     @androidx.compose.runtime.Composable
-    override fun render(id: kotlin.String, arguments: kotlin.collections.List<kotlin.Any?>) {
+    override fun render(id: kotlin.String, arguments: kotlin.collections.List<kotlin.Any?>, content: dev.dootah.runtime.NativeContent?) {
         when (id) {
+            "androidx.compose.foundation.layout.Row#8e20570244c48d05" -> dootahAdapter_8e20570244c48d05(content!!)
             "dev.dootah.fixture.CountBadge#5775a1c464047e0b" -> dootahAdapter_5775a1c464047e0b(arguments[0] as kotlin.String)
             else -> kotlin.error("Unknown native adapter")
         }

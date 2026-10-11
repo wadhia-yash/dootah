@@ -96,12 +96,35 @@ class Contract {
                 if (!classHashes.containsKey(classPath) || !file.isFile() || hash(file.bytes) != classHashes[classPath]) return
                 def node = new ClassNode()
                 new ClassReader(file.bytes).accept(node, 0)
+                // Children are compiled inside the container's content lambda: the facade's own lambda methods
+                // or its ComposableSingletons/inner classes, all generated from this one source file.
+                String facadePath = generated.qualifiedFacade().replace('.', '/')
+                String singletons = facadePath.contains('/') ? facadePath.substring(0, facadePath.lastIndexOf('/') + 1) +
+                    'ComposableSingletons$' + facadePath.substring(facadePath.lastIndexOf('/') + 1) : 'ComposableSingletons$' + facadePath
+                def related = [node] + classHashes.keySet().findAll { String candidate ->
+                    // Compose names the singletons class after the generated source file (".../ComposableSingletons$<file>Kt").
+                    (candidate.startsWith(facadePath + '$') || candidate.startsWith(singletons)) && candidate != classPath
+                }.collect { String candidate ->
+                    File f = new File(classes, candidate)
+                    if (!f.isFile() || hash(f.bytes) != classHashes[candidate]) return null
+                    def n = new ClassNode(); new ClassReader(f.bytes).accept(n, 0); n
+                }.findAll { it != null }
+                Closure invokes = { Collection methods, String name -> methods.any { m -> m.instructions.any { it instanceof MethodInsnNode &&
+                    (it.name == name || it.name.startsWith(name + '-')) && it.desc.contains('Landroidx/compose/runtime/Composer;') } } }
                 generated.adapters.each { shape ->
                     def method = node.methods.find { it.name == shape.method }
-                    boolean composable = method != null && method.instructions.any { it instanceof MethodInsnNode &&
-                        (it.name == shape.calleeName() || it.name.startsWith(shape.calleeName() + '-')) &&
-                        it.desc.contains('Landroidx/compose/runtime/Composer;') }
-                    if (composable) result[shape.id] = shape.signature()
+                    if (method == null) return
+                    if (!shape.container) {
+                        if (invokes([method], shape.calleeName())) result[shape.id] = shape.signature()
+                        return
+                    }
+                    // A container's content lambda must be @Composable (it calls NativeContent.render), so the
+                    // container compiled as composable content; each child must invoke a composable.
+                    if (!method.instructions.any { it instanceof MethodInsnNode && it.owner == 'dev/dootah/runtime/NativeContent' && it.name == 'render' } &&
+                        !related.any { c -> c.methods.any { m -> m.instructions.any { it instanceof MethodInsnNode && it.owner == 'dev/dootah/runtime/NativeContent' && it.name == 'render' } } }) return
+                    result[shape.id] = shape.signature()
+                    def lambdas = related.collectMany { it.methods } + node.methods.findAll { it.name.startsWith(shape.method) }
+                    shape.children.values().each { child -> if (invokes(lambdas, child.calleeName())) result[child.id] = child.signature() }
                 }
             }
         }
@@ -192,8 +215,9 @@ class Contract {
         require(hash(new File(config.contract).bytes) == config.contractSha256, 'Contract digest mismatch; re-import the trusted installed build')
         require(contract.functions*.id.unique(false).size() == contract.functions.size(), 'Duplicate installed identities')
         require(contract.adapters == null || (contract.adapters instanceof Map && contract.adapters.every { id, signature ->
-            id ==~ dev.dootah.portable.UiTree.ADAPTER_ID && signature instanceof String &&
-            (signature.empty || signature.split(',').every { PortableProgram.validType(it) }) }), 'Malformed installed adapter table')
+            (id ==~ dev.dootah.portable.UiTree.ADAPTER_ID || id ==~ dev.dootah.portable.UiTree.CHILD_ID) && signature instanceof String &&
+            (signature.empty || signature.split(',').toList().withIndex().every { t, i -> PortableProgram.validType(t) ||
+                (t == dev.dootah.portable.UiTree.CONTENT && i == signature.split(',').size() - 1) }) }), 'Malformed installed adapter table')
     }
 
     static Map analyze(Map contract, Map current) {

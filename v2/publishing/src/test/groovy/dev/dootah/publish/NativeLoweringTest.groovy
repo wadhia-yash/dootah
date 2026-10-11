@@ -27,7 +27,8 @@ import lib.ui.Badge
     /** The adapter table the installed build generated from its own source. */
     static Map installed(String body = INSTALLED) {
         new SourceAnalyzer().withCloseable { a ->
-            AdapterGen.generate(a.inspect(PATH, source(body)).file, PATH).adapters.collectEntries { [(it.id): it.signature()] }
+            AdapterGen.generate(a.inspect(PATH, source(body)).file, PATH).adapters.collectEntries { shape ->
+                [(shape.id): shape.signature()] + shape.children.values().collectEntries { [(it.id): it.signature()] } }
         }
     }
     static Map lower(String body, Map adapters = installed()) {
@@ -73,7 +74,7 @@ import lib.ui.Badge
         refused('No installed native adapter') { lower(INSTALLED.replace('tertiary', 'secondary')) }
         refused('No installed native adapter') { lower(INSTALLED.replace('Badge(text = "$count", ', 'Badge(text = "$count", maxLines = 1, ')) }
         refused('No installed native adapter') { lower(INSTALLED, [:]) }
-        refused('Trailing lambda') { lower(INSTALLED.replace(')\n', ') { }\n')) }
+        refused('No installed native adapter') { lower(INSTALLED.replace(')\n', ') { }\n')) }
     }
 
     @Test void runtimeGrammarRefusesMalformedNativeNodes() {
@@ -87,5 +88,33 @@ import lib.ui.Badge
         def undeclared = new groovy.json.JsonSlurper().parseText(JsonOutput.toJson(good))
         undeclared.requires.remove(PortableProgram.NATIVE)
         refused('Capability requirements disagree') { program(undeclared) }
+    }
+
+    static final String COLUMN = '''    Column(modifier = Modifier.padding(4.dp)) {
+        Icon(imageVector = Icons.Info, contentDescription = null)
+        Text(text = "$count", style = MaterialTheme.typography.bodySmall)
+    }'''
+
+    /** Reordering and conditionally hiding existing nested children reuses the installed container adapter. */
+    @Test void nestedChildrenCanBeReorderedAndHiddenWithoutANewApk() {
+        def adapters = installed(COLUMN)
+        assertEquals(3, adapters.size())
+        def edited = '''    Column(modifier = Modifier.padding(4.dp)) {
+        Text(text = "$count", style = MaterialTheme.typography.bodySmall)
+        if (count > 1) {
+            Icon(imageVector = Icons.Info, contentDescription = null)
+        }
+    }'''
+        def p = program(artifact(lower(edited, adapters)))
+        assertEquals(adapters, p.nativeAdapters())
+        def root = run(p, 3).root
+        assertTrue(root.container)
+        assertEquals(['native', 'if'], root.children*.kind)
+        assertTrue(root.children[0].adapter.contains('/lib.ui.Text#') || root.children[0].adapter.contains('/demo.Text#'))
+        assertEquals([false, '1'] as Set, (run(p, 1).slots.findAll { it != null }) as Set)
+        assertEquals([true, '3'] as Set, (run(p, 3).slots.findAll { it != null }) as Set)
+        // A child call shape the installed content never made needs a new APK.
+        refused('No installed native adapter') { lower(edited.replace('bodySmall', 'bodyLarge'), adapters) }
+        refused('Unsupported content statement') { lower(edited.replace('if (count > 1) {', 'val x = 1\n        if (count > 1) {'), adapters) }
     }
 }

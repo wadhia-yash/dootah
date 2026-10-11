@@ -12,3 +12,12 @@ fun FilterChip(label: String, count: Int, selected: Boolean) {
 
 @Composable
 fun Progress(done: Int) = Meter(value = done, max = Limits.MAX)
+
+@Composable
+fun Inbox(count: Int, flagged: Boolean) {
+    Panel(title = "Inbox") {
+        Chip(label = "Unread", count = count)
+        if (flagged) Indented(label = "flagged")
+        Meter(value = count)
+    }
+}

@@ -1,6 +1,7 @@
 package dev.dootah.fixture
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,5 +24,14 @@ fun CountBadge(
 fun DownloadsBadge(count: Int) {
     if (count > 0) {
         CountBadge(text = "$count", color = MaterialTheme.colorScheme.tertiary)
+    }
+}
+
+// Nested native content: the children render inside Row's content lambda (RowScope.weight).
+@Composable
+fun BadgeRow(count: Int) {
+    Row(modifier = Modifier.padding(4.dp)) {
+        CountBadge(text = "$count", color = MaterialTheme.colorScheme.tertiary)
+        Text(text = "items", modifier = Modifier.weight(1f))
     }
 }
