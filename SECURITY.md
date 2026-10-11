@@ -8,7 +8,8 @@ are in the [security model](docs/security/README.md).
 
 | Version | Status |
 | --- | --- |
-| **0.1.0-alpha.1** (Runtime ABI 2, Logic ABI 1) and current V2 source | Supported for security reports |
+| **0.1.0-alpha.2** (Runtime ABI 3, Logic ABI 1) and current V2 source | Supported for security reports |
+| Alpha.1 (Runtime ABI 2) | Not supported; upgrade to alpha.2 with a new baseline APK |
 | Any earlier V2 development build | Not supported; reproduce on the current alpha |
 | Historical V1 (compiler plugin / `dootah-*` Gradle modules) | Not supported |
 

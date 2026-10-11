@@ -98,6 +98,22 @@ class ComposeEntryTest {
         }
     }
 
+    /** Real Android Compose compiler output of the build-generated adapter for an app-owned component. */
+    @Test void generatedNativeAdapterInvokesTheComposableAndIsNeverHooked() {
+        def facade = fixtures().listFiles().find { it.name.startsWith('DootahAdaptersKt_') && it.name.endsWith('.class') }
+        assertNotNull('the fixture build generates a native adapter', facade)
+        def adapters = read(facade.bytes).methods.findAll { it.name ==~ /dootahAdapter_[0-9a-f]{16}/ }
+        assertEquals(1, adapters.size())
+        // The copied call keeps Kotlin defaults: StatusChip's default-mask form (value-class mangled), with a Composer.
+        def call = adapters.first().instructions.find { it instanceof MethodInsnNode && it.name.startsWith('StatusChip-') }
+        assertNotNull(call)
+        assertTrue(call.desc, call.desc.contains('Landroidx/compose/runtime/Composer;'))
+        assertTrue(read(transform(facade.bytes)).methods.every { hooks(it).empty })
+        def index = new File(fixtures().parentFile, 'generated/DootahAdapterIndex.class')
+        assertTrue(index.isFile())
+        assertNotNull(read(index.bytes).methods.find { it.name == 'registry' && (it.access & ACC_STATIC) && it.desc == '()Ljava/lang/Object;' })
+    }
+
     @Test void prefixExecutesOnJvmWithNativeFallbackOverrideAndDefaultMasks() {
         def original = read(new File(fixtures(), 'MemberScreens.class').bytes)
         def member = original.methods.find { it.name == 'Member' }

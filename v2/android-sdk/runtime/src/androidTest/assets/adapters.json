@@ -1,0 +1,76 @@
+{
+    "schema": "dootah.portable",
+    "runtimeAbi": 3,
+    "logicAbi": 1,
+    "runtimeVersion": "adapter-fixture",
+    "requires": [
+        "compose.layout.v1",
+        "compose.nativeAdapter.v1",
+        "logic.pure.v1"
+    ],
+    "overrides": [
+        {
+            "functionId": "dth1:575fbb27ecda754e717586902bfa4b2d8b47c33ca3143602b1eee6957dd98dda",
+            "parameters": [
+                "Int"
+            ],
+            "slots": [
+                {
+                    "type": "Boolean",
+                    "expression": {
+                        "op": "gt",
+                        "args": [
+                            {
+                                "op": "input",
+                                "index": 0
+                            },
+                            {
+                                "op": "literal",
+                                "type": "Int",
+                                "value": 1
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "String",
+                    "expression": {
+                        "op": "concat",
+                        "args": [
+                            {
+                                "op": "literal",
+                                "type": "String",
+                                "value": ""
+                            },
+                            {
+                                "op": "string",
+                                "args": [
+                                    {
+                                        "op": "input",
+                                        "index": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "tree": {
+                "type": "if",
+                "condition": 0,
+                "then": [
+                    {
+                        "type": "native",
+                        "adapter": "dev.dootah.fixture.CountBadge#5775a1c464047e0b",
+                        "arguments": [
+                            1
+                        ]
+                    }
+                ],
+                "else": [
+                    
+                ]
+            }
+        }
+    ]
+}

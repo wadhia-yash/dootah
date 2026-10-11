@@ -15,7 +15,7 @@ new SourceAnalyzer().withCloseable { analyzer ->
         assert entry.id != null : entry.reason
         def lowered = LogicLowering.lower(entry)
         def program = new PortableProgram(JsonOutput.toJson([
-            schema:'dootah.portable', runtimeAbi:2, logicAbi:1, runtimeVersion:'docs-example',
+            schema:'dootah.portable', runtimeAbi:3, logicAbi:1, runtimeVersion:'docs-example',
             requires:[PortableProgram.LOGIC, PortableProgram.TEXT],
             overrides:[[functionId:entry.id] + lowered]
         ]), 'docs-example')

@@ -69,7 +69,7 @@ public final class SandboxProof extends Instrumentation {
     private JSONObject portable(RestrictedSandbox sandbox) throws Exception {
         String id = "dth1:" + "a".repeat(64);
         String expression = "{\"op\":\"string\",\"args\":[{\"op\":\"sub\",\"args\":[{\"op\":\"input\",\"index\":0},{\"op\":\"input\",\"index\":1}]}]}";
-        JSONObject root = new JSONObject().put("schema","dootah.portable").put("runtimeAbi",2).put("logicAbi",1)
+        JSONObject root = new JSONObject().put("schema","dootah.portable").put("runtimeAbi",3).put("logicAbi",1)
             .put("runtimeVersion","proof").put("requires",new org.json.JSONArray(List.of(PortableProgram.LOGIC,PortableProgram.TEXT)))
             .put("overrides",new org.json.JSONArray().put(new JSONObject().put("functionId",id)
                 .put("parameters",new org.json.JSONArray(List.of("Int","Int"))).put("expression",new JSONObject(expression))));

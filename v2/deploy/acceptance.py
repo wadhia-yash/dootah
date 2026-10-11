@@ -65,7 +65,9 @@ DOOTAH_INGRESS_PREFIX={ingress}
             time.sleep(1)
         raise RuntimeError(service+' not healthy')
     def copy_inputs():
-        for local,remote in [(HERE/'acceptance-client.mjs','/tmp/client.mjs'),(work/'root.crt','/tmp/root.crt'),(secret_dir/'initial-password','/tmp/initial-password')]:
+        # The installed runtime's own capability document, so registration always matches what the SDK ships.
+        capabilities=HERE.parent/'android-sdk/runtime/src/main/assets/dootah-capabilities.json'
+        for local,remote in [(HERE/'acceptance-client.mjs','/tmp/client.mjs'),(capabilities,'/tmp/capabilities.json'),(work/'root.crt','/tmp/root.crt'),(secret_dir/'initial-password','/tmp/initial-password')]:
             c('exec','-T','-u','0','cloud','sh','-c','umask 077; cat > "$1"; chown 10001:10001 "$1"','sh',remote,data=local.read_bytes())
         for name in ['tenants.json','artifact.json']:
             if (work/name).exists():
@@ -212,7 +214,7 @@ DOOTAH_INGRESS_PREFIX={ingress}
         assert state_before==state_after
         assert all(v.encode() not in c('logs','--no-color').stdout for v in values)
         ok('fresh-volume database/storage/key/config restore with identical storage hashes and verified signatures')
-        receipt={'phase':'9D','passed':True,'restorePassed':True,'checks':checks,'cloudTests':{'passed':cloud_passed,'failed':0,'skipped':0},'runtimeAbi':2,'logicAbi':1,'externalDeployment':False}
+        receipt={'phase':'9D','passed':True,'restorePassed':True,'checks':checks,'cloudTests':{'passed':cloud_passed,'failed':0,'skipped':0},'runtimeAbi':3,'logicAbi':1,'externalDeployment':False}
         (work/'acceptance.json').write_text(json.dumps(receipt,indent=2))
         print(f'PASS receipt: {work}/acceptance.json',flush=True)
     finally:

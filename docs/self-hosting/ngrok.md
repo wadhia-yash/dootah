@@ -208,7 +208,7 @@ dootah login --email operator@example.test --password-file "$DOOTAH_WORK/operato
 dootah org list --session-file "$DOOTAH_PRIVATE/session"
 ```
 
-Only after this preflight passes, stage `0.1.0-alpha.1` into a new directory under
+Only after this preflight passes, stage `0.1.0-alpha.2` into a new directory under
 `DOOTAH_WORK` using the [official staging commands](../getting-started/quickstart.md#current-pre-publication-setup).
 Never use `android-sdk/build/maven`, `mavenLocal()` or `0.7.5-local` for this trial.
 

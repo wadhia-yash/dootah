@@ -28,7 +28,7 @@ class RetentionTest {
         task.outputDirectory.set(new File(project.buildDir, 'retained'))
         task
     }
-    private File apk(int abi = 2) {
+    private File apk(int abi = 3) {
         def file = temp.newFile()
         new ZipOutputStream(new FileOutputStream(file)).withCloseable { zip ->
             zip.putNextEntry(new ZipEntry('assets/dootah-capabilities.json'))
@@ -65,7 +65,7 @@ class RetentionTest {
     }
     @Test void abiMismatchAndNoHooksAreRefused() {
         def task = task()
-        assertThrows(GradleException) { task.capture(apk(3)) }
+        assertThrows(GradleException) { task.capture(apk(2)) }
         new File(task.sourceRoot.get().asFile, 'classes/example/Screen.class').bytes = DootahPluginTest.screen(false)
         assertThrows(GradleException) { task.capture(apk()) }
     }

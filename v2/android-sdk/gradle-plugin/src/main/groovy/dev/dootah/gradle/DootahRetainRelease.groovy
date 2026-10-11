@@ -79,8 +79,8 @@ abstract class DootahRetainRelease extends DefaultTask {
             if (entry == null) throw new GradleException('APK lacks the installed capability contract')
             capabilities = new JsonSlurper().parse(zip.getInputStream(entry))
         }
-        if (capabilities.runtimeAbi != 2 || capabilities.logicAbi != 1)
-            throw new GradleException('Retention requires Runtime ABI 2 / Logic ABI 1')
+        if (capabilities.runtimeAbi != 3 || capabilities.logicAbi != 1)
+            throw new GradleException('Retention requires Runtime ABI 3 / Logic ABI 1')
         def out = outputDirectory.get().asFile
         // A complete new capture replaces stale output; archive the record before the next native build.
         if (out.exists()) out.deleteDir()
@@ -95,7 +95,7 @@ abstract class DootahRetainRelease extends DefaultTask {
         save(out, 'classHashes.json', classes.collectEntries { path, bytes -> [(path): hash(bytes)] })
         save(out, 'hooks.json', [schema: 1, entries: hooks, hooks: hooks.size()])
         save(out, 'capabilities.json', capabilities)
-        save(out, 'release.json', [schema: 1, metadata: new TreeMap(metadata.get()), runtimeAbi: 2, logicAbi: 1,
+        save(out, 'release.json', [schema: 1, metadata: new TreeMap(metadata.get()), runtimeAbi: 3, logicAbi: 1,
             apk: 'accepted.apk', apkSha256: hash(apk.bytes), classes: 'classes', classHashes: 'classHashes.json',
             sources: 'sources', sourceRoots: sourceRoots.get().unique(false).sort(), sourceHashes: sources.collectEntries { path, bytes -> [(path): hash(bytes)] },
             hooks: 'hooks.json', capabilities: 'capabilities.json'])

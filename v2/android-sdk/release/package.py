@@ -25,6 +25,8 @@ INTERNAL = {'expo', 'expo-brownfield', 'expo-constants', 'expo-eas-client', 'exp
             'expo-log-box', 'expo-manifests', 'expo-modules-core', 'expo-structured-headers',
             'expo-updates', 'expo-updates-interface'}
 OWNED = {'runtime-v2', 'dootah-android-plugin', 'dev.dootah.gradle.plugin'}
+# The installed capability contract is the single source of the ABIs stated in artifact pages.
+CONTRACT = json.loads((SDK / 'runtime/src/main/assets/dootah-capabilities.json').read_text())
 
 def sha(data):
     return hashlib.sha256(data).hexdigest()
@@ -233,7 +235,8 @@ def docs(artifact, sources, licenses):
         f'<h1>{html.escape(artifact)}</h1><p>Release source reference. The sources below are the '
         'packaged source of this artifact, including upstream documentation comments. '
         'This is a source reference, not generated Javadoc.</p>'
-        '<p>Runtime ABI 2; Logic ABI 1. Internal Expo modules are implementation details.</p>'
+        f'<p>Runtime ABI {CONTRACT["runtimeAbi"]}; Logic ABI {CONTRACT["logicAbi"]}. '
+        'Internal Expo modules are implementation details.</p>'
         '<p><a href="guide.html">SDK integration and publication guide</a></p><ul>' + ''.join(
         f'<li><a href="source/{html.escape(n)}.html">{html.escape(n)}</a></li>'
         for n in sorted(sources) if n.endswith(('.kt', '.java', '.groovy', '.cpp', '.h'))) + '</ul>').encode()
@@ -439,7 +442,8 @@ def package(stage):
                 classes = sorted(n for n in entries if n.endswith('.class'))
                 artifact = path.parent.parent.name
                 prefixes = ('dev/dootah/runtime/', 'dev/dootah/portable/') if artifact == 'runtime-v2' else (
-                    ('dev/dootah/gradle/', 'dev/dootah/identity/') if artifact == 'dootah-android-plugin' else
+                    # The plugin also ships its build-time native adapter generator (dev.dootah.adapters).
+                    ('dev/dootah/gradle/', 'dev/dootah/identity/', 'dev/dootah/adapters/') if artifact == 'dootah-android-plugin' else
                     ('expo/', 'com/facebook/react/') if artifact == 'expo-modules-core' else ('expo/', 'inline/modules/') if artifact == 'expo' else ('expo/',))
                 if not classes or any(not name.startswith(prefixes) or re.search(r'(^|/)[^/]*Test(?:\$|\.)', name) for name in classes):
                     raise ValueError(f'Unexpected classes in {artifact}')

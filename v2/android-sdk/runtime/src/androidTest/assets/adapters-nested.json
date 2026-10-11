@@ -1,0 +1,92 @@
+{
+    "schema": "dootah.portable",
+    "runtimeAbi": 3,
+    "logicAbi": 1,
+    "runtimeVersion": "adapter-fixture",
+    "requires": [
+        "compose.layout.v1",
+        "compose.nativeAdapter.v1",
+        "logic.pure.v1"
+    ],
+    "overrides": [
+        {
+            "functionId": "dth1:5d3f4defe75cae6d1edc82c9ee7546f785a092a64259e70bd7e6059e9b9ccc9a",
+            "parameters": [
+                "Int"
+            ],
+            "slots": [
+                {
+                    "type": "Boolean",
+                    "expression": {
+                        "op": "gt",
+                        "args": [
+                            {
+                                "op": "input",
+                                "index": 0
+                            },
+                            {
+                                "op": "literal",
+                                "type": "Int",
+                                "value": 1
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "String",
+                    "expression": {
+                        "op": "concat",
+                        "args": [
+                            {
+                                "op": "literal",
+                                "type": "String",
+                                "value": ""
+                            },
+                            {
+                                "op": "string",
+                                "args": [
+                                    {
+                                        "op": "input",
+                                        "index": 0
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "tree": {
+                "type": "native",
+                "adapter": "androidx.compose.foundation.layout.Row#8e20570244c48d05",
+                "arguments": [
+                    
+                ],
+                "children": [
+                    {
+                        "type": "native",
+                        "adapter": "androidx.compose.foundation.layout.Row#8e20570244c48d05/androidx.compose.material3.Text#f2eaf0bcbbd9571a",
+                        "arguments": [
+                            
+                        ]
+                    },
+                    {
+                        "type": "if",
+                        "condition": 0,
+                        "then": [
+                            {
+                                "type": "native",
+                                "adapter": "androidx.compose.foundation.layout.Row#8e20570244c48d05/dev.dootah.fixture.CountBadge#87057e2c14154650",
+                                "arguments": [
+                                    1
+                                ]
+                            }
+                        ],
+                        "else": [
+                            
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

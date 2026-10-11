@@ -32,8 +32,10 @@ test('malformed bindings are redacted and fail closed; empty bindings bootstrap 
 test('missing Java or validator cannot report readiness',async()=>{await assert.rejects(validatorReady({DOOTAH_JAVA:'/missing',DOOTAH_VALIDATOR_CLASSPATH:'/missing'}),/DOOTAH_JAVA/);});
 test('runtime readiness rejects migration owner and unavailable DB without leaking errors',async()=>{
  await assert.rejects(runtimeDatabaseReady({query:async()=>{throw Error(key);}}),e=>!e.stack.includes(key));
+ await runtimeDatabaseReady({query:async()=>({rows:[{version:7}]})});
+ for(const version of [6,8]) await assert.rejects(runtimeDatabaseReady({query:async()=>({rows:[{version}]})}),/unmigrated/);
  for(const flag of ['rolsuper','rolcreatedb','rolcreaterole','rolbypassrls','schema_create','public_create','database_create','owner_member']) {
-  await assert.rejects(runtimeDatabaseReady({query:async()=>({rows:[{version:6,[flag]:true}]})}),/overprivileged/);
+  await assert.rejects(runtimeDatabaseReady({query:async()=>({rows:[{version:7,[flag]:true}]})}),/overprivileged/);
  }
 });
 test('bindings enforce private endpoint, public origin, app exclusivity and certificate',()=>{

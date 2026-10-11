@@ -26,7 +26,7 @@ export async function loadConfig(path) {
 }
 export async function importRecord(recordPath, sourceRoot, configPath) {
   const record = await read(recordPath), base = dirname(resolve(recordPath));
-  assert(record.schema === 1 && record.runtimeAbi === 2 && record.logicAbi === 1, 'Retained release ABI mismatch');
+  assert(record.schema === 1 && record.runtimeAbi === 3 && record.logicAbi === 1, 'Retained release ABI mismatch');
   const apk = inside(base, record.apk);
   assert.equal(hash(await readFile(apk)), record.apkSha256, 'Retained APK hash mismatch');
   const snapshot = inside(base, record.sources);

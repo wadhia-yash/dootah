@@ -166,6 +166,16 @@ test(
       logicAbi: 1,
       metadata: {},
     };
+    for (const abi of [2, 3]) {
+      assert.equal((await call(device, "events", "POST", {
+        events: [{ ...e, id: randomUUID(), runtimeAbi: abi }],
+      })).status, 200);
+    }
+    for (const abi of [1, 4, "3"]) {
+      assert.equal((await call(device, "events", "POST", {
+        events: [{ ...e, id: randomUUID(), runtimeAbi: abi }],
+      })).status, 422);
+    }
     assert.equal(
       (await call(device, "events", "POST", { events: [e] })).status,
       200,

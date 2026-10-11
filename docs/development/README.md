@@ -31,7 +31,7 @@ For changes to integration snippets, build the exact fenced snippets in a tempor
 consumer using a reviewed local public-version stage:
 
 ```sh
-python3 tools/docs/build_example.py --stage "$HOME/dootah-work/sdk-stage-alpha-1"
+python3 tools/docs/build_example.py --stage "$HOME/dootah-work/sdk-stage-alpha-2"
 ```
 
 It checks Debug retention, a Release build, one installed hook in each, standalone

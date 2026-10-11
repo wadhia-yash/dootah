@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <!-- This isolated renderer test never starts the updater or uses consumer credentials. -->
+    <application>
+        <meta-data android:name="expo.modules.updates.ENABLED" tools:node="remove" />
+        <meta-data android:name="expo.modules.updates.EXPO_UPDATE_URL" tools:node="remove" />
+        <meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" tools:node="remove" />
+        <meta-data android:name="expo.modules.updates.UPDATES_CONFIGURATION_REQUEST_HEADERS_KEY" tools:node="remove" />
+        <meta-data android:name="expo.modules.updates.CODE_SIGNING_CERTIFICATE" tools:node="remove" />
+        <meta-data android:name="expo.modules.updates.CODE_SIGNING_METADATA" tools:node="remove" />
+        <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" tools:node="remove" />
+        <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" tools:node="remove" />
+    </application>
+</manifest>

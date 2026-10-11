@@ -1,8 +1,16 @@
 # Quickstart: native Kotlin to first OTA
 
-This is the authoritative V2 alpha quickstart. It uses public SDK candidate
-**0.1.0-alpha.1**, Runtime ABI **2**, Logic ABI **1** and the BasicText renderer.
-Read the [platform limits](../reference/platform.md) before changing an existing app.
+This is the authoritative V2 alpha quickstart. It uses the experimental source-only
+alpha **0.1.0-alpha.2**, Runtime ABI **3** and Logic ABI **1**. The walkthrough edits a
+small logic helper rendered by `BasicText`; the same workflow publishes structural UI,
+native-adapter, nested-component and state/callback changes within the
+[supported subset](../reference/support.md). Read the
+[platform limits](../reference/platform.md) before changing an existing app.
+
+**Upgrading from alpha.1:** Runtime ABI 3 is incompatible with ABI 2. Do not publish
+alpha.2 updates to alpha.1 installs. Stage alpha.2, then build, retain and install a new
+baseline APK with a new `runtimeVersion`, create a new Cloud environment for it, and
+import/register its contract as below. A self-hosted Cloud must run the alpha.2 image.
 All shell commands below use POSIX syntax; replace quoted placeholders with your own
 paths/IDs. Keep credentials and retained release inputs outside source control.
 
@@ -39,12 +47,15 @@ For **ALPHA / CLEAN-ROOM VALIDATION USING NGROK**, complete the
 [ngrok live HTTPS preflight](../self-hosting/ngrok.md) **before staging or building
 the Android app**. Obtain the final URL first and retain it throughout the trial.
 
-**No public Maven repository availability is claimed.** Build a new public-version
-stage from this checkout or obtain an intact reviewed stage from your operator.
-Do not point consumers at a historical stage whose plugin predates release retention.
+**This alpha is source-only; no public Maven repository availability is claimed.**
+Check out the reviewed `v0.1.0-alpha.2` source (or obtain an intact reviewed stage from
+your operator) and build a local public-version Maven stage from it. The stage contains
+unsigned `0.1.0-alpha.2` plugin, marker and runtime artifacts; your app resolves Dootah
+only from that directory. Do not point consumers at a historical stage whose plugin
+predates release retention, or at an alpha.1 stage.
 
 ```sh
-export DOOTAH_STAGE="$HOME/dootah-work/sdk-stage-alpha-1"
+export DOOTAH_STAGE="$HOME/dootah-work/sdk-stage-alpha-2"
 mkdir -p "$(dirname "$DOOTAH_STAGE")"
 "$DOOTAH_REPO/v2/android-sdk/release/stage.sh" "$DOOTAH_STAGE"
 python3 "$DOOTAH_REPO/v2/android-sdk/release/validate.py" "$DOOTAH_STAGE"
@@ -123,7 +134,7 @@ plugins {
     id 'com.android.application' version '8.12.0'
     id 'org.jetbrains.kotlin.android' version '2.1.20'
     id 'org.jetbrains.kotlin.plugin.compose' version '2.1.20'
-    id 'dev.dootah' version '0.1.0-alpha.1'
+    id 'dev.dootah' version '0.1.0-alpha.2'
 }
 android {
     namespace 'example.dootah'
@@ -355,7 +366,7 @@ Only after an authorized public release identifies the actual registry, replace 
 local exclusive Maven blocks with that registry in **both** plugin and dependency
 repository scopes. If Maven Central is chosen, use `mavenCentral()` in both plus
 `google()` for Android dependencies. If Artifactory is chosen, use its announced URL
-and access policy. Keep `id 'dev.dootah' version '0.1.0-alpha.1'` only if that exact
-version is released. No Plugin Portal listing, Central/JFrog availability or upload
+and access policy. Keep `id 'dev.dootah' version '0.1.0-alpha.2'` only if that exact
+version is released to that registry. No Plugin Portal listing, Central/JFrog availability or upload
 is implied by these prospective instructions. The integration and retained-release
 workflow otherwise stays the same.

@@ -1,8 +1,34 @@
 # Alpha status and evidence
 
-As of 2026-10-05, the public SDK candidate is **0.1.0-alpha.1**, development SDK
-**0.7.5-local**, Runtime ABI **2**, Logic ABI **1**, BasicText / Option A.
-Dootah-owned code is Apache-2.0. Public Maven/JFrog publication is not claimed.
+As of 2026-10-11, the public SDK is **0.1.0-alpha.2**, an experimental source-only
+alpha: development SDK **0.7.5-local**, Runtime ABI **3**, Logic ABI **1**. Dootah-owned
+code is Apache-2.0. Public Maven/JFrog publication is not claimed; consumers build a
+local Maven stage from the tagged source.
+
+## Alpha.2 (Runtime ABI 3) evidence
+
+Each capability passed same-APK OTA on a physical device in a separate Mihon test
+install (R8 release build, installed once, ordinary source edit published through
+Cloud, no rebuild or reinstall). Raw acceptance logs contain operator state and stay
+private, outside the repository.
+
+| Capability | Device | What was shown | Limit |
+| --- | --- | --- | --- |
+| Structural Compose UI | Vivo 1909, Android 12 | Box/Text/`if` changes, signed OTA, native rollback, per-app offline persistence ([record](../v2/MINIMAL_STRUCTURAL_OTA.md)) | One app and device |
+| Build-generated native adapters | Vivo 1909, Android 12 | Changed condition around an installed app component; same native pixels | No raw evidence in the repository |
+| Nested components | Samsung SM-E426B, Android 13 | Installed children reordered inside an installed `Column`; same native pixels | No raw evidence in the repository |
+| Compose state and installed callbacks | Vivo 1909, Android 12 | `mutableStateOf(false)` → `true` in a multi-slot `AlertDialog`; toggling, Remove/Cancel/dismiss reached the installed callbacks with the current state | Exactly-once execution is proven by JVM tests; the app's handlers are idempotent |
+| Scalar business logic | Both devices | Logic ABI 1 conditions and values in every edit above, and the alpha.1 suite below | — |
+
+Local module suites passed on the alpha.2 source. Rollback, offline and signing
+lifecycle checks were not repeated for the adapter, nested and interaction slices;
+they reuse the structural and alpha.1 evidence because delivery is unchanged.
+**Hosted CI must still pass on the alpha.2 release commit.**
+
+## Alpha.1 (Runtime ABI 2) evidence
+
+These records describe the earlier ABI 2 release and remain valid for its delivery,
+hosting and security machinery.
 
 | Evidence | What it establishes | Limit |
 | --- | --- | --- |
@@ -29,5 +55,5 @@ lists the remaining verification and signing steps.
 
 The [platform limits](platform.md) and [support matrix](support.md) are current
 product references. Dated evidence retains historical SDK versions and paths on
-purpose; later records may resolve earlier findings. No new device proof, artifact
-publication, deployment or public GitHub release is claimed by the documentation work.
+purpose; later records may resolve earlier findings. No artifact publication or
+deployment is claimed.

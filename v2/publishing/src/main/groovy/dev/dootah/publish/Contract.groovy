@@ -9,6 +9,7 @@ import org.objectweb.asm.tree.MethodInsnNode
 import java.security.MessageDigest
 import java.util.zip.ZipFile
 import dev.dootah.portable.PortableProgram
+import dev.dootah.adapters.AdapterGen
 import org.json.JSONObject
 import static dev.dootah.publish.SourceAnalyzer.require
 
@@ -55,8 +56,8 @@ class Contract {
 
     /** Only installed, Logic ABI 1 parameter forms enter the public Cloud contract. */
     static Map cloudContract(Map contract) {
-        require(contract.schema == 2 && contract.irAbi == 2 && contract.dispatchAbi == 2 &&
-            contract.capabilities == new JsonSlurper().parseText(PortableProgram.contract().toString()), 'Runtime/Logic ABI or capability mismatch')
+        require(contract.schema == 3 && contract.irAbi == 3 && contract.dispatchAbi == 2, 'Runtime/Logic ABI or capability mismatch')
+        interactive(contract.capabilities)
         def functions = new TreeMap()
         contract.functions.findAll { it.installed && !it.extension }.each { f ->
             def args = org.objectweb.asm.Type.getArgumentTypes(f.descriptor as String)*.descriptor
@@ -68,6 +69,12 @@ class Contract {
             args.take(count).eachWithIndex { d, i ->
                 def type = ['Ljava/lang/String;':'String', 'I':'Int', 'Z':'Boolean',
                     'Ljava/lang/Integer;':'Int', 'Ljava/lang/Boolean;':'Boolean'][d]
+                // Installed callbacks: the source token, checked against the descriptor's FunctionN arity.
+                String callback = f.types?.getAt(i)
+                if (type == null && callback != null && PortableProgram.callbackType(callback) && f.nullable[i] == '!' &&
+                    d == 'Lkotlin/jvm/functions/Function' + PortableProgram.callbackArguments(callback).size() + ';') {
+                    types << callback; return
+                }
                 if (type == null) portable = false
                 types << (type == null ? null : type + (f.nullable[i] == '?' ? '?' : ''))
             }
@@ -80,8 +87,75 @@ class Contract {
         [capabilities: contract.capabilities, functions: functions]
     }
 
+    /** The installed capability document must be one this publisher negotiates; true when it has compose.interaction.v1. */
+    static boolean interactive(Object capabilities) {
+        require(capabilities instanceof Map, 'Unsupported installed capabilities')
+        PortableProgram.negotiate(new JSONObject(json(capabilities)))
+    }
+
+    /**
+     * Adapters the build generated from these sources, kept only when the retained bytecode shows the
+     * generated method invoking a composable (a Composer parameter) and the APK carries its identity.
+     */
+    /**
+     * Whether compiled code calls the composable `name`: a call instruction, or, for an inline composable such as
+     * Column, the marker local variable kotlinc emits where it inlined the body (`$i$f$<name>`).
+     */
+    static boolean invokes(Collection methods, String name) {
+        methods.any { m -> m.instructions.any { it instanceof MethodInsnNode &&
+            (it.name == name || it.name.startsWith(name + '-')) && it.desc.contains('Landroidx/compose/runtime/Composer;') } ||
+            m.localVariables?.any { it.name == '$i$f$' + name } }
+    }
+
+    static Map adapters(Map sources, File classes, Map classHashes) {
+        def result = new TreeMap()
+        new SourceAnalyzer().withCloseable { analyzer ->
+            sources.each { String path, String text ->
+                def generated = AdapterGen.generate(analyzer.inspect(path, text).file, path)
+                if (generated.adapters.empty) return
+                String classPath = generated.qualifiedFacade().replace('.', '/') + '.class'
+                File file = new File(classes, classPath)
+                if (!classHashes.containsKey(classPath) || !file.isFile() || hash(file.bytes) != classHashes[classPath]) return
+                def node = new ClassNode()
+                new ClassReader(file.bytes).accept(node, 0)
+                // Children are compiled inside the container's content lambda: the facade's own lambda methods
+                // or its ComposableSingletons/inner classes, all generated from this one source file.
+                String facadePath = generated.qualifiedFacade().replace('.', '/')
+                String singletons = facadePath.contains('/') ? facadePath.substring(0, facadePath.lastIndexOf('/') + 1) +
+                    'ComposableSingletons$' + facadePath.substring(facadePath.lastIndexOf('/') + 1) : 'ComposableSingletons$' + facadePath
+                def related = [node] + classHashes.keySet().findAll { String candidate ->
+                    // Compose names the singletons class after the generated source file (".../ComposableSingletons$<file>Kt").
+                    (candidate.startsWith(facadePath + '$') || candidate.startsWith(singletons)) && candidate != classPath
+                }.collect { String candidate ->
+                    File f = new File(classes, candidate)
+                    if (!f.isFile() || hash(f.bytes) != classHashes[candidate]) return null
+                    def n = new ClassNode(); new ClassReader(f.bytes).accept(n, 0); n
+                }.findAll { it != null }
+                Closure invokes = { Collection methods, String name -> Contract.invokes(methods, name) }
+                Closure uses = { Collection methods, String member -> methods.any { m -> m.instructions.any { it instanceof MethodInsnNode &&
+                    it.owner == 'dev/dootah/runtime/NativeCall' && (it.name == member || member == 'event' && it.name.startsWith('event')) } } }
+                generated.adapters.each { shape ->
+                    def method = node.methods.find { it.name == shape.method }
+                    if (method == null) return
+                    def lambdas = related.collectMany { it.methods } + node.methods.findAll { it.name.startsWith(shape.method) }
+                    // Content lambdas must be @Composable (they call NativeCall.content); callbacks must forward to
+                    // NativeCall.event; every call, nested children included, must invoke its composable.
+                    if (!invokes(lambdas, shape.calleeName())) return
+                    def all = [shape] + shape.descendants()
+                    if (all.any { it.container } && !uses(lambdas, 'content')) return
+                    if (all.any { !it.events.empty } && !uses(lambdas, 'event')) return
+                    result[shape.id] = shape.signature()
+                    shape.descendants().each { child -> if (invokes(lambdas, child.calleeName())) result[child.id] = child.signature() }
+                }
+            }
+        }
+        result
+    }
+
     static Map create(File apk, File classes, Map expectedClassHashes, Map sources, Map manifest) {
         def methods = [:]
+        def candidates = adapters(sources, classes, expectedClassHashes)
+        def installedAdapterIds = new HashSet()
         def apkIds = new HashSet()
         def embedded
         def installedCapabilities
@@ -90,7 +164,7 @@ class Contract {
             def caps = zip.getEntry('assets/dootah-capabilities.json')
             if (caps != null) {
                 installedCapabilities = new JsonSlurper().parse(zip.getInputStream(caps))
-                require(installedCapabilities == new JsonSlurper().parseText(PortableProgram.contract().toString()), 'Unknown installed capability contract')
+                interactive(installedCapabilities)
             }
             embedded = new JsonSlurper().parse(zip.getInputStream(zip.getEntry('assets/app.manifest')))
             byte[] bootstrap = zip.getInputStream(zip.getEntry('assets/index.android.bundle')).readAllBytes()
@@ -102,6 +176,7 @@ class Contract {
                     // IDs contain ASCII only; scan DEX string bytes, not deobfuscated names.
                     String data = new String(zip.getInputStream(e).readAllBytes(), 'ISO-8859-1')
                     (data =~ /dth1:[0-9a-f]{64}/).each { apkIds.add(it) }
+                    candidates.keySet().each { if (data.contains(it)) installedAdapterIds.add(it) }
                 }
             }
         }
@@ -134,42 +209,62 @@ class Contract {
                     def method = methods[entry.owner + '.' + entry.method + entry.descriptor]
                     // Retained class signatures and hook constants are authoritative.
                     if (method == null) return
-                    require(method.id == entry.id && method.signature == null &&
+                    require(method.id == entry.id && method.signature == SourceAnalyzer.genericSignature(entry.descriptor, entry.types) &&
                         ((method.access & 8) != 0) == entry.isStatic, "Source/installed identity disagreement: ${entry.name}")
                     functions << [path:path, owner:entry.owner, name:entry.name, descriptor:entry.descriptor,
-                        id:entry.id, nullable:entry.nullability, extension:entry.extension, isStatic:entry.isStatic,
+                        id:entry.id, nullable:entry.nullability, types:entry.types, extension:entry.extension, isStatic:entry.isStatic,
                         installed:method.installed]
                 }
             }
         }
         require(!functions.empty, 'No source/installed identity agreement')
-        [schema:installedCapabilities == null ? 1 : 2, irAbi:installedCapabilities == null ? 1 : 2,
+        def installedAdapters = installedCapabilities == null ? [:] : candidates.findAll { id, signature -> id in installedAdapterIds }
+        [schema:installedCapabilities == null ? 1 : 3, irAbi:installedCapabilities == null ? 1 : 3,
             dispatchAbi:installedCapabilities == null ? 1 : 2, capabilities:installedCapabilities ?: [CAPABILITY], apkSha256:hash(apk.bytes),
             embeddedId:embedded.id, hermesBytecodeVersion:hermesBytecodeVersion,
             packageName:manifest.packageName, runtimeVersion:manifest.runtimeVersion,
             appId:manifest.appId, channel:manifest.channel, updateUrl:manifest.updateUrl,
-            classes:expectedClassHashes, sources:sources, functions:functions.sort { it.id }]
+            classes:expectedClassHashes, sources:sources, functions:functions.sort { it.id }, adapters:installedAdapters]
     }
 
     static void validate(Map contract, Map config) {
-        require(contract.schema in [1,2] && contract.irAbi == contract.schema && contract.dispatchAbi == contract.schema, 'Runtime/IR ABI mismatch')
-        require(contract.capabilities == (contract.schema == 1 ? [CAPABILITY] : new JsonSlurper().parseText(PortableProgram.contract().toString())), 'Unsupported installed capabilities')
+        require(contract.schema in [1,3] && contract.irAbi == contract.schema && contract.dispatchAbi == (contract.schema == 3 ? 2 : 1), 'Runtime/IR ABI mismatch')
+        if (contract.schema == 1) require(contract.capabilities == [CAPABILITY], 'Unsupported installed capabilities')
+        else interactive(contract.capabilities)
         require(contract.apkSha256 == config.apkSha256 && contract.runtimeVersion == config.runtimeVersion &&
             contract.packageName == config.packageName && contract.appId == config.appId &&
             contract.channel == config.channel, 'Stale installed contract or release target mismatch')
         require(hash(new File(config.contract).bytes) == config.contractSha256, 'Contract digest mismatch; re-import the trusted installed build')
         require(contract.functions*.id.unique(false).size() == contract.functions.size(), 'Duplicate installed identities')
+        require(contract.adapters == null || (contract.adapters instanceof Map && contract.adapters.every { id, signature ->
+            (id ==~ dev.dootah.portable.UiTree.ADAPTER_ID || id ==~ dev.dootah.portable.UiTree.NESTED_ID) && signature instanceof String &&
+            (signature.empty || signature.split(',').every { t -> PortableProgram.validType(t) || t == dev.dootah.portable.UiTree.CONTENT ||
+                t == dev.dootah.portable.UiTree.EVENT || (t.startsWith(dev.dootah.portable.UiTree.SLOT) &&
+                t.substring(dev.dootah.portable.UiTree.SLOT.length()) ==~ dev.dootah.portable.UiTree.SLOT_NAME) }) }), 'Malformed installed adapter table')
     }
 
     static Map analyze(Map contract, Map current) {
         require(current.keySet() == contract.sources.keySet(), 'Source file set differs from installed contract')
         def report = []
         def overrides = []
+        // Interaction features require an installed document that negotiated compose.interaction.v1.
+        boolean interaction = contract.capabilities instanceof Map && interactive(contract.capabilities)
         new SourceAnalyzer().withCloseable { analyzer ->
             require(!current.any { path, text -> !analyzer.inspect(path, text).hazards.empty },
                 'Project declarations shadow a rendering/package/annotation symbol; semantic resolution required')
+            def inspected = contract.sources.collectEntries { path, text -> [(path):analyzer.inspect(path,text)] }
+            def packages = inspected.values().groupBy { it.file.packageFqName.asString() }
+            def packageNames=packages.collectEntries { pkg, files -> [(pkg):files.collectMany { it.file.declarations*.name }.findAll { it!=null } as Set] }
+            def frozen=packages.collectEntries { pkg, files ->
+                def values=[:]
+                def names=files.collectMany { it.file.declarations*.name }.findAll { it!=null }
+                files.each { file -> UiLowering.constants(file.file,packageNames[pkg]).each { name,value ->
+                    if(names.count(name)==1) values[name]=value
+                } }
+                [(pkg):values]
+            }
             current.each { path, text ->
-                def baseline = analyzer.inspect(path, contract.sources[path])
+                def baseline = inspected[path]
                 def next = analyzer.inspect(path, text)
                 require(baseline.skeleton == next.skeleton, "Non-body change requires a new installed contract: $path")
                 next.entries.eachWithIndex { entry, i ->
@@ -178,9 +273,16 @@ class Contract {
                         require(entry.id != null, entry.reason ?: 'No compatible source identity')
                         require(contract.functions.any { it.installed && it.id == entry.id && it.path == path &&
                             it.owner == entry.owner && it.descriptor == entry.descriptor }, 'Unknown function identity; not installed')
-                        def tree = contract.schema == 2 ? LogicLowering.lower(entry) : analyzer.lower(entry)
+                        def tree
+                        if(contract.schema == 3) {
+                            try { tree=LogicLowering.lower(entry) }
+                            catch(IllegalArgumentException scalarRefusal) {
+                                def pkg=entry.file.packageFqName.asString()
+                                tree=UiLowering.lower(entry,frozen[pkg] ?: [:],packageNames[pkg] ?: [] as Set,contract.adapters ?: [:],interaction)
+                            }
+                        } else tree=analyzer.lower(entry)
                         status.status = status.changed ? 'portable' : 'unchanged'
-                        if (status.changed) overrides << (contract.schema == 2 ? [functionId:entry.id] + tree : [functionId:entry.id, requires:[CAPABILITY], tree:tree])
+                        if (status.changed) overrides << (contract.schema == 3 ? [functionId:entry.id] + tree : [functionId:entry.id, requires:[CAPABILITY], tree:tree])
                     } catch (IllegalArgumentException e) {
                         status.status = 'native'
                         status.reason = e.message
@@ -190,9 +292,9 @@ class Contract {
             }
         }
         def refused = report.any { it.changed && it.status == 'native' }
-        if (contract.schema == 2) {
-            def ir = [schema:'dootah.portable', runtimeAbi:2, logicAbi:1, runtimeVersion:contract.runtimeVersion,
-                requires:[PortableProgram.LOGIC, PortableProgram.TEXT], overrides:overrides.sort { it.functionId }]
+        if (contract.schema == 3) {
+            def ir = [schema:'dootah.portable', runtimeAbi:3, logicAbi:1, runtimeVersion:contract.runtimeVersion,
+                requires:requirements(overrides), overrides:overrides.sort { it.functionId }]
             def generated = [:]
             if (!overrides.empty) {
                 def program = new PortableProgram(json(ir), contract.runtimeVersion)
@@ -204,4 +306,24 @@ class Contract {
             runtimeVersion:contract.runtimeVersion, apkSha256:contract.apkSha256,
             overrides:overrides.sort { it.functionId }]]
     }
+    static List requirements(List overrides) {
+        def used=[PortableProgram.LOGIC] as Set
+        Closure visit
+        visit={ Map node ->
+            if(node.type=='text') used.add(PortableProgram.MATERIAL_TEXT)
+            if(node.type in ['box','if'] || node.modifiers) used.add(PortableProgram.LAYOUT)
+            if(node.type=='native') used.add(PortableProgram.NATIVE)
+            if(node.content || node.events) used.add(PortableProgram.INTERACTION)
+            (node.children ?: []).each { visit(it) }
+            (node.content ?: []).each { slot -> slot.children.each { visit(it) } }
+            (node.then ?: []).each { visit(it) }
+            (node.else ?: []).each { visit(it) }
+        }
+        overrides.each {
+            if(it.state || it.actions || it.parameters?.any { PortableProgram.callbackType(it) }) used.add(PortableProgram.INTERACTION)
+            if(it.tree) visit(it.tree); else used.add(PortableProgram.TEXT)
+        }
+        used.sort()
+    }
+
 }

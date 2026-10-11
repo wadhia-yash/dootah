@@ -1,8 +1,8 @@
 # Alpha platform requirements and limits
 
-Public SDK **0.1.0-alpha.1**, development SDK **0.7.5-local**, Runtime ABI **2**,
-Logic ABI **1**, renderer **BasicText / Option A**. Artifacts are currently source-staged;
-public Maven availability is not claimed.
+Public SDK **0.1.0-alpha.2** (experimental, source-only), development SDK **0.7.5-local**,
+Runtime ABI **3**, Logic ABI **1**. Artifacts are staged locally from source; public Maven
+availability is not claimed.
 
 | Area | Current requirement or limitation |
 | --- | --- |
@@ -16,14 +16,16 @@ public Maven availability is not claimed.
 | Sandbox | AndroidX JavaScriptEngine **1.0.0**, a working WebView-provided JavaScriptSandbox with termination and heap-limit features; unavailable features retain native behavior |
 | Interception | Eligible Compose entrypoints in the **application module only**; library modules are not intercepted |
 | Retention | One APK output per variant; module-contained source roots; keep exact APK, pre-R8 classes, source snapshot and hashes privately |
-| Renderer | One unthemed foundation `BasicText` result; no Material typography, arbitrary style/modifiers/layout/callbacks; dark-theme contrast can be poor |
+| Renderer | Native Compose only: `BasicText`, a bounded Box/Material3 Text structure, and build-generated adapters that call the app's own installed composables (with nested content, Compose state and installed callbacks). No arbitrary style, modifiers, layouts or new component calls; see the [support matrix](support.md) |
+| Not supported | Object models and data classes as inputs, collections, loops, navigation changes, library-module composables, new callbacks or callback bodies beyond state assignment and installed-callback calls, and general Kotlin execution. These need a new APK |
 | Footprint | Measured incremental release APK growth **22–31 MB** across accepted apps, largely RN/Hermes/Expo natives; no zero-overhead or controlled startup-regression claim |
-| Device evidence | One physical **Samsung SM-E426B, Android 13**; no API 29–32 or second-vendor qualification. Some apps passed R8; JetNews OTA evidence uses debug because its native release crashed |
+| Device evidence | Physical **Samsung SM-E426B, Android 13** (alpha.1 apps; ABI 3 nested components) and **Vivo 1909, Android 12** (ABI 3 structural UI, native adapters, state and callbacks), in separate Mihon test installs with R8 release builds; no API 29, 30 or 32 evidence and no broad vendor qualification. JetNews alpha.1 OTA evidence uses debug because its native release crashed |
 | Enrollment | Authenticated customer backend supplies ten-minute one-use tickets; native SDK stores a 30-day installation credential; integrator handles renewal |
 | Telemetry | Best-effort check/download/activation/render-health/rollback events, not crash-free analytics; no managed alerting |
 | Hosting | Operator-managed single-host Compose, explicit migrations, encrypted off-host backups; no HA, clustering, PITR or zero-downtime upgrade claim |
 | Hosting evidence | Local Docker Desktop ARM64 and emulated AMD64 acceptance; no external production deployment or native Ubuntu qualification |
-| CI | GitHub-hosted V2 required gates passed on commit `e329f83` (Linux AMD64); each later commit needs its own hosted run |
+| CI | GitHub-hosted V2 required gates passed on alpha.1-era commits (latest `3c9d3c1`, Linux AMD64); alpha.2 needs its own hosted run on the release commit |
+| Upgrading from alpha.1 | Runtime ABI 2 → 3 is incompatible. Build, retain and install a **new baseline APK** with alpha.2, give it a **new runtime version and Cloud environment**, and import/register its contract. Existing ABI 2 installations keep their native code and alpha.1 updates but never receive ABI 3 programs. Self-hosted Cloud must run the alpha.2 validator before publishing ABI 3 updates |
 
 [Support matrix](support.md) gives precise Kotlin limits. [Status](status.md) separates
 local, physical-device and hosted evidence. Producer pins are in the

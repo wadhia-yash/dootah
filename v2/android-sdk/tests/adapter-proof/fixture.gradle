@@ -1,0 +1,37 @@
+// Shared by both fixtures: generate adapters from ordinary source, then compile everything together.
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+kotlin { jvmToolchain(17) }
+configurations { dootahGenerator }
+def generated = layout.buildDirectory.dir('generated/dootah/adapters')
+def report = layout.buildDirectory.file('outputs/dootah/adapters.json')
+def sourceList = layout.buildDirectory.file('dootah/sources.txt')
+def appSources = fileTree('src/main/kotlin') { include '**/*.kt' }
+def generate = tasks.register('generateDootahAdapters', JavaExec) {
+    inputs.files(appSources).withPathSensitivity(PathSensitivity.RELATIVE)
+    outputs.dir(generated)
+    outputs.file(report)
+    classpath = configurations.dootahGenerator
+    mainClass = 'dev.dootah.adapters.AdapterGenMain'
+    args = [generated, projectDir, sourceList, report].collect { it instanceof Provider ? it.get().asFile.path : it.path } + ['true']
+    doFirst {
+        generated.get().asFile.deleteDir()
+        def list = sourceList.get().asFile
+        list.parentFile.mkdirs()
+        list.text = appSources.files*.absolutePath.sort().join('\n')
+    }
+}
+sourceSets.main.kotlin {
+    srcDir files(generated).builtBy(generate)
+    // The SDK's registry and override sources, compiled unchanged; they need only the Compose runtime
+    // and the shared portable grammar.
+    srcDir '../../../runtime/src/main/java'
+    include 'dev/dootah/runtime/NativeAdapters.kt', 'dev/dootah/runtime/PortableOverride.kt', 'dev/dootah/proof/**', 'dev/dootah/generated/**'
+}
+sourceSets.main.java.srcDir '../../../../portable/src/main/java'
+dependencies {
+    dootahGenerator project(':generator')
+    implementation 'org.jetbrains.compose.runtime:runtime-desktop:1.7.3'
+    implementation 'org.json:json:20250517'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit:2.1.20'
+}

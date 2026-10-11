@@ -18,7 +18,7 @@ def source(root):
                       'dootah.sdk.version': expected['developmentVersion'],
                       'dootah.internal.version': expected['internalPrefix']}, 'Frozen version source mismatch')
     portable = (root/'v2/portable/src/main/java/dev/dootah/portable/PortableProgram.java').read_text()
-    require(re.search(r'ABI = 2, LOGIC_ABI = 1;', portable), 'Frozen ABI mismatch')
+    require(re.search(r'ABI = 3, LOGIC_ABI = 1;', portable), 'Frozen ABI mismatch')
     for name in ['v2/runtime-spike/android/gradle/wrapper/gradle-wrapper.properties',
                  'v2/native-consumer/gradle/wrapper/gradle-wrapper.properties']:
         require('distributionSha256Sum=b266d5ff6b90eada6dc3b20cb090e3731302e553a27c5d3e4df1f0d76beaff06' in (root/name).read_text(), 'Unpinned Gradle wrapper')

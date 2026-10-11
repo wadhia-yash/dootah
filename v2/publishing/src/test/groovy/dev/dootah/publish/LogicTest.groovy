@@ -12,7 +12,7 @@ class LogicTest {
         String source="package demo\nimport androidx.compose.runtime.Composable\n@Composable fun Screen($parameters) { $body }"
         new SourceAnalyzer().withCloseable { a -> LogicLowering.lower(a.inspect('Demo.kt',source).entries.first()) }
     }
-    static Map artifact(Map lowered) { [schema:'dootah.portable',runtimeAbi:2,logicAbi:1,runtimeVersion:'test',
+    static Map artifact(Map lowered) { [schema:'dootah.portable',runtimeAbi:3,logicAbi:1,runtimeVersion:'test',
         requires:[PortableProgram.LOGIC,PortableProgram.TEXT],overrides:[[functionId:ID]+lowered]] }
     static PortableProgram program(Map value) {new PortableProgram(JsonOutput.toJson(value),'test')}
     static void refused(Closure c) {try {c();fail('Must refuse')}catch(IllegalArgumentException expected){}}

@@ -18,12 +18,8 @@ async function wait(a,op){
  }throw Error('operation timeout');
 }
 const id='dth1:'+'a'.repeat(64);
-const types=['String','Boolean','Int','String?','Boolean?','Int?'];
-const capabilities={runtimeAbi:2,logicAbi:1,capabilities:{
- 'logic.pure.v1':{version:1,effect:'pure',inputs:types,outputs:types,implementation:'PortableProgram/JavaScriptSandbox',permissions:[],limits:{operations:512,depth:24,stringUnits:256}},
- 'compose.basicText.v1':{version:1,effect:'render',inputs:['String'],outputs:['Unit'],implementation:'ComposeDispatch/BasicText',permissions:[],limits:{stringUnits:256}}},
- limits:{payloadBytes:65536,entries:32,parameters:9,loops:0,recursion:0,collections:0,async:false}};
-const artifact={schema:'dootah.portable',runtimeAbi:2,logicAbi:1,runtimeVersion:'dootah-v2-logic-2',requires:['logic.pure.v1','compose.basicText.v1'],overrides:[{functionId:id,parameters:[],expression:{op:'literal',type:'String',value:'Deployment acceptance'}}]};
+const capabilities=JSON.parse(await readFile('/tmp/capabilities.json','utf8'));
+const artifact={schema:'dootah.portable',runtimeAbi:3,logicAbi:1,runtimeVersion:'dootah-v2-logic-2',requires:['logic.pure.v1','compose.basicText.v1'],overrides:[{functionId:id,parameters:[],expression:{op:'literal',type:'String',value:'Deployment acceptance'}}]};
 try {
  if(mode==='setup'){
   const tenants={}; const password=(await readFile('/tmp/initial-password','utf8')).trim();

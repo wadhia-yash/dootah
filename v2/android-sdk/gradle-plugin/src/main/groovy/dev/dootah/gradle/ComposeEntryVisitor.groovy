@@ -58,6 +58,8 @@ class ComposeEntryVisitor extends ClassNode {
     }
 
     private static boolean eligible(MethodNode m, f) {
+        // Generated native adapters are invoked by the SDK, never overridden themselves.
+        if (m.name.startsWith(dev.dootah.adapters.AdapterNames.METHOD_PREFIX)) return false
         if ((m.access & (ACC_ABSTRACT | ACC_NATIVE | ACC_SYNTHETIC | ACC_BRIDGE | ACC_SYNCHRONIZED)) != 0) return false
         if (!m.invisibleAnnotations?.any { it.desc == 'Landroidx/compose/runtime/Composable;' }) return false
         if (m.invisibleAnnotations.any { it.desc == 'Landroidx/compose/runtime/ReadOnlyComposable;' }) return false
@@ -73,8 +75,33 @@ class ComposeEntryVisitor extends ClassNode {
         int defaults = f.valueParameters.any { Attributes.getDeclaresDefaultValue(it) } ? 1 : 0
         if (args.length != sourceCount + 2 + defaults) return false
         if (!args.drop(sourceCount + 1).every { it == Type.INT_TYPE }) return false
-        if (!args.take(sourceCount).every { it.sort in [Type.BOOLEAN, Type.INT] || it.descriptor in ['Ljava/lang/String;', 'Ljava/lang/Integer;', 'Ljava/lang/Boolean;'] }) return false
+        def sourceTypes = (f.receiverParameterType == null ? [] : [f.receiverParameterType]) + f.valueParameters.collect { it.type }
+        if (!args.take(sourceCount).toList().withIndex().every { arg, i -> scalar(arg) || callback(arg, sourceTypes[i]) != null }) return false
         return !m.instructions.any { it instanceof MethodInsnNode && it.owner == HOOK && it.name == 'tryRenderV2' && it.desc == HOOK_DESC }
+    }
+
+    private static boolean scalar(Type t) {
+        t.sort in [Type.BOOLEAN, Type.INT] || t.descriptor in ['Ljava/lang/String;', 'Ljava/lang/Integer;', 'Ljava/lang/Boolean;']
+    }
+
+    /**
+     * An installed callback parameter's portable token ("()->Unit", "(Boolean)->Unit"), or null. Only non-null,
+     * non-suspend Kotlin function types returning Unit with at most one String/Int/Boolean parameter, whose JVM
+     * type has exactly that arity: a @Composable lambda compiles to a wider FunctionN and stays native.
+     */
+    static String callback(Type arg, type) {
+        def jvm = arg.descriptor =~ /^Lkotlin\/jvm\/functions\/Function([0-9]+);$/
+        if (!jvm.matches()) return null
+        int arity = jvm.group(1) as int
+        def classifier = type.classifier
+        if (!(classifier instanceof kotlin.metadata.KmClassifier.Class) || classifier.name != "kotlin/Function$arity") return null
+        if (arity > 1 || Attributes.isNullable(type) || Attributes.isSuspend(type) || type.arguments.size() != arity + 1) return null
+        def names = type.arguments.collect { p ->
+            def c = p.type?.classifier
+            c instanceof kotlin.metadata.KmClassifier.Class && !Attributes.isNullable(p.type) ? c.name : null
+        }
+        if (names.last() != 'kotlin/Unit' || !names.dropRight(1).every { it in ['kotlin/String', 'kotlin/Int', 'kotlin/Boolean'] }) return null
+        '(' + names.dropRight(1).collect { it.substring(7) }.join(',') + ')->Unit'
     }
 
     private void prefix(MethodNode m, f) {
@@ -102,6 +129,8 @@ class ComposeEntryVisitor extends ClassNode {
         prefix.add(new LdcInsnNode(FunctionIdentity.of(name, m.name, m.desc, isStatic,
             f.receiverParameterType != null, m.signature, sourceTypes.collect { Attributes.isNullable(it) ? '?' : '!' }.join(''))))
         def portableTypes = args.take(count).toList().withIndex().collect { arg, i ->
+            // Callbacks are passed as the installed function objects; they never leave native code.
+            if (!scalar(arg)) return callback(arg, sourceTypes[i])
             def type = arg.sort == Type.INT || arg.descriptor == 'Ljava/lang/Integer;' ? 'Int' :
                 arg.sort == Type.BOOLEAN || arg.descriptor == 'Ljava/lang/Boolean;' ? 'Boolean' : 'String'
             type + (Attributes.isNullable(sourceTypes[i]) ? '?' : '')

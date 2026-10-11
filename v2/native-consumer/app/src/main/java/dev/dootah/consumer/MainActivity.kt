@@ -40,6 +40,8 @@ class MainActivity : DootahActivity() {
                     GenericScreen("Generic native")
                     InternalScreen()
                     StatefulScreen()
+                    InboxBadge(1)
+                    InboxBadge(3)
                 }
             }
         }

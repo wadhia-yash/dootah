@@ -1,0 +1,8 @@
+// The Gradle plugin's generator, compiled unchanged from its source and run in its own JVM.
+plugins { id 'java' }
+java { toolchain { languageVersion = JavaLanguageVersion.of(17) } }
+sourceSets.main.java {
+    srcDir '../../../gradle-plugin/src/main/java'
+    include 'dev/dootah/adapters/**'
+}
+dependencies { implementation 'org.jetbrains.kotlin:kotlin-compiler-embeddable:2.1.20' }

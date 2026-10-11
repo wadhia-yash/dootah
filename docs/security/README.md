@@ -1,7 +1,8 @@
 # Dootah alpha security model
 
-This is the current public model for Runtime ABI **2**, Logic ABI **1** and SDK
-**0.1.0-alpha.1** (development **0.7.5-local**). It describes layered controls and
+This describes **0.1.0-alpha.2**: Runtime ABI **3**, Logic ABI **1** and development
+SDK **0.7.5-local**. The earlier alpha.1 used Runtime ABI **2**.
+It describes layered controls and
 remaining assumptions, not a security certification or an absolute guarantee.
 
 ## Delivery and installed trust
@@ -35,7 +36,9 @@ cross the boundary. The closed source/IR grammar excludes imports, dynamic code,
 time/random and async; the sandbox is a separate containment layer, not a claim
 that a generic JavaScript engine has no such language features.
 
-Only the installed `logic.pure.v1` and `compose.basicText.v1` capabilities are exposed.
+Only the installed `logic.pure.v1`, `compose.basicText.v1`, `compose.layout.v1`, and `compose.material3.text.v1` capabilities are exposed. Structural nodes, modifiers, theme tokens and slot references are validated before rendering; native-owned immutable trees never cross into JavaScript.
+`compose.nativeAdapter.v1` invokes app-owned composables only through adapters the Dootah Gradle plugin generated from the installed source and compiled into the APK. The SDK links against one generated index class; there is no name lookup or reflection. An artifact may name only adapter identities the installed contract recorded (verified against retained bytecode and the APK), each with an exact scalar signature. The device refuses the whole update when any named adapter or signature is not installed, and checks every active call's values before the result reaches composition. Adapters receive only scalar values; frozen arguments remain native code from the installed build.
+`compose.interaction.v1` adds Compose state and installed callbacks. Callback function objects stay in native code; JavaScript sees only scalar state and event values and returns validated scalar step results. The device then assigns `remember` state or invokes a hook callback named by its parameter index, after checking the event's type, the callback's installed arity and the step value types. Events run sequentially, once each, and are dropped when their call site leaves composition. Any mismatch rejects the update and keeps the native implementation.
 Native code owns rendering. A new capability requires an installed native implementation
 and compatible contract, normally delivered in a new APK.
 
@@ -45,6 +48,8 @@ and compatible contract, normally delivered in a new APK.
 | Program shape | 32 entries, 9 scalar inputs per entry |
 | Work / expression depth | 512 expanded IR nodes per entry / 24 levels, checked natively; all branches count |
 | Text | 256 UTF-16 units, valid surrogate pairs, nonblank render result |
+| Structural UI | 64 nodes / depth 12 / eight modifiers per node / sixteen scalar slots, at most eight Strings; integer Dp 0–1024 |
+| Interaction | eight state values, sixteen actions per entry, eight steps per action, at most one callback argument, eight events per native call, content nesting four |
 | Sandbox source / result | 64 KiB / 16 KiB |
 | Isolate heap | 8 MiB requested from the provider; not a cap on total process memory |
 | Evaluation | 1-second future deadline, then isolate closure/termination; not a real-time deadline for all app work |
@@ -99,7 +104,13 @@ custody. Losing them can prevent decrypting signing material or issuing updates 
 rollback accepted by existing APKs. Changing the trust anchor is not solved by editing
 an OTA program. Restore needs matching secrets and storage, not only a database dump.
 
-Local negative tests and one physical Android 13 device support the documented model.
+Prior ABI 2 negative tests and one physical Android 13 device support the previously
+accepted model. The bounded ABI 3 structural slice passed signed OTA, native rollback
+and per-app offline persistence checks on a physical Vivo running Android 12; see
+the [acceptance record and its limits](../v2/MINIMAL_STRUCTURAL_OTA.md). Native adapters,
+nested components and state with installed callbacks passed same-APK device acceptance
+with the same signed delivery; failure paths for those slices are covered by focused
+JVM and instrumentation tests. This does not constitute broader security certification.
 There has been no claim of independent security audit, broad device qualification,
 standardized SBOM, comprehensive vulnerability scan or guaranteed protection against
 all denial-of-service attacks. Historical investigation of the superseded shared host

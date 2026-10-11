@@ -1,8 +1,10 @@
 # Android artifact release staging
 
-The public SDK candidate is `0.1.0-alpha.1`. Development remains `0.7.5-local`.
-Runtime ABI 2 and Logic ABI 1 are separate protocol versions. The BasicText
-renderer and installed capability contracts are unchanged.
+The public SDK is `0.1.0-alpha.2`, an experimental source-only alpha: consumers build
+this stage locally and resolve Dootah only from it. Development remains `0.7.5-local`.
+Runtime ABI 3 and Logic ABI 1 are separate protocol versions; artifact pages read them
+from the runtime's installed capability contract. ABI 3 is incompatible with
+alpha.1's ABI 2, so apps need a new baseline APK.
 
 ## Distribution model
 
@@ -10,7 +12,7 @@ The repository layout can later be uploaded to Maven Central or JFrog Artifactor
 No registry has been selected by these tools. If Central is selected, consumers put `mavenCentral()` in both
 pluginManagement.repositories and dependencyResolutionManagement.repositories,
 and `google()` for Android dependencies. Apply `id 'dev.dootah' version
-'0.1.0-alpha.1'`; the plugin supplies the matching runtime automatically.
+'0.1.0-alpha.2'`; the plugin supplies the matching runtime automatically.
 A Plugin Portal listing is optional and is not required for marker resolution.
 No upload task or publication credentials are used by this workflow.
 

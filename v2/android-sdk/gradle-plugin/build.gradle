@@ -9,6 +9,9 @@ dependencies {
     compileOnly 'com.android.tools.build:gradle:8.12.0'
     implementation 'org.ow2.asm:asm-tree:9.8'
     implementation 'org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.20'
+    // Adapter generation runs the parser in a separate JVM (DootahPlugin.PARSER); never on the build classpath.
+    compileOnly 'org.jetbrains.kotlin:kotlin-compiler-embeddable:2.1.20'
+    testImplementation 'org.jetbrains.kotlin:kotlin-compiler-embeddable:2.1.20'
     testImplementation 'com.android.tools.build:gradle-api:8.12.0'
     testImplementation 'org.ow2.asm:asm-util:9.8'
     testImplementation gradleTestKit()

@@ -66,7 +66,7 @@ async function main() {
   console.log(`Evidence: ${work}`);
   assert(!result.refused, 'A changed function is unsupported. No OTA published; native implementation remains installed.');
   if (mode === 'analyze') return;
-  assert.equal(contract.schema, 2, 'Publishing requires the secure ABI 2 baseline APK; ABI 1 has no capability boundary');
+  assert.equal(contract.schema, 3, 'Publishing requires the matching Runtime ABI 3 baseline APK');
   if (!portable) { console.log('No supported changes; no release created.'); return; }
   const generated = {payload: {overrides: result.ir.overrides}, js: JSON.stringify(result.generatedJs)};
   const output = join(work, 'export');

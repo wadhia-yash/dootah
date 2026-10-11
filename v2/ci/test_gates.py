@@ -64,7 +64,7 @@ class RequiredSuites(unittest.TestCase):
             with self.assertRaises(ValueError):suite(dict(id='cloud',format='tap',report='x.tap',minimum=1,names=['database']),root)
 
     def test_frozen_source_and_dependency_pins(self):
-        self.assertEqual(source(Path(__file__).resolve().parents[2])['runtimeAbi'],2)
+        self.assertEqual(source(Path(__file__).resolve().parents[2])['runtimeAbi'],3)
 
     def test_secret_exception_cannot_hide_changed_or_new_secret(self):
         with tempfile.TemporaryDirectory() as d:

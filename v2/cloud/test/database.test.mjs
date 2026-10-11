@@ -9,6 +9,27 @@ const tenants = enabled
   ? JSON.parse(await readFile(process.env.DOOTAH_TEST_TENANTS))
   : null;
 after(() => pool.end());
+test("release storage retains ABI 2 and accepts ABI 3 while rejecting unknown ABIs", { skip: !enabled }, async () => {
+  const db = await pool.connect();
+  try {
+    await db.query("BEGIN");
+    const { rows: [env] } = await db.query("SELECT * FROM environments WHERE id=$1", [tenants.a.environment]);
+    const { rows: [member] } = await db.query("SELECT user_id FROM members WHERE organization_id=$1 LIMIT 1", [env.organization_id]);
+    for (const abi of [2, 3, 1, 4]) {
+      await db.query("SAVEPOINT abi_check");
+      const insert = () => db.query(
+        "INSERT INTO releases(id,organization_id,app_id,environment_id,runtime,runtime_abi,logic_abi,revision,hash,artifact,artifact_bytes,creator,status,percentage,branch,contract_digest) VALUES($1,$2,$3,$4,$5,$6,1,'ABI test','test','{}','{}',$7,'draft',0,$8,'test') RETURNING runtime_abi",
+        [randomUUID(), env.organization_id, env.app_id, env.id, env.runtime, abi, member.user_id, 'test-' + randomUUID()],
+      );
+      if ([2, 3].includes(abi)) assert.equal((await insert()).rows[0].runtime_abi, abi);
+      else await assert.rejects(insert(), e => e.code === '23514');
+      await db.query("ROLLBACK TO SAVEPOINT abi_check");
+    }
+  } finally {
+    await db.query("ROLLBACK");
+    db.release();
+  }
+});
 test(
   "database constraints reject cross-tenant parents and runtime cannot mutate audit or upstream data",
   { skip: !enabled },

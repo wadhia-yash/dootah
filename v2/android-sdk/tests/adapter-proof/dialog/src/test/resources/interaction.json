@@ -1,0 +1,217 @@
+{
+    "schema": "dootah.portable",
+    "runtimeAbi": 3,
+    "logicAbi": 1,
+    "runtimeVersion": "dialog-fixture",
+    "requires": [
+        "compose.interaction.v1",
+        "compose.nativeAdapter.v1",
+        "logic.pure.v1"
+    ],
+    "overrides": [
+        {
+            "functionId": "dth1:a9eea7fcaca88bd752e658aaf288230e2b4b3709977905cc37d2b11683b222fb",
+            "parameters": [
+                "()->Unit",
+                "(Boolean)->Unit"
+            ],
+            "slots": [
+                {
+                    "type": "Boolean",
+                    "expression": {
+                        "op": "input",
+                        "index": 0
+                    }
+                }
+            ],
+            "tree": {
+                "type": "native",
+                "adapter": "dev.dootah.proof.dialog.Dialog#d20b18f1857a8fae",
+                "arguments": [
+                    
+                ],
+                "content": [
+                    {
+                        "slot": "title",
+                        "children": [
+                            {
+                                "type": "native",
+                                "adapter": "dev.dootah.proof.dialog.Dialog#d20b18f1857a8fae/dev.dootah.proof.dialog.Label#656b7c1822538dff",
+                                "arguments": [
+                                    
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "slot": "text",
+                        "children": [
+                            {
+                                "type": "native",
+                                "adapter": "dev.dootah.proof.dialog.Dialog#d20b18f1857a8fae/dev.dootah.proof.dialog.Stack#c709d6825a22731d",
+                                "arguments": [
+                                    
+                                ],
+                                "children": [
+                                    {
+                                        "type": "native",
+                                        "adapter": "dev.dootah.proof.dialog.Dialog#d20b18f1857a8fae/dev.dootah.proof.dialog.Stack#c709d6825a22731d/dev.dootah.proof.dialog.Label#ba0e0627c166b8eb",
+                                        "arguments": [
+                                            
+                                        ]
+                                    },
+                                    {
+                                        "type": "native",
+                                        "adapter": "dev.dootah.proof.dialog.Dialog#d20b18f1857a8fae/dev.dootah.proof.dialog.Stack#c709d6825a22731d/dev.dootah.proof.dialog.CheckRow#ff5797814359435e",
+                                        "arguments": [
+                                            0
+                                        ],
+                                        "events": [
+                                            0
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "slot": "confirmButton",
+                        "children": [
+                            {
+                                "type": "native",
+                                "adapter": "dev.dootah.proof.dialog.Dialog#d20b18f1857a8fae/dev.dootah.proof.dialog.Action#3863d1bfc9e5bd40",
+                                "arguments": [
+                                    
+                                ],
+                                "content": [
+                                    {
+                                        "slot": "",
+                                        "children": [
+                                            {
+                                                "type": "native",
+                                                "adapter": "dev.dootah.proof.dialog.Dialog#d20b18f1857a8fae/dev.dootah.proof.dialog.Action#3863d1bfc9e5bd40/dev.dootah.proof.dialog.Label#f537a97c10646b2b",
+                                                "arguments": [
+                                                    
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "events": [
+                                    1
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "slot": "dismissButton",
+                        "children": [
+                            {
+                                "type": "native",
+                                "adapter": "dev.dootah.proof.dialog.Dialog#d20b18f1857a8fae/dev.dootah.proof.dialog.Action#6563d3698f8ae6e9",
+                                "arguments": [
+                                    
+                                ],
+                                "content": [
+                                    {
+                                        "slot": "",
+                                        "children": [
+                                            {
+                                                "type": "native",
+                                                "adapter": "dev.dootah.proof.dialog.Dialog#d20b18f1857a8fae/dev.dootah.proof.dialog.Action#6563d3698f8ae6e9/dev.dootah.proof.dialog.Label#ab28e004562e4fb8",
+                                                "arguments": [
+                                                    
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "events": [
+                                    2
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "events": [
+                    3
+                ]
+            },
+            "state": [
+                {
+                    "type": "Boolean",
+                    "initial": true
+                }
+            ],
+            "actions": [
+                {
+                    "parameters": [
+                        "Boolean"
+                    ],
+                    "steps": [
+                        {
+                            "op": "set",
+                            "state": 0,
+                            "value": {
+                                "op": "input",
+                                "index": 1
+                            }
+                        }
+                    ]
+                },
+                {
+                    "parameters": [
+                        
+                    ],
+                    "steps": [
+                        {
+                            "op": "call",
+                            "callback": 1,
+                            "arguments": [
+                                {
+                                    "op": "input",
+                                    "index": 0
+                                }
+                            ]
+                        },
+                        {
+                            "op": "call",
+                            "callback": 0,
+                            "arguments": [
+                                
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "parameters": [
+                        
+                    ],
+                    "steps": [
+                        {
+                            "op": "call",
+                            "callback": 0,
+                            "arguments": [
+                                
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "parameters": [
+                        
+                    ],
+                    "steps": [
+                        {
+                            "op": "call",
+                            "callback": 0,
+                            "arguments": [
+                                
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -31,7 +31,7 @@ class Reclaim(unittest.TestCase):
             (work/name).parent.mkdir(parents=True, exist_ok=True); (work/name).write_bytes(b'0'*4096)
         # Everything later stages read.
         self.kept = ['source/reports/sdk-runtime/TEST-a.xml', 'source/reports/packaging.xml', 'stage/SHA256SUMS',
-                     'stage/inventory.json', 'stage/audit.json', 'stage/repository/dev/dootah/runtime-v2/0.1.0-alpha.1/runtime-v2-0.1.0-alpha.1.aar',
+                     'stage/inventory.json', 'stage/audit.json', 'stage/repository/dev/dootah/runtime-v2/0.1.0-alpha.2/runtime-v2-0.1.0-alpha.2.aar',
                      'gradle.zip', 'source/v2/android-sdk/version.properties', 'source/v2/native-consumer/gradlew',
                      'source/v2/native-consumer/app/build.gradle']
         for name in self.kept:

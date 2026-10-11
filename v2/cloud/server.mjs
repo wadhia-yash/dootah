@@ -326,7 +326,7 @@ async function ingest(db, a, b) {
         e.installationId === installation.id &&
         uuid(e.activationId) &&
         eventTypes.includes(e.type) &&
-        e.runtimeAbi === 2 &&
+        [2, 3].includes(e.runtimeAbi) &&
         e.logicAbi === 1,
     );
     fields(e.metadata, []);
@@ -782,7 +782,7 @@ async function api(req, res, url, b, client) {
       const {
         rows: [r],
       } = await db.query(
-        "INSERT INTO releases(id,organization_id,app_id,environment_id,runtime,runtime_abi,logic_abi,revision,hash,artifact,creator,status,percentage,branch,contract_digest) VALUES($1,$2,$3,$4,$5,2,1,$6,$7,$8,$9,'draft',0,$10,(SELECT encode(sha256(convert_to(contract::text,'UTF8')),'hex') FROM environments WHERE organization_id=$2 AND id=$4)) RETURNING *",
+        "INSERT INTO releases(id,organization_id,app_id,environment_id,runtime,runtime_abi,logic_abi,revision,hash,artifact,creator,status,percentage,branch,contract_digest) VALUES($1,$2,$3,$4,$5,$11,1,$6,$7,$8,$9,'draft',0,$10,(SELECT encode(sha256(convert_to(contract::text,'UTF8')),'hex') FROM environments WHERE organization_id=$2 AND id=$4)) RETURNING *",
         [
           id,
           a.organization_id,
@@ -794,6 +794,7 @@ async function api(req, res, url, b, client) {
           b.artifact,
           a.user_id,
           `cloud-${id}`,
+          b.artifact.runtimeAbi,
         ],
       );
       await db.query(
@@ -1059,7 +1060,7 @@ export function createServer(trustedProxies = settings.trustedProxies) {
           } = await pool.query(
             "SELECT max(version) AS version FROM migrations",
           );
-          requireValue(schema.version === 6, "migrations_required", 503);
+          requireValue(schema.version === 7, "migrations_required", 503);
           res.end("ready");
           return;
         }

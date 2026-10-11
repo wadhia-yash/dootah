@@ -24,10 +24,15 @@ class DootahExtension {
     boolean composeDispatch = true
     // Acceptance/fixture builds: fail instead of warn when a variant has no OTA entry points.
     boolean requireHooks = false
+    // Build-generated adapters for app-owned composables called from hookable functions. Disabling
+    // still generates the empty index the SDK links against.
+    boolean nativeAdapters = true
 }
 
 class DootahPlugin implements Plugin<Project> {
     static final String SDK_VERSION = DootahPlugin.getResource('sdk-version.txt').getText('UTF-8').trim()
+    // Parser used for adapter generation; the same version as the publisher's analyzer.
+    static final String PARSER = 'org.jetbrains.kotlin:kotlin-compiler-embeddable:2.1.20'
 
     void apply(Project project) {
         def config = project.extensions.create('dootah', DootahExtension)
@@ -38,6 +43,18 @@ class DootahPlugin implements Plugin<Project> {
             // Same shared-runtime collision policy as the pinned RN Gradle plugin.
             android.packaging.jniLibs.pickFirsts.addAll(['**/libc++_shared.so', '**/libfbjni.so'])
             android.defaultConfig.ndk.abiFilters.add('arm64-v8a')
+            def parser = project.configurations.create('dootahAdapterParser') {
+                canBeConsumed = false
+                canBeResolved = true
+                visible = false
+                attributes {
+                    attribute(org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE, project.objects.named(org.gradle.api.attributes.Usage, org.gradle.api.attributes.Usage.JAVA_RUNTIME))
+                    attribute(org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE, project.objects.named(org.gradle.api.attributes.Category, org.gradle.api.attributes.Category.LIBRARY))
+                    attribute(org.gradle.api.attributes.java.TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE,
+                        project.objects.named(org.gradle.api.attributes.java.TargetJvmEnvironment, org.gradle.api.attributes.java.TargetJvmEnvironment.STANDARD_JVM))
+                }
+            }
+            project.dependencies.add('dootahAdapterParser', PARSER)
             def components = project.extensions.getByName('androidComponents')
             components.finalizeDsl {
                 validate(config)
@@ -74,12 +91,40 @@ class DootahPlugin implements Plugin<Project> {
                     outputDirectory.set(project.layout.buildDirectory.dir("generated/dootah/${variant.name}/assets"))
                 }
                 variant.sources.assets.addGeneratedSourceDirectory(task) { it.outputDirectory }
-                registerRetention(project, variant, config)
+                def adapters = registerAdapters(project, variant, config, parser)
+                registerRetention(project, variant, config, adapters)
             }
         }
     }
 
-    static void registerRetention(Project project, variant, DootahExtension config) {
+    /** The generator's own code location: a jar when published, a classes directory in tests. */
+    static File generatorLocation() {
+        new File(dev.dootah.identity.FunctionIdentity.protectionDomain.codeSource.location.toURI())
+    }
+
+    static File adapterDirectory(Project project, variant) {
+        project.layout.buildDirectory.dir("generated/dootah/${variant.name}/adapters").get().asFile
+    }
+
+    static registerAdapters(Project project, variant, DootahExtension config, parser) {
+        def task = project.tasks.register("generate${variant.name.capitalize()}DootahAdapters", DootahGenerateAdapters) {
+            // Static roots only: generated roots (including this task's output) are never re-read.
+            [variant.sources.java, variant.sources.kotlin].findAll { it != null }.each { dirs ->
+                sources.from(dirs.static.map { roots -> roots.collect { dir -> dir.asFileTree.matching { include '**/*.kt' } } })
+            }
+            generatorClasspath.from(generatorLocation(), parser)
+            enabledAdapters.set(project.providers.provider { config.nativeAdapters })
+            moduleDirectory.set(project.layout.projectDirectory)
+            outputDirectory.set(adapterDirectory(project, variant))
+            report.set(project.layout.buildDirectory.file("outputs/dootah/${variant.name}/adapters.json"))
+        }
+        // A generated *java* root: the Kotlin Android plugin compiles .kt files found there, while
+        // KGP 2.1 does not consume AGP's generated `sources.kotlin` roots.
+        variant.sources.java.addGeneratedSourceDirectory(task) { it.outputDirectory }
+        task
+    }
+
+    static void registerRetention(Project project, variant, DootahExtension config, adapters = null) {
         def kotlin = project.extensions.findByName('kotlin')
         def kotlinPlugin = project.plugins.findPlugin('org.jetbrains.kotlin.android')
         String kotlinVersion = kotlinPlugin?.hasProperty('pluginVersion') ? kotlinPlugin.pluginVersion :
@@ -87,16 +132,19 @@ class DootahPlugin implements Plugin<Project> {
         def agp = project.plugins.findPlugin('com.android.application').class.classLoader
             .loadClass('com.android.Version').getField('ANDROID_GRADLE_PLUGIN_VERSION').get(null).toString()
         def modulePath = project.layout.projectDirectory.asFile.toPath()
+        // Generated adapters are derived from the retained sources; they are recorded as classes, not sources.
+        def generated = adapterDirectory(project, variant).toPath()
         def task = project.tasks.register("dootahRetain${variant.name.capitalize()}Release", DootahRetainRelease) {
             apkDirectory.set(variant.artifacts.get(SingleArtifact.APK.INSTANCE))
             loader.set(variant.artifacts.getBuiltArtifactsLoader())
             sourceRoot.set(project.layout.projectDirectory)
             // Both Java and Kotlin source roots may contain Kotlin; the file collection deduplicates them.
             [variant.sources.java, variant.sources.kotlin].findAll { it != null }.each { dirs ->
-                sourceFiles.from(dirs.all.map { roots -> roots.collect { dir ->
+                def roots = dirs.all.map { all -> all.findAll { !it.asFile.toPath().startsWith(generated) } }
+                sourceFiles.from(roots.map { all -> all.collect { dir ->
                     dir.asFileTree.matching { include '**/*.kt' }
                 } })
-                sourceRoots.addAll(dirs.all.map { roots -> roots.collect { dir -> modulePath.relativize(dir.asFile.toPath()).toString() } })
+                sourceRoots.addAll(roots.map { all -> all.collect { dir -> modulePath.relativize(dir.asFile.toPath()).toString() } })
             }
             metadata.set([variant: variant.name, applicationId: variant.applicationId.get(), appId: config.appId,
                 channel: config.channel, runtimeVersion: config.runtimeVersion, sdkVersion: SDK_VERSION,
