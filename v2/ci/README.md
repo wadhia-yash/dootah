@@ -142,8 +142,8 @@ expire after 14 days; the aggregate suite receipt expires after 30 days.
 
 `v2-release.yml` validates a clean reviewed branch, full source SHA, public
 version and future `vVERSION` tag intent (the tag must not already exist).
-The version source remains public `0.1.0-alpha.1`, development `0.7.5-local`,
-Runtime ABI 2, Logic ABI 1. It runs the entire reusable matrix again, including
+The version source is public `0.1.0-alpha.2`, development `0.7.5-local`,
+Runtime ABI 3, Logic ABI 1. It runs the entire reusable matrix again, including
 restore, and only then enters the `v2-release-signing` environment.
 
 The signed job downloads only its own run's successful SDK candidate. It checks
@@ -188,7 +188,7 @@ Nothing in this section has been performed by the Phase 9E implementation.
    conflict to reuse immutable coordinates. Variable size limits may eventually
    require an operator-managed ledger file source.
 5. Dispatch **V2 signed release candidate (no publication)** on the reviewed
-   branch with `version=0.1.0-alpha.1`, `tag_intent=v0.1.0-alpha.1` and that
+   branch with `version=0.1.0-alpha.2`, `tag_intent=v0.1.0-alpha.2` and that
    branch's full source commit. Review the signing environment approval after
    all gates pass. Download, independently inspect and retain the signed export
    and updated ledger before the artifact retention deadline.

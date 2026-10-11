@@ -14,8 +14,8 @@ It is not a public repository setup. Missing local public test certificate/backe
 prerequisites must be supplied by the maintainer test flow; never use its identity
 or development signing for a customer release.
 
-For the public **0.1.0-alpha.1** candidate, the
+For the public **0.1.0-alpha.2** source-only alpha, the
 [isolated consumer check](../android-sdk/release/README.md) creates a temporary copy,
 generates a disposable public certificate, resolves only the supplied stage and
 checks both variants. The fixture's runtimeVersion is `dootah-v2-logic-2`; it is an
-app compatibility string, separate from Runtime ABI **2** / Logic ABI **1**.
+app compatibility string, separate from Runtime ABI **3** / Logic ABI **1**.

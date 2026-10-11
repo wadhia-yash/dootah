@@ -1,7 +1,7 @@
 # Dootah alpha security model
 
-This describes the working-tree model for Runtime ABI **3**, Logic ABI **1** and
-development SDK **0.7.5-local**. Published **0.1.0-alpha.1** uses Runtime ABI **2**.
+This describes **0.1.0-alpha.2**: Runtime ABI **3**, Logic ABI **1** and development
+SDK **0.7.5-local**. The earlier alpha.1 used Runtime ABI **2**.
 It describes layered controls and
 remaining assumptions, not a security certification or an absolute guarantee.
 
@@ -107,8 +107,10 @@ an OTA program. Restore needs matching secrets and storage, not only a database 
 Prior ABI 2 negative tests and one physical Android 13 device support the previously
 accepted model. The bounded ABI 3 structural slice passed signed OTA, native rollback
 and per-app offline persistence checks on a physical Vivo running Android 12; see
-the [acceptance record and its limits](../v2/MINIMAL_STRUCTURAL_OTA.md). This does not
-constitute broader security certification or a public SDK release.
+the [acceptance record and its limits](../v2/MINIMAL_STRUCTURAL_OTA.md). Native adapters,
+nested components and state with installed callbacks passed same-APK device acceptance
+with the same signed delivery; failure paths for those slices are covered by focused
+JVM and instrumentation tests. This does not constitute broader security certification.
 There has been no claim of independent security audit, broad device qualification,
 standardized SBOM, comprehensive vulnerability scan or guaranteed protection against
 all denial-of-service attacks. Historical investigation of the superseded shared host

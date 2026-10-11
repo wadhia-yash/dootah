@@ -1,7 +1,7 @@
 # Dootah alpha customer workflow
 
-CLI and private-file reference for public SDK `0.1.0-alpha.1`, development SDK
-`0.7.5-local`, Runtime ABI 2 / Logic ABI 1. Start with the authoritative
+CLI and private-file reference for public SDK `0.1.0-alpha.2`, development SDK
+`0.7.5-local`, Runtime ABI 3 / Logic ABI 1. Start with the authoritative
 [V2 quickstart](../../docs/getting-started/quickstart.md) for the complete workflow.
 This reference supplies detailed CLI, retention and enrollment semantics. It does
 not deploy Cloud or claim public Maven availability.
@@ -60,7 +60,7 @@ public publication is authorized. The current staged plugin includes release ret
 there is no need for a plugin composite build or a frozen older stage. Follow the
 [quickstart repository setup](../../docs/getting-started/quickstart.md#current-pre-publication-setup).
 The plugin supplies its matching runtime dependency automatically. Source development
-uses `0.7.5-local`; the staged public candidate is `0.1.0-alpha.1`.
+uses `0.7.5-local`; the staged public version is `0.1.0-alpha.2`.
 
 Apply `dev.dootah` to the application module, use `DootahApplication` as its Application
 superclass, and configure:

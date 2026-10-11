@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "frozen": {
-    "publicVersion": "0.1.0-alpha.1",
+    "publicVersion": "0.1.0-alpha.2",
     "developmentVersion": "0.7.5-local",
     "internalPrefix": "0.1.0-dootah",
     "runtimeAbi": 3,

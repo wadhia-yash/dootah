@@ -34,7 +34,10 @@ See [supported source](../reference/support.md), [delivery](delivery.md) and
 [security](../security/README.md). Detailed implementation and dated experiments
 remain in [engineering history](../history/README.md).
 
-Runtime ABI 3 is a working-tree extension requiring a new baseline APK. The bounded
-structural slice passed [physical Mihon acceptance](../v2/MINIMAL_STRUCTURAL_OTA.md);
-previous acceptance records and the published alpha.1 describe ABI 2. The
-`tryRenderV2` hook signature remains unchanged.
+Alpha.2 uses Runtime ABI 3, which requires a new baseline APK; alpha.1 and its
+acceptance records describe ABI 2. ABI 3 adds bounded structural UI, build-generated
+native adapters with nested content, and Compose state with installed callbacks
+(negotiated as `compose.interaction.v1`). Each passed physical-device acceptance
+(see [status](../reference/status.md) and the
+[structural record](../v2/MINIMAL_STRUCTURAL_OTA.md)). The `tryRenderV2` hook
+signature remains unchanged.

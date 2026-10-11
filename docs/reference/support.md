@@ -1,7 +1,7 @@
 # Supported Kotlin and Compose changes
 
-This matrix describes the working-tree Runtime ABI **3** extension. The bounded Box/Text structural OTA slice passed physical Mihon acceptance (see the
-[dated record](../v2/MINIMAL_STRUCTURAL_OTA.md)). Build-generated native adapters with nested content, and Compose state with installed callbacks, passed same-APK OTA acceptance in a separate Mihon test install on physical devices (2026-10-11; evidence kept privately, outside the repository). The published alpha.1 and its prior evidence use ABI 2. A new baseline APK and runtime/environment are required.
+This matrix describes **0.1.0-alpha.2**, Runtime ABI **3**, Logic ABI **1**. Structural Compose UI, build-generated native adapters, nested components and Compose state with installed callbacks each passed same-APK OTA on a physical device in a separate Mihon test install (see [status](status.md) and the
+[structural record](../v2/MINIMAL_STRUCTURAL_OTA.md)). Alpha.1 used Runtime ABI 2; moving to ABI 3 requires a new baseline APK and a new runtime version/environment (see [upgrading](platform.md)).
 The installed APK must contain the hook and every required capability. An eligible
 hook is necessary but not sufficient: the source analyzer is deliberately narrower
 than bytecode instrumentation. Use `dootah analyze` against the exact retained release.
@@ -48,6 +48,12 @@ Nullable values can be compared/interpolated; there is no general Kotlin smart-c
 safe-call, Elvis or non-null assertion support.
 
 ## Changes that stay native or need a new APK
+
+Not supported in this alpha: object models (data classes, domain objects or any
+non-scalar value as a hook input or in logic), collections, navigation changes
+(destinations, routes, back-stack behavior), composables in library modules (only
+application-module code is instrumented), adding new component calls, slots or
+callbacks that the installed source did not make, and general Kotlin execution.
 
 Loops, recursion, mutable state other than the bounded Compose state above, collections, exceptions, async/suspend, clock/random,
 reflection, file/network calls, arbitrary imports, raw strings, unknown symbols and

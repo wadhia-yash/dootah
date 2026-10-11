@@ -95,7 +95,7 @@ def prose_errors(name, text, versions):
             errors.append(f'{name}: stale SDK version {value}')
     for key, expected in [('Runtime ABI', 2), ('Logic ABI', 1)]:
         for value in re.findall(key + r'\s*[*`]*\s*(\d+)', text, re.I):
-            # Public alpha.1 remains ABI 2; the explicitly labelled working-tree extension is ABI 3.
+            # Public alpha.2 is ABI 3; ABI 2 appears only where docs describe alpha.1 and the upgrade from it.
             if int(value) not in ({2, 3} if key == 'Runtime ABI' else {expected}):
                 errors.append(f'{name}: stale {key} {value}')
     return errors

@@ -71,8 +71,8 @@ def main():
             'release': json.loads((project / 'app/build/outputs/dootah/release/hooks.json').read_text())
         }
         retained = json.loads(record.read_text())
-        assert retained['metadata']['sdkVersion'] == '0.1.0-alpha.1', retained['metadata']
-        assert reports['release']['sdkVersion'] == '0.1.0-alpha.1'
+        assert retained['metadata']['sdkVersion'] == '0.1.0-alpha.2', retained['metadata']
+        assert reports['release']['sdkVersion'] == '0.1.0-alpha.2'
         for report in reports.values():
             assert report['hooks'] == 1, report
         private = work / 'publisher'

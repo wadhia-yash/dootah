@@ -3,16 +3,18 @@
 Dootah lets native Android/Jetpack Compose applications deliver bounded UI and
 business-logic updates over the air while retaining native fallback.
 
-Keep writing Kotlin/Compose. Publish compatible changes to logic and text without
+Keep writing Kotlin/Compose. Publish compatible changes to logic, text, bounded
+Compose structure, installed app components, Compose state and callback wiring without
 rebuilding an installed APK, provided its native capabilities already support them.
 New native libraries, permissions, manifest changes and capabilities require a new APK.
 
-**Alpha, before public artifact publication.** Public SDK candidate **0.1.0-alpha.1**;
-development SDK **0.7.5-local**; Runtime ABI **2**; Logic ABI **1**.
-Maven Central/JFrog artifacts are not announced as available. GitHub-hosted V2 CI
-**passed on commit `e329f83`**: 17 required suites, 468 passed, 0 failed, and only the
-4 named xprem Azure exclusions. Each later commit needs its own hosted run. See
-[validation status](docs/reference/status.md).
+**Experimental source-only alpha.** Public SDK **0.1.0-alpha.2**; development SDK
+**0.7.5-local**; Runtime ABI **3**; Logic ABI **1**. There are no registry artifacts:
+build a local Maven stage from this checkout (see the quickstart). Maven Central/JFrog
+artifacts are not announced as available. Runtime ABI 3 is incompatible with
+alpha.1's ABI 2: apps need a new baseline APK and a new runtime version/environment.
+Hosted CI must pass on the release commit itself; earlier hosted runs prove only their
+own commits. See [validation status](docs/reference/status.md).
 
 ## Start here
 
@@ -82,14 +84,19 @@ matter. Read the [security model](docs/security/README.md) before adoption.
 
 ## Current limits
 
-The current renderer is **BasicText / Option A**, with unthemed defaults. Material
-text fidelity, arbitrary modifiers/layouts/callbacks and general Kotlin execution
-are unsupported. Logic is limited to bounded String/Boolean/Int expressions and
-local pure helpers. Unsupported edits refuse publication; unsupported native code
-continues to run normally.
+Updates can change bounded String/Boolean/Int logic and local pure helpers; a
+Box/Material3 Text structure with `if` / `if-else`; calls to app-owned components
+that the installed build already makes (through build-generated native adapters,
+including nested content slots); and Compose `remember` state with the wiring of
+installed callbacks. Everything else stays native: object models and data classes
+as inputs, collections, loops, arbitrary modifiers/layouts, library-module
+composables, navigation and general Kotlin execution. Unsupported edits refuse
+publication; unsupported native code continues to run normally. See the
+[support matrix](docs/reference/support.md).
 
-Measured release APK growth was about **22–31 MB**. Native OTA evidence covers one
-Samsung Android 13 phone; this is not broad device qualification. Enrollment needs
+Measured release APK growth was about **22–31 MB**. Native OTA evidence covers two
+physical phones (Samsung Android 13, Vivo Android 12) in open-source test apps; this
+is not broad device qualification. Enrollment needs
 an authenticated customer backend and renewal integration. Telemetry health means
 render acknowledgement, not crash-free analytics. Hosting has no HA or PITR.
 See the [complete limitations](docs/reference/platform.md).

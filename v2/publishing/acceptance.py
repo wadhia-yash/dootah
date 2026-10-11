@@ -275,7 +275,7 @@ dependencies {{ implementation 'androidx.activity:activity-compose:1.9.3'; imple
         output = run(['node', '--test', '--test-reporter=tap', *sorted((ROOT / 'v2/cloud/test').glob('*.test.mjs'))], env=test_env, output=True)
         assert '# fail 0' in output and '# skipped 0' in output, output
         save(work / 'result.json', dict(phase='9C', passed=True, runtimeAbi=3, logicAbi=1,
-             publicSdk='0.1.0-alpha.1', standaloneTool=True, debugRetention=True, r8Retention=True,
+             publicSdk='0.1.0-alpha.2', standaloneTool=True, debugRetention=True, r8Retention=True,
              customerDatabaseWrites=False, manualIds=False, cloudTests=output,
              stageManifestSha256=hashlib.sha256((stage / 'SHA256SUMS').read_bytes()).hexdigest()))
         print(f'PASS — complete local CLI flow, signed publication/rollback and Cloud suites. Evidence: {work}/result.json', flush=True)
