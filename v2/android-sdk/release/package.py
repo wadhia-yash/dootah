@@ -442,7 +442,8 @@ def package(stage):
                 classes = sorted(n for n in entries if n.endswith('.class'))
                 artifact = path.parent.parent.name
                 prefixes = ('dev/dootah/runtime/', 'dev/dootah/portable/') if artifact == 'runtime-v2' else (
-                    ('dev/dootah/gradle/', 'dev/dootah/identity/') if artifact == 'dootah-android-plugin' else
+                    # The plugin also ships its build-time native adapter generator (dev.dootah.adapters).
+                    ('dev/dootah/gradle/', 'dev/dootah/identity/', 'dev/dootah/adapters/') if artifact == 'dootah-android-plugin' else
                     ('expo/', 'com/facebook/react/') if artifact == 'expo-modules-core' else ('expo/', 'inline/modules/') if artifact == 'expo' else ('expo/',))
                 if not classes or any(not name.startswith(prefixes) or re.search(r'(^|/)[^/]*Test(?:\$|\.)', name) for name in classes):
                     raise ValueError(f'Unexpected classes in {artifact}')
