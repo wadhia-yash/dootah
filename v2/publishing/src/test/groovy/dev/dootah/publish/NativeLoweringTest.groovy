@@ -74,7 +74,8 @@ import lib.ui.Badge
         refused('No installed native adapter') { lower(INSTALLED.replace('tertiary', 'secondary')) }
         refused('No installed native adapter') { lower(INSTALLED.replace('Badge(text = "$count", ', 'Badge(text = "$count", maxLines = 1, ')) }
         refused('No installed native adapter') { lower(INSTALLED, [:]) }
-        refused('No installed native adapter') { lower(INSTALLED.replace(')\n', ') { }\n')) }
+        refused('Empty lambda argument') { lower(INSTALLED.replace(')\n', ') { }\n')) }
+        refused('No installed native adapter') { lower(INSTALLED.replace(')\n', ') { Inner() }\n')) }
     }
 
     @Test void runtimeGrammarRefusesMalformedNativeNodes() {

@@ -64,10 +64,11 @@
       "job": "sdk",
       "format": "junit",
       "report": "reports/publisher-jvm/*.xml",
-      "minimum": 46,
+      "minimum": 52,
       "classes": {
         "AdapterFixtureTest": 1,
         "AdapterGenTest": 6,
+        "InteractionTest": 6,
         "NativeLoweringTest": 5,
         "PublishingTest": 9,
         "LogicTest": 9,

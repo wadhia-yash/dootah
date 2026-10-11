@@ -37,35 +37,59 @@ open class DootahApplication : Application() {
   private val scope = CoroutineScope(SupervisorJob() + worker)
   private var sandbox: RestrictedSandbox? = null
   private var rejected: UUID? = null
-  private data class Invocation(val id: String, val types: List<String>, val values: List<Any?>)
+  private data class Invocation(val id: String, val values: List<Any?>)
   private val results = androidx.compose.runtime.mutableStateMapOf<Invocation, UiTree.Result>()
   private val pending = HashSet<Invocation>()
 
+  /** The evaluation services one update offers its hooked call sites; inert once that update is replaced. */
+  internal fun host(value: RenderValue): PortableHost = object : PortableHost {
+    override fun lookup(id: String, inputs: List<Any?>) = this@DootahApplication.lookup(value, id, inputs)
+    override fun evaluateAction(id: String, action: Int, inputs: List<Any?>, done: (List<Any?>) -> Unit) =
+      this@DootahApplication.evaluateAction(value, id, action, inputs, done)
+    override fun reject(error: Exception) = refuse(value, error)
+  }
+
   // A miss only reads snapshot state and queues work; it creates no Compose groups.
-  internal fun lookup(value: RenderValue, id: String, types: List<String>, input: List<Any?>): UiTree.Result? {
+  internal fun lookup(value: RenderValue, id: String, input: List<Any?>): UiTree.Result? {
     if (dispatchValue !== value) return null
     val program = value.program ?: return null
     try {
-      require(program.parameters(id) == types && input.size == types.size) { "Installed input ABI mismatch" }
+      val types = program.inputTypes(id)
+      require(input.size == types.size) { "Installed input ABI mismatch" }
       input.forEachIndexed { index, item -> PortableProgram.validateValue(item, types[index]) }
-      val key = Invocation(id, types, input)
+      val key = Invocation(id, input)
       results[key]?.let { return it }
       if (key in pending) return null
       require(results.size + pending.size < 128 && pending.size < 32) { "Invocation budget" }
       pending.add(key)
       scope.launch {
-        val text = evaluate(value, id, types, input)
+        val text = evaluate(value, id, input)
         withContext(Dispatchers.Main) {
           pending.remove(key)
           if (text != null && dispatchValue === value) results[key] = text
         }
       }
-    } catch (e: Exception) {
-      val fallback = RenderValue("Dootah Native Baseline", null)
-      mutableValue.value = fallback; dispatchValue = fallback
-      scope.launch { reject(value.updateId, e) }
-    }
+    } catch (e: Exception) { refuse(value, e) }
     return null
+  }
+
+  /** One event action, evaluated off the main thread; its validated step values are applied on the main thread. */
+  internal fun evaluateAction(value: RenderValue, id: String, action: Int, input: List<Any?>, done: (List<Any?>) -> Unit) {
+    if (dispatchValue !== value) return
+    scope.launch {
+      val values = try {
+        if (mutableValue.value !== value || rejected == value.updateId) return@launch
+        val program = value.program ?: return@launch
+        program.actionResult(id, action, sandbox!!.evaluate(program.actionSource(id, action, input)))
+      } catch (e: Exception) { reject(value.updateId, e); return@launch }
+      withContext(Dispatchers.Main) { if (dispatchValue === value) done(values) }
+    }
+  }
+
+  private fun refuse(value: RenderValue, error: Exception) {
+    val fallback = RenderValue("Dootah Native Baseline", null)
+    mutableValue.value = fallback; dispatchValue = fallback
+    scope.launch { reject(value.updateId, error) }
   }
 
   fun onFrameCommitted(value: RenderValue) {
@@ -134,12 +158,12 @@ open class DootahApplication : Application() {
     }
   }
 
-  internal suspend fun evaluate(value: RenderValue, id: String, types: List<String>, input: List<Any?>): UiTree.Result? =
+  internal suspend fun evaluate(value: RenderValue, id: String, input: List<Any?>): UiTree.Result? =
     withContext(worker) {
       if (mutableValue.value !== value || rejected == value.updateId) return@withContext null
       try {
         val program = value.program ?: return@withContext null
-        val result = program.renderResult(id, sandbox!!.evaluate(program.source(id, types, input)))
+        val result = program.renderResult(id, sandbox!!.evaluate(program.source(id, input)))
         require(nativeCallsAccepted(result, InstalledAdapters.registry)) { "Native adapter arguments refused" }
         result
       } catch (e: Exception) { reject(value.updateId, e); null }

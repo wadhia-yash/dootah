@@ -29,7 +29,7 @@ class AdapterGenTest {
         def source = render('src/main/kotlin/Badges.kt', fixture())
         // Defaults stay Kotlin's: omitted arguments never appear in the generated call; frozen text is copied.
         assertFalse(source.contains('paletteDefault'))
-        assertTrue(source.contains('Badge(text = a0, shape = FrozenShape)'))
+        assertTrue(source, source.contains('Badge(text = (dootahCall.arguments[0] as kotlin.String), shape = FrozenShape)'))
         assertTrue(source.contains('@file:kotlin.jvm.JvmName("' + result.facade + '")'))
     }
 
@@ -71,7 +71,7 @@ private val Hidden = 1
         assertTrue(row.children.keySet().every { it.startsWith(row.id + '/demo.Card#') } && row.children.size() == 1)
         assertTrue(card.children.keySet().every { it.startsWith(card.id + '/demo.Inner#') } && card.children.size() == 1)
         assertEquals(6, result.refused.size())
-        assertTrue(render('Hook.kt', source).contains('Card(text = a0)'))
+        assertTrue(render('Hook.kt', source).contains('Card(text = (dootahCall.arguments[0] as kotlin.String))'))
     }
 
     @Test void resolvesCalleesThroughImportsAndRefusesAmbiguity() {
@@ -118,11 +118,11 @@ import androidx.compose.runtime.Composable
         def row = result.adapters[0]
         assertEquals(3, row.children.size())
         assertEquals(['String', 'String', ''] as Set, row.children.values()*.signature() as Set)
-        assertTrue(result.refused.any { it.startsWith('Refused: Row: Unsupported content statement') })
+        assertTrue(result.refused.toString(), result.refused.any { it.startsWith('Refused: Row: ') && it.endsWith('Unsupported content statement') })
         def text = render('Details.kt', source)
-        assertTrue(text, text.contains('private fun ' + row.method + '(dootahContent: dev.dootah.runtime.NativeContent) {'))
-        assertTrue(text, text.contains('Row(modifier = Modifier.padding(4.dp)) {\n        dootahContent.render { dootahChild, dootahArguments ->'))
-        assertTrue(text, text.contains('Text(text = (dootahArguments[0] as kotlin.String), modifier = Modifier.weight(1f))'))
-        assertTrue(text, text.contains('"' + row.id + '" -> ' + row.method + '(content!!)'))
+        assertTrue(text, text.contains('private fun ' + row.method + '(dootahCall: dev.dootah.runtime.NativeCall) {'))
+        assertTrue(text, text.contains('Row(modifier = Modifier.padding(4.dp)) {\n        dootahCall.content(0) { dootahChild1, dootahCall1 ->'))
+        assertTrue(text, text.contains('Text(text = (dootahCall1.arguments[0] as kotlin.String), modifier = Modifier.weight(1f))'))
+        assertTrue(text, text.contains('"' + row.id + '" -> ' + row.method + '(call)'))
     }
 }

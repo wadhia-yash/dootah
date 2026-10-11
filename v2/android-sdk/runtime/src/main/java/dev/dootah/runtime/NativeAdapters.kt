@@ -11,20 +11,20 @@ import androidx.compose.runtime.Composable
  * source already makes; it accepts scalar values only and runs inside the caller's composition.
  */
 interface NativeAdapterRegistry {
-    /** Adapter id -> comma-separated parameter types ("String,Int?"); the same notation as hook inputs. */
+    /**
+     * Adapter id -> signature: comma-separated data types ("String,Int?", the notation of hook inputs), then
+     * one marker per content slot ("@content" for the trailing lambda, "@slot:name") and per callback ("@event").
+     */
     val signatures: Map<String, String>
 
-    /**
-     * Called only by [NativeAdapterHost] after the id and every value were checked against [signatures].
-     * [content] is present exactly when the signature ends with `@content` (a container adapter).
-     */
+    /** Called only by [NativeAdapterHost] after the id and [call]'s values were checked against [signatures]. */
     @Composable
-    fun render(id: String, arguments: List<Any?>, content: NativeContent?)
+    fun render(id: String, call: NativeCall)
 
     object Empty : NativeAdapterRegistry {
         override val signatures: Map<String, String> = emptyMap()
         @Composable
-        override fun render(id: String, arguments: List<Any?>, content: NativeContent?) = error("No native adapters are installed")
+        override fun render(id: String, call: NativeCall) = error("No native adapters are installed")
     }
 
     companion object {
@@ -49,18 +49,34 @@ interface NativeAdapterRegistry {
         }
 
         @Composable
-        override fun render(id: String, arguments: List<Any?>, content: NativeContent?) = owners.getValue(id).render(id, arguments, content)
+        override fun render(id: String, call: NativeCall) = owners.getValue(id).render(id, call)
     }
 }
 
 /**
- * The ordered children of a container adapter, selected by the update. A generated container calls
- * [render] inside its installed content lambda and supplies [child], which dispatches each child id to
- * the installed copy of that call, so the children keep the content lambda's receiver and composition.
+ * One installed native call as the update renders it. A generated adapter reads its data values from
+ * [arguments], renders each installed content lambda's children through [content], and forwards each
+ * installed callback argument to [event]. The Kotlin compiler selects the `event` overload from the
+ * callback's own parameter type, so the value arrives tagged with that type; any other type is refused.
  */
-interface NativeContent {
+abstract class NativeCall {
+    abstract val arguments: List<Any?>
+
+    /** Renders the children the update selected for content slot [slot] (signature order), in update order. */
     @Composable
-    fun render(child: @Composable (id: String, arguments: List<Any?>) -> Unit)
+    abstract fun content(slot: Int, child: @Composable (id: String, call: NativeCall) -> Unit)
+
+    fun event(index: Int) = fire(index, null, null)
+    @JvmName("eventString") fun event(index: Int, value: String) = fire(index, "String", value)
+    @JvmName("eventInt") fun event(index: Int, value: Int) = fire(index, "Int", value)
+    @JvmName("eventBoolean") fun event(index: Int, value: Boolean) = fire(index, "Boolean", value)
+    /** Any other callback parameter type: the event is refused. */
+    @JvmName("eventUnsupported") fun event(index: Int, @Suppress("UNUSED_PARAMETER") value: Any?) = fire(index, UNSUPPORTED, null)
+
+    /** [type] is null for a callback without parameters. Called on the main thread by the native component. */
+    protected abstract fun fire(index: Int, type: String?, value: Any?)
+
+    companion object { const val UNSUPPORTED = "?" }
 }
 
 /** The application's generated registry, or none. Never throws. */
@@ -84,12 +100,14 @@ object NativeAdapterHost {
     fun installed(registry: NativeAdapterRegistry, id: String, signature: String): Boolean =
         registry.signatures[id] == signature
 
-    /** True only for an installed adapter whose arity, scalar types and content form match exactly. */
-    fun accepts(registry: NativeAdapterRegistry, id: String, arguments: List<Any?>, content: Boolean = false): Boolean {
+    /** True only for an installed adapter whose scalar values, content slot count and callback count match exactly. */
+    fun accepts(registry: NativeAdapterRegistry, id: String, arguments: List<Any?>, slots: Int = 0, events: Int = 0): Boolean {
         val signature = registry.signatures[id] ?: return false
-        var types = if (signature.isEmpty()) emptyList() else signature.split(',')
-        if ((types.lastOrNull() == CONTENT) != content) return false
-        if (content) types = types.dropLast(1)
+        val tokens = if (signature.isEmpty()) emptyList() else signature.split(',')
+        val types = tokens.filter { !it.startsWith("@") }
+        // Markers follow the data types: content slots, then callbacks.
+        if (tokens.take(types.size) != types) return false
+        if (tokens.count { it == CONTENT || it.startsWith(SLOT) } != slots || tokens.count { it == EVENT } != events) return false
         if (types.size != arguments.size) return false
         return types.indices.all { i ->
             val type = types[i]
@@ -101,11 +119,13 @@ object NativeAdapterHost {
 
     /** Renders the adapter in the current composition. Returns false, composing nothing, when refused. */
     @Composable
-    fun render(registry: NativeAdapterRegistry, id: String, arguments: List<Any?>, content: NativeContent? = null): Boolean {
-        if (!accepts(registry, id, arguments, content != null)) return false
-        registry.render(id, arguments, content)
+    fun render(registry: NativeAdapterRegistry, id: String, call: NativeCall, slots: Int = 0, events: Int = 0): Boolean {
+        if (!accepts(registry, id, call.arguments, slots, events)) return false
+        registry.render(id, call)
         return true
     }
 
     const val CONTENT = "@content"
+    const val SLOT = "@slot:"
+    const val EVENT = "@event"
 }

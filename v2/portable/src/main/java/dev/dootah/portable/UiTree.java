@@ -8,11 +8,17 @@ import static dev.dootah.portable.PortableProgram.*;
 /** ABI 3 native-owned UI data. No remote objects or commands enter the renderer. */
 public final class UiTree {
     public static final int MAX_NODES=64, MAX_DEPTH=12, MAX_MODIFIERS=8, MAX_SLOTS=16, MAX_TEXT_SLOTS=8, MAX_ADAPTER_ARGUMENTS=9;
+    /** Native calls nested inside native content (the root call is level 0), and callback arguments per call. */
+    public static final int MAX_NESTING=4, MAX_EVENTS=8;
     // Build-generated adapter identity: callee qualified name + 64-bit shape digest (AdapterGen.ID_PATTERN).
     public static final String ADAPTER_ID="[A-Za-z_][A-Za-z0-9_.]{0,255}#[0-9a-f]{16}";
     /** A child call scoped to its container adapter: "container/child". */
     public static final String CHILD_ID=ADAPTER_ID+"/"+ADAPTER_ID;
-    public static final String CONTENT="@content";
+    /** A call inside nested native content: its ancestors' identities, then its own. */
+    public static final String NESTED_ID=ADAPTER_ID+"(/"+ADAPTER_ID+"){1,"+MAX_NESTING+"}";
+    /** Signature markers after the data types: the trailing content lambda, a named content slot, a callback argument. */
+    public static final String CONTENT="@content", SLOT="@slot:", EVENT="@event";
+    public static final String SLOT_NAME="[A-Za-z_][A-Za-z0-9_]{0,63}";
     // Eight maximally escaped 256-unit strings + eight booleans + punctuation fit below 16 KiB.
     public static final int MAX_RESULT_BYTES=16384;
     public static final List<String> ALIGNMENTS=Collections.unmodifiableList(Arrays.asList(
@@ -25,6 +31,7 @@ public final class UiTree {
     private int nodes;
     private final Set<Integer> references=new HashSet<>();
     private final Map<String,String> adapters=new TreeMap<>();
+    private final int actions;
 
     public static JSONObject layoutContract() throws JSONException {
         return new JSONObject().put("version",1).put("effect","render").put("permissions",new JSONArray())
@@ -47,8 +54,10 @@ public final class UiTree {
             .put("content",new JSONArray(Arrays.asList("native","if")))
             .put("limits",new JSONObject().put("arguments",MAX_ADAPTER_ARGUMENTS));
     }
-    UiTree(JSONObject raw,List<String> types) throws JSONException {
+    UiTree(JSONObject raw,List<String> types) throws JSONException { this(raw,types,0); }
+    UiTree(JSONObject raw,List<String> types,int actions) throws JSONException {
         this.types=Collections.unmodifiableList(new ArrayList<>(types));
+        this.actions=actions;
         // Box/Text roots acknowledge from their own draw; conditional and native roots from the committed frame.
         root=parse(raw,0,false);
         check(references.size()==types.size(),"Unused UI slot");
@@ -68,29 +77,37 @@ public final class UiTree {
             keys(raw,"type","condition","then","else"); capabilities.add(LAYOUT);
             int condition=slot(raw.get("condition"),"Boolean");
             return new Node(kind,condition,null,null,null,Collections.emptyList(),
-                children(raw.getJSONArray("then"),depth,boxScope),children(raw.getJSONArray("else"),depth,boxScope),null,Collections.emptyList(),false);
+                children(raw.getJSONArray("then"),depth,boxScope),children(raw.getJSONArray("else"),depth,boxScope),null,Collections.emptyList(),NO_CONTENT);
         }
         if(kind.equals("native")) return nativeCall(raw,depth,null);
         if(kind.equals("box")) {
             keys(raw,"type","alignment","modifiers","children"); capabilities.add(LAYOUT);
             String alignment=token(raw.get("alignment"),ALIGNMENTS,false);
             List<Mod> mods=modifiers(raw.getJSONArray("modifiers"),boxScope);
-            return new Node(kind,-1,alignment,null,null,mods,children(raw.getJSONArray("children"),depth,true),Collections.emptyList(),null,Collections.emptyList(),false);
+            return new Node(kind,-1,alignment,null,null,mods,children(raw.getJSONArray("children"),depth,true),Collections.emptyList(),null,Collections.emptyList(),NO_CONTENT);
         }
         check(kind.equals("text"),"Unknown UI node");
         keys(raw,"type","text","color","style","modifiers"); capabilities.add(MATERIAL_TEXT);
         return new Node(kind,slot(raw.get("text"),"String"),null,token(raw.get("color"),COLORS,true),
             token(raw.get("style"),STYLES,true),modifiers(raw.getJSONArray("modifiers"),boxScope),Collections.emptyList(),Collections.emptyList(),
-            null,Collections.emptyList(),false);
+            null,Collections.emptyList(),NO_CONTENT);
     }
-    /** A top-level native call (parent null), optionally a container with children; or a child scoped to parent. */
+    /**
+     * A top-level native call (parent null) or a call inside its parent's content, scoped to that parent.
+     * `children` is the trailing content lambda alone; `content` lists named and trailing slots in signature
+     * order; `events` binds each installed callback argument to one of this entry's actions.
+     */
     private Node nativeCall(JSONObject raw,int depth,String parent) throws JSONException {
-        boolean container=raw.has("children");
-        check(parent==null || !container,"Nested content");
-        if(container) keys(raw,"type","adapter","arguments","children"); else keys(raw,"type","adapter","arguments");
+        boolean single=raw.has("children"), slotted=raw.has("content"), evented=raw.has("events");
+        List<String> optional=new ArrayList<>();
+        if(single) optional.add("children"); if(slotted) optional.add("content"); if(evented) optional.add("events");
+        check(!(single && slotted),"Content form");
+        fields(raw,new String[]{"type","adapter","arguments"},optional.toArray(new String[0]));
         capabilities.add(NATIVE);
+        if(slotted || evented) capabilities.add(INTERACTION);
         String adapter=string(raw.get("adapter"));
-        check(parent==null ? adapter.matches(ADAPTER_ID) : adapter.matches(CHILD_ID) && adapter.startsWith(parent+"/"),"Adapter identity");
+        check(parent==null ? adapter.matches(ADAPTER_ID)
+            : adapter.matches(NESTED_ID) && adapter.startsWith(parent+"/") && adapter.indexOf('/',parent.length()+1)<0,"Adapter identity");
         JSONArray raws=raw.getJSONArray("arguments"); check(raws.length()<=MAX_ADAPTER_ARGUMENTS,"Adapter argument count");
         List<Integer> arguments=new ArrayList<>(); List<String> signature=new ArrayList<>();
         for(int i=0;i<raws.length();i++) {
@@ -98,13 +115,28 @@ public final class UiTree {
             check(index>=0 && index<types.size() && references.add(index),"Typed/unique UI slot reference");
             arguments.add(index); signature.add(types.get(index));
         }
-        if(container) signature.add(CONTENT);
+        List<String> names=new ArrayList<>(); List<List<Node>> contents=new ArrayList<>();
+        if(single) { names.add(""); contents.add(content(raw.getJSONArray("children"),depth,adapter)); }
+        if(slotted) {
+            JSONArray raws2=raw.getJSONArray("content"); check(raws2.length()>0 && raws2.length()<=MAX_SLOTS,"Content slot count");
+            for(int i=0;i<raws2.length();i++) {
+                JSONObject slot=raws2.getJSONObject(i); keys(slot,"slot","children");
+                String name=string(slot.get("slot")); check((name.isEmpty() || name.matches(SLOT_NAME)) && !names.contains(name),"Content slot name");
+                names.add(name); contents.add(content(slot.getJSONArray("children"),depth,adapter));
+            }
+        }
+        for(String name:names) signature.add(name.isEmpty()?CONTENT:SLOT+name);
+        List<Integer> events=new ArrayList<>();
+        if(evented) {
+            JSONArray raws3=raw.getJSONArray("events"); check(raws3.length()>0 && raws3.length()<=MAX_EVENTS,"Event count");
+            for(int i=0;i<raws3.length();i++) { int a=integer(raws3.get(i)); check(a>=0 && a<actions,"Event action"); events.add(a); signature.add(EVENT); }
+        }
         String joined=String.join(",",signature);
         check(adapters.getOrDefault(adapter,joined).equals(joined),"Adapter signature disagreement");
         adapters.put(adapter,joined);
-        List<Node> children=container ? content(raw.getJSONArray("children"),depth,adapter) : Collections.emptyList();
-        return new Node("native",-1,null,null,null,Collections.emptyList(),children,Collections.emptyList(),
-            adapter,Collections.unmodifiableList(arguments),container);
+        return new Node("native",-1,null,null,null,Collections.emptyList(),contents.size()==1?contents.get(0):Collections.emptyList(),
+            Collections.emptyList(),adapter,Collections.unmodifiableList(arguments),
+            new Content(Collections.unmodifiableList(names),Collections.unmodifiableList(contents),Collections.unmodifiableList(events)));
     }
     /** Container content: child calls of that container and if/if-else over them. */
     private List<Node> content(JSONArray raw,int depth,String parent) throws JSONException {
@@ -116,9 +148,10 @@ public final class UiTree {
                 keys(item,"type","condition","then","else"); capabilities.add(LAYOUT);
                 int condition=slot(item.get("condition"),"Boolean");
                 list.add(new Node("if",condition,null,null,null,Collections.emptyList(),content(item.getJSONArray("then"),depth+1,parent),
-                    content(item.getJSONArray("else"),depth+1,parent),null,Collections.emptyList(),false));
+                    content(item.getJSONArray("else"),depth+1,parent),null,Collections.emptyList(),NO_CONTENT));
             } else {
                 check(string(item.get("type")).equals("native"),"Unknown content node");
+                check(parent.split("/").length<=MAX_NESTING,"Native content nesting");
                 list.add(nativeCall(item,depth+1,parent));
             }
         }
@@ -157,7 +190,8 @@ public final class UiTree {
         if(node.slot>=0) code.append("r[").append(node.slot).append("]=").append(expressions.get(node.slot)).append(';');
         for(int slot:node.arguments) code.append("r[").append(slot).append("]=").append(expressions.get(slot)).append(';');
         if(node.kind.equals("if")) code.append("if(r[").append(node.slot).append("]){");
-        for(Node child:node.children) emit(child,expressions,code);
+        if(node.kind.equals("native")) { for(List<Node> slot:node.contents) for(Node child:slot) emit(child,expressions,code); }
+        else for(Node child:node.children) emit(child,expressions,code);
         if(node.kind.equals("if")) {
             code.append("}else{"); for(Node child:node.otherwise) emit(child,expressions,code); code.append('}');
         }
@@ -186,6 +220,7 @@ public final class UiTree {
     private void validateActive(Node node,List<Object> values,Set<Integer> active) {
         if(node.slot>=0) { validateValue(values.get(node.slot),types.get(node.slot)); active.add(node.slot); }
         for(int slot:node.arguments) { validateValue(values.get(slot),types.get(slot)); active.add(slot); }
+        if(node.kind.equals("native")) { for(List<Node> slot:node.contents) for(Node child:slot) validateActive(child,values,active); return; }
         List<Node> children=node.kind.equals("if") && !((Boolean)values.get(node.slot)) ? node.otherwise : node.children;
         for(Node child:children) validateActive(child,values,active);
     }
@@ -195,14 +230,25 @@ public final class UiTree {
         public final List<Mod> modifiers;
         public final List<Node> children,otherwise;
         public final List<Integer> arguments;
-        /** A native container: renders [children] inside its installed content lambda. */
+        /** A native container: renders [contents] inside its installed content lambdas. */
         public final boolean container;
+        /** Native calls: content slot names ("" is the trailing lambda) and their nodes, in signature order. */
+        public final List<String> slotNames;
+        public final List<List<Node>> contents;
+        /** Native calls: the action bound to each installed callback argument, in signature order. */
+        public final List<Integer> events;
         private Node(String k,int s,String a,String c,String t,List<Mod> m,List<Node> children,List<Node> otherwise,String adapter,
-                     List<Integer> arguments,boolean container) {
+                     List<Integer> arguments,Content content) {
             kind=k;slot=s;alignment=a;color=c;style=t;modifiers=m;this.children=children;this.otherwise=otherwise;
-            this.adapter=adapter;this.arguments=arguments;this.container=container;
+            this.adapter=adapter;this.arguments=arguments;container=!content.contents.isEmpty();
+            slotNames=content.names;contents=content.contents;events=content.events;
         }
     }
+    private static final class Content {
+        final List<String> names; final List<List<Node>> contents; final List<Integer> events;
+        Content(List<String> n,List<List<Node>> c,List<Integer> e){names=n;contents=c;events=e;}
+    }
+    private static final Content NO_CONTENT=new Content(Collections.emptyList(),Collections.emptyList(),Collections.emptyList());
     public static final class Mod {
         public final String op,alignment;
         public final int start,top,end,bottom;

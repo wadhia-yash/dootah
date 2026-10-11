@@ -14,44 +14,84 @@ import org.jetbrains.kotlin.psi.*;
  * Kotlin/Compose compiler. Shared by the Gradle plugin (generation) and the publisher (lowering),
  * so both sides derive the same identity from the same call. No compiler mutation, no reflection.
  *
- * An adapter is a copy of one real call that an eligible scalar hook body makes to an app-owned
- * composable. Arguments that read the hook's data become typed adapter parameters; every other
- * argument is copied verbatim and stays frozen in the APK, and omitted arguments keep their Kotlin
- * defaults. Selection is syntactic and deliberately narrow; anything doubtful produces no adapter.
+ * An adapter is a copy of one real call that an eligible hook body makes to an app-owned composable.
+ * Arguments that read the hook's data (inputs and its `remember { mutableStateOf(..) }` state) become typed
+ * values; every other argument is copied verbatim and stays frozen in the APK, and omitted arguments keep
+ * their Kotlin defaults. A lambda argument is either a content slot, whose installed child calls the update
+ * selects and orders, or a callback, which the update binds to an action over state and installed
+ * callbacks. Selection is syntactic and deliberately narrow; anything doubtful produces no adapter.
  */
 public final class AdapterGen {
     public static final String INDEX_PACKAGE = AdapterNames.INDEX_PACKAGE, INDEX = AdapterNames.INDEX;
     public static final String METHOD_PREFIX = AdapterNames.METHOD_PREFIX, FACADE_PREFIX = AdapterNames.FACADE_PREFIX,
         REGISTRY_PREFIX = AdapterNames.REGISTRY_PREFIX;
     private static final String ID = "[A-Za-z_][A-Za-z0-9_.]{0,255}#[0-9a-f]{16}";
-    /** A top-level adapter, or a child call scoped to one container adapter ("container/child"). */
-    public static final String ID_PATTERN = ID + "(/" + ID + ")?";
-    /** Last signature element of a container adapter: it renders ordered child calls inside its content lambda. */
-    public static final String CONTENT = "@content";
+    /** Native calls nested inside native content; the root call is level 0. */
+    public static final int MAX_NESTING = 4;
+    /** A top-level adapter, or a call nested in its ancestors' content ("root/child/grandchild"). */
+    public static final String ID_PATTERN = ID + "(/" + ID + "){0," + MAX_NESTING + "}";
+    /** Signature markers after the data types: the trailing content lambda, a named content slot, a callback argument. */
+    public static final String CONTENT = "@content", SLOT = "@slot:", EVENT = "@event";
     /** Lowered structurally by the publisher instead. */
     public static final Set<String> STRUCTURAL = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("Box", "Text")));
     public static final List<String> SCALARS = Collections.unmodifiableList(Arrays.asList("String", "Int", "Boolean", "String?", "Int?", "Boolean?"));
-    public static final int MAX_PARAMETERS = 9, MAX_ARGUMENTS = 32;
+    /** Installed callback parameters: Unit-returning function types with at most one scalar parameter. */
+    public static final String CALLBACK = "\\((String|Int|Boolean)?\\)->Unit";
+    public static final int MAX_PARAMETERS = 9, MAX_ARGUMENTS = 32, MAX_STATE = 8;
 
     private AdapterGen() {}
 
+    /** One value argument of a copied call: frozen text, a typed data value, a content slot, or a callback. */
     public static final class Argument {
         public final String name, frozen, type;
         public final KtExpression expression;
-        Argument(String name, String frozen, String type, KtExpression expression) {
-            this.name = name; this.frozen = frozen; this.type = type; this.expression = expression;
+        public final Slot slot;
+        public final Event event;
+        Argument(String name, String frozen, String type, KtExpression expression, Slot slot, Event event) {
+            this.name = name; this.frozen = frozen; this.type = type; this.expression = expression; this.slot = slot; this.event = event;
+        }
+    }
+
+    /** A content lambda. Its children are the installed calls it makes, each scoped to this slot. */
+    public static final class Slot {
+        /** The argument name; "" for the trailing lambda. */
+        public final String name;
+        public final int index;
+        public final KtBlockExpression body;
+        public final Map<String, Shape> children = new LinkedHashMap<>();
+        Slot(String name, int index, KtBlockExpression body) { this.name = name; this.index = index; this.body = body; }
+        public String marker() { return name.isEmpty() ? CONTENT : SLOT + name; }
+    }
+
+    /** A callback argument: an event lambda over state and installed callbacks, or a hook callback passed on. */
+    public static final class Event {
+        public final String name;
+        public final int index;
+        public final KtExpression expression;
+        /** The forwarded callback parameter: "it", the lambda's own parameter name, or null when none is read. */
+        public final String parameter;
+        Event(String name, int index, KtExpression expression, String parameter) {
+            this.name = name; this.index = index; this.expression = expression; this.parameter = parameter;
         }
     }
 
     public static final class Shape {
-        public final String id, callee, method, call;
+        public final String id, callee, method;
+        /** The callee as written at the call site (a simple name, possibly an import alias). */
+        final String written;
         public final List<Argument> arguments;
-        /** Container adapters copy the call and render installed child calls inside its content lambda. */
+        /** The trailing lambda, a content slot or a callback; null when absent. */
+        public final Argument trailing;
+        public final List<Slot> slots;
+        public final List<Event> events;
+        /** Container adapters copy the call and render installed child calls inside their content lambdas. */
         public final boolean container;
+        /** Direct children across all slots. */
         public final Map<String, Shape> children = new TreeMap<>();
-        Shape(String id, String callee, String method, String call, List<Argument> arguments, boolean container) {
-            this.id = id; this.callee = callee; this.method = method; this.call = call; this.arguments = arguments;
-            this.container = container;
+        Shape(String id, String callee, String method, String written, List<Argument> arguments, Argument trailing,
+              List<Slot> slots, List<Event> events) {
+            this.id = id; this.callee = callee; this.method = method; this.written = written; this.arguments = arguments;
+            this.trailing = trailing; this.slots = slots; this.events = events; this.container = !slots.isEmpty();
         }
         public List<String> types() {
             List<String> types = new ArrayList<>();
@@ -59,12 +99,40 @@ public final class AdapterGen {
             return types;
         }
         public String signature() {
-            List<String> types = types();
-            if (container) types.add(CONTENT);
-            return String.join(",", types);
+            List<String> tokens = types();
+            for (Slot s : slots) tokens.add(s.marker());
+            for (int i = 0; i < events.size(); i++) tokens.add(EVENT);
+            return String.join(",", tokens);
         }
         /** JVM name the adapter body must invoke (alias imports resolve to the declared name). */
         public String calleeName() { return callee.substring(callee.lastIndexOf('.') + 1); }
+        /** This call's children and theirs, depth first. */
+        public List<Shape> descendants() {
+            List<Shape> all = new ArrayList<>();
+            for (Slot s : slots) for (Shape c : s.children.values()) { all.add(c); all.addAll(c.descendants()); }
+            return all;
+        }
+        void add(Slot slot, Shape child) {
+            Shape existing = slot.children.putIfAbsent(child.id, child);
+            children.putIfAbsent(child.id, child);
+            if (existing != null) for (int i = 0; i < child.slots.size(); i++) {
+                for (Shape grandchild : child.slots.get(i).children.values()) existing.add(existing.slots.get(i), grandchild);
+            }
+        }
+    }
+
+    /** What the hook binds: data names with their types, installed callbacks with their arity, and state. */
+    public static final class Hook {
+        public final Set<String> scope, privateNames;
+        /** Scalar parameters and state variables -> type. */
+        public final Map<String, String> inputs;
+        /** Callback parameters -> parameter count. */
+        public final Map<String, Integer> callbacks;
+        /** `var x by remember { mutableStateOf(literal) }` -> type, in declaration order. */
+        public final Map<String, String> state;
+        Hook(Set<String> scope, Set<String> privateNames, Map<String, String> inputs, Map<String, Integer> callbacks, Map<String, String> state) {
+            this.scope = scope; this.privateNames = privateNames; this.inputs = inputs; this.callbacks = callbacks; this.state = state;
+        }
     }
 
     public static final class Result {
@@ -77,6 +145,15 @@ public final class AdapterGen {
         }
         public String qualifiedRegistry() { return packageName.isEmpty() ? registry : packageName + "." + registry; }
         public String qualifiedFacade() { return packageName.isEmpty() ? facade : packageName + "." + facade; }
+        /** Every adapter identity and its signature, nested children included. */
+        public Map<String, String> signatures() {
+            Map<String, String> all = new TreeMap<>();
+            for (Shape s : adapters) {
+                all.put(s.id, s.signature());
+                for (Shape c : s.descendants()) all.put(c.id, c.signature());
+            }
+            return all;
+        }
     }
 
     static String sha256(String value) {
@@ -101,32 +178,28 @@ public final class AdapterGen {
         String hash = fileHash(path);
         Map<String, Shape> adapters = new TreeMap<>();
         List<String> refused = new ArrayList<>();
-        Set<String> privateNames = privateNames(file);
         for (KtNamedFunction function : hooks(file)) {
-            Map<String, String> inputs = inputs(function);
-            Set<String> scope = scope(function);
+            Hook hook;
+            try { hook = hook(function, file); }
+            catch (IllegalArgumentException e) { refused.add(function.getName() + ": " + e.getMessage()); continue; }
+            Function<KtExpression, String> typer = e -> dataType(e, hook.inputs);
             List<KtCallExpression> calls = new ArrayList<>(PsiTreeUtil.findChildrenOfType(function.getBodyExpression(), KtCallExpression.class));
             if (function.getBodyExpression() instanceof KtCallExpression) calls.add(0, (KtCallExpression) function.getBodyExpression());
-            Set<PsiElement> contents = new HashSet<>();
+            Set<PsiElement> lambdas = new HashSet<>();
             for (KtCallExpression call : calls) {
-                if (within(call, contents)) continue; // already adapted as a child of its container
+                if (within(call, lambdas)) continue; // inside an adapted call's content or callback
                 if (!candidate(call) || !statementPosition(call, function)) continue;
                 try {
                     require(statementInHook(call, function), "Not a direct statement of the hook body (lambda scope or nested expression)");
-                    Function<KtExpression, String> typer = e -> dataType(e, inputs);
-                    Shape shape;
-                    if (call.getLambdaArguments().isEmpty()) shape = shape(call, file, path, scope, privateNames, typer);
-                    else {
-                        shape = containerShape(call, file, path, scope, privateNames, typer);
-                        KtBlockExpression body = contentBody(call);
-                        for (KtCallExpression child : contentCalls(body)) {
-                            Shape c = childShape(shape, child, file, scope, privateNames, typer);
-                            shape.children.putIfAbsent(c.id, c);
-                        }
-                        contents.add(body);
+                    Shape shape = shape(call, file, path, hook, typer);
+                    expand(shape, file, hook, typer, 0);
+                    Shape existing = adapters.get(shape.id);
+                    if (existing == null) adapters.put(shape.id, shape);
+                    else for (int i = 0; i < shape.slots.size(); i++) {
+                        for (Shape c : shape.slots.get(i).children.values()) existing.add(existing.slots.get(i), c);
                     }
-                    Shape existing = adapters.putIfAbsent(shape.id, shape);
-                    if (existing != null) for (Shape c : shape.children.values()) existing.children.putIfAbsent(c.id, c);
+                    for (KtLambdaArgument l : call.getLambdaArguments()) lambdas.add(l);
+                    for (KtValueArgument a : arguments(call)) if (a.getArgumentExpression() instanceof KtLambdaExpression) lambdas.add(a);
                 } catch (IllegalArgumentException e) {
                     refused.add(function.getName() + ": " + call.getCalleeExpression().getText() + ": " + e.getMessage());
                 }
@@ -134,6 +207,18 @@ public final class AdapterGen {
         }
         return new Result(path, pkg, FACADE_PREFIX + hash, REGISTRY_PREFIX + hash,
             Collections.unmodifiableList(new ArrayList<>(adapters.values())), Collections.unmodifiableList(refused));
+    }
+
+    /** Builds the installed children of every content slot, recursively and within the nesting bound. */
+    private static void expand(Shape shape, KtFile file, Hook hook, Function<KtExpression, String> typer, int depth) {
+        for (Slot slot : shape.slots) {
+            for (KtCallExpression call : contentCalls(slot.body)) {
+                require(depth < MAX_NESTING, "Native content nesting exceeds " + MAX_NESTING);
+                Shape child = childShape(shape, slot, call, file, hook, typer);
+                expand(child, file, hook, typer, depth + 1);
+                shape.add(slot, child);
+            }
+        }
     }
 
     /** A capitalised call outside the structural vocabulary, written as `Name(...)`. */
@@ -153,9 +238,13 @@ public final class AdapterGen {
     public static KtBlockExpression contentBody(KtCallExpression call) {
         require(call.getLambdaArguments().size() == 1, "Exactly one trailing content lambda");
         KtLambdaExpression lambda = call.getLambdaArguments().get(0).getLambdaExpression();
-        require(lambda != null && lambda.getFunctionLiteral().getValueParameterList() == null
-            && lambda.getFunctionLiteral().getArrow() == null && lambda.getBodyExpression() != null, "Content lambda parameters unsupported");
+        require(contentLambda(lambda), "Content lambda parameters unsupported");
         return lambda.getBodyExpression();
+    }
+
+    private static boolean contentLambda(KtLambdaExpression lambda) {
+        return lambda != null && lambda.getFunctionLiteral().getValueParameterList() == null
+            && lambda.getFunctionLiteral().getArrow() == null && lambda.getBodyExpression() != null;
     }
 
     /** Content statements: capitalised child calls, possibly under if/if-else. Anything else refuses the container. */
@@ -179,14 +268,17 @@ public final class AdapterGen {
         }
     }
 
-    /** A child call: any capitalised `Name(...)` without its own content. Box/Text are ordinary children here. */
+    /** A child call: any capitalised `Name(...)`; Box/Text are ordinary children here. Its own lambdas nest. */
     public static boolean childCandidate(KtCallExpression call) {
         if (!(call.getCalleeExpression() instanceof KtNameReferenceExpression)) return false;
         String name = ((KtNameReferenceExpression) call.getCalleeExpression()).getReferencedName();
-        return !name.isEmpty() && Character.isUpperCase(name.charAt(0)) && call.getLambdaArguments().isEmpty();
+        return !name.isEmpty() && Character.isUpperCase(name.charAt(0));
     }
 
-    /** Top-level, non-extension, non-generic composables with at most nine scalar inputs: the hookable form. */
+    /**
+     * Top-level, non-extension, non-generic composables with at most nine inputs, each a scalar or an installed
+     * callback (a Unit function type with scalar parameters): the hookable form.
+     */
     public static List<KtNamedFunction> hooks(KtFile file) {
         List<String> imports = new ArrayList<>();
         for (KtImportDirective d : file.getImportDirectives()) if (d.getImportPath() != null) imports.add(d.getImportPath().getPathStr());
@@ -197,11 +289,13 @@ public final class AdapterGen {
             if (f.getBodyExpression() == null || f.getReceiverTypeReference() != null || !f.getTypeParameters().isEmpty()
                 || f.hasModifier(KtTokens.INLINE_KEYWORD) || f.hasModifier(KtTokens.SUSPEND_KEYWORD)
                 || f.getValueParameters().size() > MAX_PARAMETERS || !composable(f, imports)) continue;
-            boolean scalar = true;
+            boolean eligible = true;
             for (KtParameter p : f.getValueParameters()) {
-                if (p.isVarArg() || p.getTypeReference() == null || !SCALARS.contains(type(p.getTypeReference().getText()))) scalar = false;
+                if (p.isVarArg() || p.getTypeReference() == null) { eligible = false; continue; }
+                String type = type(p.getTypeReference().getText());
+                if (!SCALARS.contains(type) && !type.matches(CALLBACK)) eligible = false;
             }
-            if (scalar) result.add(f);
+            if (eligible) result.add(f);
         }
         return result;
     }
@@ -215,12 +309,76 @@ public final class AdapterGen {
         return false;
     }
 
-    static String type(String text) { return text.replace("kotlin.", "").replace(" ", ""); }
+    /** Normalised type text: no `kotlin.` qualifiers or whitespace ("(kotlin.Boolean) -> Unit" is "(Boolean)->Unit"). */
+    public static String type(String text) { return text.replace("kotlin.", "").replaceAll("\\s+", ""); }
 
+    /** Scalar and callback parameters by name; callbacks map to their declared type. */
     public static Map<String, String> inputs(KtNamedFunction function) {
         Map<String, String> inputs = new LinkedHashMap<>();
         for (KtParameter p : function.getValueParameters()) inputs.put(p.getName(), type(p.getTypeReference().getText()));
         return inputs;
+    }
+
+    /**
+     * The hook's bindings. State is `var name by remember { mutableStateOf(literal) }` written directly in the
+     * body; its type is the literal's (Boolean, Int or String), and it is read and assigned like a scalar input.
+     */
+    public static Hook hook(KtNamedFunction function, KtFile file) {
+        Map<String, String> inputs = new LinkedHashMap<>(), state = new LinkedHashMap<>();
+        Map<String, Integer> callbacks = new LinkedHashMap<>();
+        for (Map.Entry<String, String> p : inputs(function).entrySet()) {
+            if (p.getValue().matches(CALLBACK)) callbacks.put(p.getKey(), callbackArity(p.getValue()));
+            else inputs.put(p.getKey(), p.getValue());
+        }
+        if (function.getBodyExpression() instanceof KtBlockExpression) {
+            for (KtExpression s : ((KtBlockExpression) function.getBodyExpression()).getStatements()) {
+                if (!(s instanceof KtProperty) || ((KtProperty) s).getDelegateExpression() == null) continue;
+                KtProperty p = (KtProperty) s;
+                String type = stateType(p);
+                require(type != null, "Unsupported state declaration: " + p.getName());
+                require(state.size() < MAX_STATE && !inputs.containsKey(p.getName()) && !callbacks.containsKey(p.getName()), "State declaration");
+                state.put(p.getName(), type);
+            }
+        }
+        inputs.putAll(state);
+        return new Hook(scope(function), privateNames(file), Collections.unmodifiableMap(inputs),
+            Collections.unmodifiableMap(callbacks), Collections.unmodifiableMap(state));
+    }
+
+    static int callbackArity(String type) {
+        return type.startsWith("()") ? 0 : 1;
+    }
+
+    /** `var x by remember { mutableStateOf(<Boolean/Int/String literal>) }`, untyped or with the literal's type; else null. */
+    public static String stateType(KtProperty p) {
+        if (!p.isVar() || p.getModifierList() != null || !(p.getDelegateExpression() instanceof KtCallExpression)) return null;
+        KtCallExpression remember = (KtCallExpression) p.getDelegateExpression();
+        if (!"remember".equals(remember.getCalleeExpression() == null ? null : remember.getCalleeExpression().getText())
+            || !remember.getValueArguments().isEmpty() && remember.getLambdaArguments().size() != remember.getValueArguments().size()
+            || remember.getLambdaArguments().size() != 1 || !remember.getTypeArguments().isEmpty()) return null;
+        KtLambdaExpression lambda = remember.getLambdaArguments().get(0).getLambdaExpression();
+        if (!contentLambda(lambda) || lambda.getBodyExpression().getStatements().size() != 1
+            || !(lambda.getBodyExpression().getStatements().get(0) instanceof KtCallExpression)) return null;
+        KtCallExpression create = (KtCallExpression) lambda.getBodyExpression().getStatements().get(0);
+        if (!"mutableStateOf".equals(create.getCalleeExpression() == null ? null : create.getCalleeExpression().getText())
+            || create.getValueArguments().size() != 1 || !create.getLambdaArguments().isEmpty() || !create.getTypeArguments().isEmpty()) return null;
+        String type = literalType(create.getValueArguments().get(0).getArgumentExpression());
+        if (type == null) return null;
+        return p.getTypeReference() == null || type(p.getTypeReference().getText()).equals(type) ? type : null;
+    }
+
+    static String literalType(KtExpression e) {
+        if (e instanceof KtConstantExpression) {
+            if (e.getText().equals("true") || e.getText().equals("false")) return "Boolean";
+            if (e.getText().matches("0|[1-9][0-9]{0,8}")) return "Int";
+        }
+        if (e instanceof KtStringTemplateExpression && !e.getText().startsWith("\"\"\"")) {
+            for (KtStringTemplateEntry entry : ((KtStringTemplateExpression) e).getEntries()) {
+                if (!(entry instanceof KtLiteralStringTemplateEntry)) return null;
+            }
+            return "String";
+        }
+        return null;
     }
 
     /** Every name the hook body or its parameters bind; an argument naming one of these reads hook data. */
@@ -265,7 +423,7 @@ public final class AdapterGen {
         if (expression instanceof KtStringTemplateExpression) return "String";
         if (expression instanceof KtNameReferenceExpression) {
             String type = inputs.get(((KtNameReferenceExpression) expression).getReferencedName());
-            require(type != null, "Reads a local value; only hook inputs and string templates become adapter parameters");
+            require(type != null, "Reads a local value; only hook inputs, state and string templates become adapter parameters");
             require(!type.endsWith("?"), "Nullable input may be smart-cast at the call site");
             return type;
         }
@@ -292,52 +450,58 @@ public final class AdapterGen {
     }
 
     /**
-     * The identity and typed contract of one call. `dataType` types each argument that reads hook
-     * data: generation accepts only evident forms, while the publisher supplies the type of the
-     * lowered Logic ABI 1 expression. Both see the same frozen text and therefore the same identity.
+     * The identity and typed contract of one call written in the hook body. `dataType` types each argument
+     * that reads hook data: generation accepts only evident forms, while the publisher supplies the type of
+     * the lowered Logic ABI 1 expression. Both see the same frozen text and therefore the same identity.
      */
-    public static Shape shape(KtCallExpression call, KtFile file, String path, Set<String> scope, Set<String> privateNames,
-                              Function<KtExpression, String> dataType) {
+    public static Shape shape(KtCallExpression call, KtFile file, String path, Hook hook, Function<KtExpression, String> dataType) {
         require(candidate(call), "Not an app-owned composable call");
-        require(call.getLambdaArguments().isEmpty(), "Trailing lambda or content slot");
-        return build(call, file, scope, privateNames, dataType, "dootah-adapter-v1|" + path, "", false, i -> "a" + i);
-    }
-
-    /** A container call: its own arguments as for a plain adapter, plus one content lambda (see {@link #contentBody}). */
-    public static Shape containerShape(KtCallExpression call, KtFile file, String path, Set<String> scope, Set<String> privateNames,
-                                       Function<KtExpression, String> dataType) {
-        require(candidate(call), "Not an app-owned composable call");
-        contentBody(call);
-        return build(call, file, scope, privateNames, dataType, "dootah-adapter-v1|" + path, "", true, i -> "a" + i);
+        return build(call, file, hook, dataType, "dootah-adapter-v1|" + path, "");
     }
 
     /**
-     * A call written inside a container's content lambda. Its identity is scoped to that container, and
-     * its copy is generated inside the copied content lambda, so implicit receivers resolve as in source.
+     * A call written inside a content slot of [container]. Its identity is scoped to that container and slot,
+     * and its copy is generated inside the copied content lambda, so implicit receivers resolve as in source.
      */
-    public static Shape childShape(Shape container, KtCallExpression call, KtFile file, Set<String> scope, Set<String> privateNames,
+    public static Shape childShape(Shape container, Slot slot, KtCallExpression call, KtFile file, Hook hook,
                                    Function<KtExpression, String> dataType) {
-        require(container.container, "Not a container adapter");
-        require(childCandidate(call), "Child calls cannot have their own content");
-        return build(call, file, scope, privateNames, dataType, "dootah-adapter-child-v1|" + container.id, container.id + "/", false, null);
+        require(container.slots.contains(slot), "Not a content slot of this container");
+        require(childCandidate(call), "Not a child call");
+        // The trailing slot keeps the original child scope, so earlier container identities are unchanged.
+        String scope = "dootah-adapter-child-v1|" + container.id + (slot.name.isEmpty() ? "" : "|" + slot.name);
+        return build(call, file, hook, dataType, scope, container.id + "/");
     }
 
-    private static Shape build(KtCallExpression call, KtFile file, Set<String> scope, Set<String> privateNames,
-                               Function<KtExpression, String> dataType, String identityPrefix, String idPrefix, boolean container,
-                               java.util.function.IntFunction<String> parameterName) {
+    private static List<KtValueArgument> arguments(KtCallExpression call) {
+        return call.getValueArgumentList() == null ? Collections.emptyList() : call.getValueArgumentList().getArguments();
+    }
+
+    private static Shape build(KtCallExpression call, KtFile file, Hook hook, Function<KtExpression, String> dataType,
+                               String identityPrefix, String idPrefix) {
         String name = ((KtNameReferenceExpression) call.getCalleeExpression()).getReferencedName();
-        require(!scope.contains(name) && !privateNames.contains(name), "Local or file-private callee");
+        require(!hook.scope.contains(name) && !hook.privateNames.contains(name), "Local or file-private callee");
         require(call.getTypeArguments().isEmpty(), "Explicit type arguments");
-        List<KtValueArgument> values = call.getValueArgumentList() == null ? Collections.emptyList() : call.getValueArgumentList().getArguments();
+        require(call.getLambdaArguments().size() <= 1, "Several trailing lambdas");
+        List<KtValueArgument> values = arguments(call);
         require(values.size() <= MAX_ARGUMENTS, "Argument count");
         String callee = callee(name, file);
         List<Argument> arguments = new ArrayList<>();
+        List<Slot> slots = new ArrayList<>();
+        List<Event> events = new ArrayList<>();
         StringBuilder identity = new StringBuilder(identityPrefix).append('|').append(callee);
-        StringBuilder text = new StringBuilder(name).append('(');
         int parameters = 0;
         for (KtValueArgument argument : values) {
             KtExpression expression = argument.getArgumentExpression();
             require(expression != null && argument.getSpreadElement() == null, "Unsupported argument form");
+            String label = argument.isNamed() ? argument.getArgumentName().getAsName().asString() : null;
+            String key = label == null ? "#" + arguments.size() : label;
+            require(label != null || !(expression instanceof KtLambdaExpression), "Positional lambda argument");
+            Argument special = lambdaArgument(label, expression, hook, slots, events);
+            if (special != null) {
+                arguments.add(special);
+                identity.append('|').append(key).append(special.slot != null ? "=S" : special.event.parameter == null ? "=E0" : "=E1");
+                continue;
+            }
             require(!(expression instanceof KtLambdaExpression) && !(expression instanceof KtCallableReferenceExpression)
                 && !(expression instanceof KtThisExpression) && !(expression instanceof KtObjectLiteralExpression)
                 && PsiTreeUtil.findChildrenOfAnyType(expression, KtLambdaExpression.class, KtNamedFunction.class,
@@ -347,36 +511,124 @@ public final class AdapterGen {
             Set<String> names = new HashSet<>();
             if (expression instanceof KtNameReferenceExpression) names.add(((KtNameReferenceExpression) expression).getReferencedName());
             for (KtNameReferenceExpression r : PsiTreeUtil.findChildrenOfType(expression, KtNameReferenceExpression.class)) names.add(r.getReferencedName());
-            require(Collections.disjoint(names, privateNames), "Argument reads a file-private declaration");
-            String label = argument.isNamed() ? argument.getArgumentName().getAsName().asString() : null;
-            String value;
-            Argument parsed;
-            if (Collections.disjoint(names, scope)) {
-                value = expression.getText();
-                parsed = new Argument(label, value, null, expression);
-                identity.append('|').append(label == null ? "#" + arguments.size() : label).append("=F:").append(value.replaceAll("\\s+", " "));
+            require(Collections.disjoint(names, hook.privateNames), "Argument reads a file-private declaration");
+            require(Collections.disjoint(names, hook.callbacks.keySet()), "Callback used in a data argument");
+            if (Collections.disjoint(names, hook.scope)) {
+                String frozen = expression.getText();
+                arguments.add(new Argument(label, frozen, null, expression, null, null));
+                identity.append('|').append(key).append("=F:").append(frozen.replaceAll("\\s+", " "));
             } else {
                 String type = dataType.apply(expression);
                 require(SCALARS.contains(type), "Argument is not a scalar");
                 require(++parameters <= MAX_PARAMETERS, "Adapter parameter count");
-                // Children read their values from the container's ordered child arguments.
-                value = parameterName != null ? parameterName.apply(parameters - 1)
-                    : "(dootahArguments[" + (parameters - 1) + "] as " + kotlinType(type) + ")";
-                parsed = new Argument(label, null, type, expression);
-                identity.append('|').append(label == null ? "#" + arguments.size() : label).append("=P:").append(type);
+                arguments.add(new Argument(label, null, type, expression, null, null));
+                identity.append('|').append(key).append("=P:").append(type);
             }
-            arguments.add(parsed);
-            if (arguments.size() > 1) text.append(", ");
-            text.append(label == null ? value : label + " = " + value);
         }
-        if (container) identity.append("|content");
+        Argument trailing = null;
+        if (!call.getLambdaArguments().isEmpty()) {
+            trailing = lambdaArgument("", call.getLambdaArguments().get(0).getLambdaExpression(), hook, slots, events);
+            require(trailing != null, "Trailing lambda is neither content nor a callback");
+            identity.append(trailing.slot != null ? "|content" : trailing.event.parameter == null ? "|trailing=E0" : "|trailing=E1");
+        }
         String hex = sha256(identity.toString()).substring(0, 16);
-        return new Shape(idPrefix + callee + "#" + hex, callee, METHOD_PREFIX + hex, text.append(')').toString(),
-            Collections.unmodifiableList(arguments), container);
+        return new Shape(idPrefix + callee + "#" + hex, callee, METHOD_PREFIX + hex, name, Collections.unmodifiableList(arguments),
+            trailing, Collections.unmodifiableList(slots), Collections.unmodifiableList(events));
+    }
+
+    /**
+     * A lambda (or a hook callback passed on) as a content slot or a callback; null when the argument is
+     * neither. Content holds only capitalised calls under if/else; a callback holds only assignments to hook
+     * state and calls to the hook's own callbacks. Its body is never copied: the update's action replaces it.
+     */
+    private static Argument lambdaArgument(String label, KtExpression expression, Hook hook, List<Slot> slots, List<Event> events) {
+        if (expression instanceof KtNameReferenceExpression && hook.callbacks.containsKey(((KtNameReferenceExpression) expression).getReferencedName())) {
+            int arity = hook.callbacks.get(((KtNameReferenceExpression) expression).getReferencedName());
+            Event event = new Event(label == null ? "" : label, events.size(), expression, arity == 1 ? "it" : null);
+            events.add(event);
+            return new Argument(label, null, null, expression, null, event);
+        }
+        if (!(expression instanceof KtLambdaExpression)) return null;
+        KtLambdaExpression lambda = (KtLambdaExpression) expression;
+        require(lambda.getBodyExpression() != null && !lambda.getBodyExpression().getStatements().isEmpty(), "Empty lambda argument");
+        if (eventLambda(lambda, hook)) {
+            List<KtParameter> parameters = lambda.getFunctionLiteral().getValueParameters();
+            String forwarded = parameters.isEmpty() ? (readsIt(lambda) ? "it" : null) : parameters.get(0).getName();
+            Event event = new Event(label, events.size(), lambda, forwarded);
+            events.add(event);
+            return new Argument(label, null, null, lambda, null, event);
+        }
+        require(contentLambda(lambda), "Lambda argument is neither content nor a supported callback");
+        try { contentCalls(lambda.getBodyExpression()); }
+        catch (IllegalArgumentException e) { throw new IllegalArgumentException("Lambda argument is neither content nor a supported callback: " + e.getMessage()); }
+        // label is "" for the trailing lambda and the argument name otherwise.
+        require(label.isEmpty() || label.matches("[A-Za-z_][A-Za-z0-9_]{0,63}"), "Content slot name");
+        Slot slot = new Slot(label, slots.size(), lambda.getBodyExpression());
+        slots.add(slot);
+        return new Argument(label, null, null, lambda, slot, null);
+    }
+
+    private static boolean eventLambda(KtLambdaExpression lambda, Hook hook) {
+        List<KtParameter> parameters = lambda.getFunctionLiteral().getValueParameters();
+        if (parameters.size() > 1) return false;
+        if (parameters.size() == 1 && (parameters.get(0).getDestructuringDeclaration() != null || parameters.get(0).getTypeReference() != null)) return false;
+        for (KtExpression s : lambda.getBodyExpression().getStatements()) {
+            boolean set = s instanceof KtBinaryExpression && ((KtBinaryExpression) s).getOperationToken() == KtTokens.EQ
+                && ((KtBinaryExpression) s).getLeft() instanceof KtNameReferenceExpression
+                && hook.state.containsKey(((KtNameReferenceExpression) ((KtBinaryExpression) s).getLeft()).getReferencedName());
+            boolean call = s instanceof KtCallExpression && ((KtCallExpression) s).getCalleeExpression() instanceof KtNameReferenceExpression
+                && hook.callbacks.containsKey(((KtNameReferenceExpression) ((KtCallExpression) s).getCalleeExpression()).getReferencedName())
+                && ((KtCallExpression) s).getLambdaArguments().isEmpty() && ((KtCallExpression) s).getTypeArguments().isEmpty();
+            if (!set && !call) return false;
+        }
+        return true;
+    }
+
+    private static boolean readsIt(KtLambdaExpression lambda) {
+        for (KtNameReferenceExpression r : PsiTreeUtil.findChildrenOfType(lambda.getBodyExpression(), KtNameReferenceExpression.class)) {
+            if (r.getReferencedName().equals("it")) return true;
+        }
+        return false;
     }
 
     private static String kotlinType(String type) {
         return "kotlin." + type;
+    }
+
+    /** The copied call, reading data from [call] and forwarding content and callbacks to it. */
+    private static String callText(Shape s, String call, int depth) {
+        StringBuilder text = new StringBuilder(s.written).append('(');
+        int data = 0;
+        for (int i = 0; i < s.arguments.size(); i++) {
+            Argument a = s.arguments.get(i);
+            if (i > 0) text.append(", ");
+            if (a.name != null) text.append(a.name).append(" = ");
+            if (a.slot != null) text.append(slotText(s, a.slot, call, depth));
+            else if (a.event != null) text.append(eventText(a.event, call));
+            else if (a.type != null) text.append('(').append(call).append(".arguments[").append(data++).append("] as ").append(kotlinType(a.type)).append(')');
+            else text.append(a.frozen);
+        }
+        text.append(')');
+        if (s.trailing != null) text.append(' ').append(s.trailing.slot != null ? slotText(s, s.trailing.slot, call, depth) : eventText(s.trailing.event, call));
+        return text.toString();
+    }
+
+    private static String slotText(Shape s, Slot slot, String call, int depth) {
+        String indent = "    ".repeat(depth + 2);
+        String id = "dootahChild" + (depth + 1), child = "dootahCall" + (depth + 1);
+        StringBuilder text = new StringBuilder("{\n").append(indent).append(call).append(".content(").append(slot.index).append(") { ")
+            .append(id).append(", ").append(child).append(" ->\n").append(indent).append("    when (").append(id).append(") {\n");
+        for (Shape c : slot.children.values()) {
+            text.append(indent).append("        \"").append(c.id).append("\" -> ").append(callText(c, child, depth + 2)).append('\n');
+        }
+        return text.append(indent).append("        else -> kotlin.error(\"Unknown native child\")\n").append(indent).append("    }\n")
+            .append(indent).append("}\n").append("    ".repeat(depth + 1)).append('}').toString();
+    }
+
+    private static String eventText(Event e, String call) {
+        if (e.parameter == null) return "{ " + call + ".event(" + e.index + ") }";
+        if (e.parameter.equals("it")) return "{ " + call + ".event(" + e.index + ", it) }";
+        return "{ " + e.parameter + " -> " + call + ".event(" + e.index + ", " + e.parameter + ") }";
     }
 
     /** One generated file per source file: same package and imports, so frozen text resolves identically. */
@@ -390,35 +642,17 @@ public final class AdapterGen {
         for (KtImportDirective d : file.getImportDirectives()) out.append(d.getText().trim()).append('\n');
         out.append('\n');
         for (Shape s : result.adapters) {
-            List<String> parameters = new ArrayList<>();
-            List<String> types = s.types();
-            for (int i = 0; i < types.size(); i++) parameters.add("a" + i + ": " + kotlinType(types.get(i)));
-            if (s.container) parameters.add("dootahContent: dev.dootah.runtime.NativeContent");
-            out.append("@androidx.compose.runtime.Composable\nprivate fun ").append(s.method).append('(')
-                .append(String.join(", ", parameters)).append(") {\n    ").append(s.call);
-            if (s.container) {
-                // The installed content lambda, rendering the ordered children the update selects.
-                out.append(" {\n        dootahContent.render { dootahChild, dootahArguments ->\n            when (dootahChild) {\n");
-                for (Shape c : s.children.values()) out.append("                \"").append(c.id).append("\" -> ").append(c.call).append('\n');
-                out.append("                else -> kotlin.error(\"Unknown native child\")\n            }\n        }\n    }");
-            }
-            out.append("\n}\n\n");
+            out.append("@androidx.compose.runtime.Composable\nprivate fun ").append(s.method)
+                .append("(dootahCall: dev.dootah.runtime.NativeCall) {\n    ").append(callText(s, "dootahCall", 0)).append("\n}\n\n");
         }
         out.append("internal object ").append(result.registry).append(" : dev.dootah.runtime.NativeAdapterRegistry {\n");
         out.append("    override val signatures: kotlin.collections.Map<kotlin.String, kotlin.String> = kotlin.collections.mapOf(\n");
-        for (Shape s : result.adapters) {
-            out.append("        kotlin.Pair(\"").append(s.id).append("\", \"").append(s.signature()).append("\"),\n");
-            for (Shape c : s.children.values()) out.append("        kotlin.Pair(\"").append(c.id).append("\", \"").append(c.signature()).append("\"),\n");
+        for (Map.Entry<String, String> e : result.signatures().entrySet()) {
+            out.append("        kotlin.Pair(\"").append(e.getKey()).append("\", \"").append(e.getValue()).append("\"),\n");
         }
         out.append("    )\n\n    @androidx.compose.runtime.Composable\n");
-        out.append("    override fun render(id: kotlin.String, arguments: kotlin.collections.List<kotlin.Any?>, content: dev.dootah.runtime.NativeContent?) {\n        when (id) {\n");
-        for (Shape s : result.adapters) {
-            List<String> values = new ArrayList<>();
-            List<String> types = s.types();
-            for (int i = 0; i < types.size(); i++) values.add("arguments[" + i + "] as " + kotlinType(types.get(i)));
-            if (s.container) values.add("content!!");
-            out.append("            \"").append(s.id).append("\" -> ").append(s.method).append('(').append(String.join(", ", values)).append(")\n");
-        }
+        out.append("    override fun render(id: kotlin.String, call: dev.dootah.runtime.NativeCall) {\n        when (id) {\n");
+        for (Shape s : result.adapters) out.append("            \"").append(s.id).append("\" -> ").append(s.method).append("(call)\n");
         out.append("            else -> kotlin.error(\"Unknown native adapter\")\n        }\n    }\n}\n");
         return out.toString();
     }

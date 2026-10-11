@@ -3,6 +3,7 @@ package dev.dootah.proof.badges
 import androidx.compose.runtime.*
 import dev.dootah.runtime.InstalledAdapters
 import dev.dootah.runtime.NativeAdapterHost
+import dev.dootah.runtime.NativeCall
 import dev.dootah.runtime.NativeAdapterRegistry
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
@@ -25,11 +26,18 @@ private fun compose(content: @Composable () -> Unit): NoNodes {
     return applier
 }
 
+/** One native call as an update would render it: data values only (no content or callbacks here). */
+private class Call(override val arguments: List<Any?>) : NativeCall() {
+    @Composable
+    override fun content(slot: Int, child: @Composable (id: String, call: NativeCall) -> Unit) = fail("no content in this fixture")
+    override fun fire(index: Int, type: String?, value: Any?) = fail("no callbacks in this fixture")
+}
+
 class BadgeAdapterTest {
     // Reached through the generated index the SDK links against; no application registration code.
     private val registry: NativeAdapterRegistry = InstalledAdapters.registry
     private val downloads = registry.signatures.keys.single { id ->
-        id.startsWith("dev.dootah.proof.badges.Badge#") && compose { Rendered.clear(); NativeAdapterHost.render(registry, id, listOf("1")) }
+        id.startsWith("dev.dootah.proof.badges.Badge#") && compose { Rendered.clear(); NativeAdapterHost.render(registry, id, Call(listOf("1"))) }
             .let { Rendered == listOf("Badge(1,secondary,400,pill)") }
     }
 
@@ -42,22 +50,22 @@ class BadgeAdapterTest {
     }
 
     @Test fun generatedAdapterKeepsDefaultsAndReadsTheCallersComposition() {
-        compose { CompositionLocalProvider(LocalPalette provides "dark") { NativeAdapterHost.render(registry, downloads, listOf("3")) } }
+        compose { CompositionLocalProvider(LocalPalette provides "dark") { NativeAdapterHost.render(registry, downloads, Call(listOf("3"))) } }
         assertEquals(listOf("Badge(3,dark,400,pill)"), Rendered)
     }
 
     @Test fun twoInputValuesRenderTwoResults() {
-        compose { NativeAdapterHost.render(registry, downloads, listOf("1")); NativeAdapterHost.render(registry, downloads, listOf("42")) }
+        compose { NativeAdapterHost.render(registry, downloads, Call(listOf("1"))); NativeAdapterHost.render(registry, downloads, Call(listOf("42"))) }
         assertEquals(listOf("Badge(1,secondary,400,pill)", "Badge(42,secondary,400,pill)"), Rendered)
     }
 
     @Test fun refusesUnknownIdArityTypeAndNullComposingNothing() {
         compose {
-            assertFalse(NativeAdapterHost.render(registry, "dev.dootah.proof.badges.Badge#0000000000000000", listOf("1")))
-            assertFalse(NativeAdapterHost.render(registry, downloads, emptyList()))
-            assertFalse(NativeAdapterHost.render(registry, downloads, listOf(1)))
-            assertFalse(NativeAdapterHost.render(registry, downloads, listOf<Any?>(null)))
-            assertFalse(NativeAdapterHost.render(NativeAdapterRegistry.Empty, downloads, listOf("1")))
+            assertFalse(NativeAdapterHost.render(registry, "dev.dootah.proof.badges.Badge#0000000000000000", Call(listOf("1"))))
+            assertFalse(NativeAdapterHost.render(registry, downloads, Call(emptyList())))
+            assertFalse(NativeAdapterHost.render(registry, downloads, Call(listOf(1))))
+            assertFalse(NativeAdapterHost.render(registry, downloads, Call(listOf<Any?>(null))))
+            assertFalse(NativeAdapterHost.render(NativeAdapterRegistry.Empty, downloads, Call(listOf("1"))))
         }
         assertTrue(Rendered.isEmpty())
     }
@@ -73,7 +81,7 @@ class BadgeAdapterTest {
             Rendered.clear()
             val acks = mutableListOf<Boolean>()
             val applier = compose {
-                if (visible) NativeAdapterHost.render(registry, downloads, listOf("1"))
+                if (visible) NativeAdapterHost.render(registry, downloads, Call(listOf("1")))
                 SideEffect { acks += visible }
             }
             assertEquals(listOf(visible), acks)

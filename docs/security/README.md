@@ -38,6 +38,7 @@ that a generic JavaScript engine has no such language features.
 
 Only the installed `logic.pure.v1`, `compose.basicText.v1`, `compose.layout.v1`, and `compose.material3.text.v1` capabilities are exposed. Structural nodes, modifiers, theme tokens and slot references are validated before rendering; native-owned immutable trees never cross into JavaScript.
 `compose.nativeAdapter.v1` invokes app-owned composables only through adapters the Dootah Gradle plugin generated from the installed source and compiled into the APK. The SDK links against one generated index class; there is no name lookup or reflection. An artifact may name only adapter identities the installed contract recorded (verified against retained bytecode and the APK), each with an exact scalar signature. The device refuses the whole update when any named adapter or signature is not installed, and checks every active call's values before the result reaches composition. Adapters receive only scalar values; frozen arguments remain native code from the installed build.
+`compose.interaction.v1` adds Compose state and installed callbacks. Callback function objects stay in native code; JavaScript sees only scalar state and event values and returns validated scalar step results. The device then assigns `remember` state or invokes a hook callback named by its parameter index, after checking the event's type, the callback's installed arity and the step value types. Events run sequentially, once each, and are dropped when their call site leaves composition. Any mismatch rejects the update and keeps the native implementation.
 Native code owns rendering. A new capability requires an installed native implementation
 and compatible contract, normally delivered in a new APK.
 
@@ -48,6 +49,7 @@ and compatible contract, normally delivered in a new APK.
 | Work / expression depth | 512 expanded IR nodes per entry / 24 levels, checked natively; all branches count |
 | Text | 256 UTF-16 units, valid surrogate pairs, nonblank render result |
 | Structural UI | 64 nodes / depth 12 / eight modifiers per node / sixteen scalar slots, at most eight Strings; integer Dp 0–1024 |
+| Interaction | eight state values, sixteen actions per entry, eight steps per action, at most one callback argument, eight events per native call, content nesting four |
 | Sandbox source / result | 64 KiB / 16 KiB |
 | Isolate heap | 8 MiB requested from the provider; not a cap on total process memory |
 | Evaluation | 1-second future deadline, then isolate closure/termination; not a real-time deadline for all app work |

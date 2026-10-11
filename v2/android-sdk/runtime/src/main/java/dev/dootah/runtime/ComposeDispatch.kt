@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.dootah.portable.UiTree
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -26,16 +25,30 @@ fun dispatchValue(): RenderValue? {
 }
 
 @Composable
-fun renderOverride(result: UiTree.Result, value: RenderValue) {
+fun renderOverride(result: UiTree.Result, value: RenderValue, session: PortableSession? = null) {
     when {
         result.basicText != null -> BasicText(result.basicText, Modifier.dootahFrame(value))
-        result.root.kind == "box" || result.root.kind == "text" -> renderTree(result.root, result.slots, Modifier.dootahFrame(value), null)
+        result.root.kind == "box" || result.root.kind == "text" -> renderTree(result.root, result.slots, Modifier.dootahFrame(value), null, session = session)
         else -> {
             // A conditional or app-owned root may draw nothing of its own: acknowledge the committed frame.
-            renderTree(result.root, result.slots, Modifier, null)
+            renderTree(result.root, result.slots, Modifier, null, session = session)
             CommitAcknowledgement(value)
         }
     }
+}
+
+/**
+ * The hook's entry: renders [id]'s update at this call site and returns true, or returns false so the original
+ * native body renders (no update, refused, or no first result yet). A pending re-evaluation keeps the last result.
+ */
+@Composable
+fun portableEntry(id: String, types: String, values: Array<Any?>, value: RenderValue): Boolean {
+    val program = value.program ?: return false
+    val app = LocalView.current.context.applicationContext as? DootahApplication ?: return false
+    val host = app.host(value)
+    val rendered = portableOverride(program, id, if (types.isEmpty()) emptyList() else types.split(','), values.toList(), host) ?: return false
+    renderOverride(rendered.first, value, rendered.second)
+    return true
 }
 
 /** Every app-owned component the artifact names must be installed in this APK, as signed; else the update is refused. */
@@ -45,59 +58,18 @@ internal fun requireInstalledAdapters(program: dev.dootah.portable.PortableProgr
     }
 }
 
-/** Every active native call names an installed adapter with matching scalar values. Checked before rendering. */
-internal fun nativeCallsAccepted(result: UiTree.Result, registry: NativeAdapterRegistry): Boolean {
-    fun accepted(node: UiTree.Node): Boolean = when (node.kind) {
-        "native" -> NativeAdapterHost.accepts(registry, node.adapter, adapterArguments(node, result.slots), node.container) &&
-            node.children.all(::accepted)
-        "if" -> (if (result.slots[node.slot] as Boolean) node.children else node.otherwise).all(::accepted)
-        else -> node.children.all(::accepted)
-    }
-    return result.root == null || accepted(result.root)
-}
-
-/** A container's validated children, in update order; each child keeps a stable key across reordering. */
-private class TreeContent(private val node: UiTree.Node, private val slots: List<Any>) : NativeContent {
-    @Composable
-    override fun render(child: @Composable (id: String, arguments: List<Any?>) -> Unit) =
-        emitChildren(node.children, slots, HashMap(), child)
-}
-
-@Composable
-private fun emitChildren(nodes: List<UiTree.Node>, slots: List<Any>, seen: HashMap<String, Int>,
-                         child: @Composable (id: String, arguments: List<Any?>) -> Unit) {
-    nodes.forEach { n ->
-        if (n.kind == "if") emitChildren(if (slots[n.slot] as Boolean) n.children else n.otherwise, slots, seen, child)
-        else {
-            val occurrence = seen.merge(n.adapter, 1, Int::plus)!!
-            key(n.adapter, occurrence) { child(n.adapter, adapterArguments(n, slots)) }
-        }
-    }
-}
-
-private fun adapterArguments(node: UiTree.Node, slots: List<Any>): List<Any?> =
-    node.arguments.map { index -> slots[index].takeUnless { it == org.json.JSONObject.NULL } }
-
-@Composable
-@ReadOnlyComposable
-fun portableText(id: String, types: String, input: Array<Any?>, value: RenderValue): UiTree.Result? {
-    val app = LocalView.current.context.applicationContext as DootahApplication
-    return app.lookup(value, id, if (types.isEmpty()) emptyList() else types.split(','), input.toList())
-}
-
 /** Render only immutable, completely validated native data, in the caller's composition locals. */
 @Composable
 internal fun renderTree(node: UiTree.Node, slots: List<Any>, root: Modifier = Modifier, box: BoxScope? = null,
-                        registry: NativeAdapterRegistry = InstalledAdapters.registry) {
+                        registry: NativeAdapterRegistry = InstalledAdapters.registry, session: PortableSession? = null) {
     if (node.kind == "native") {
         // Verified before this result was published to composition; a refusal here composes nothing.
-        NativeAdapterHost.render(registry, node.adapter, adapterArguments(node, slots),
-            if (node.container) TreeContent(node, slots) else null)
+        renderNative(node, slots, session, registry)
         return
     }
     if (node.kind == "if") {
         val children = if (slots[node.slot] as Boolean) node.children else node.otherwise
-        children.forEach { renderTree(it, slots, root, box, registry) }
+        children.forEach { renderTree(it, slots, root, box, registry, session) }
         return
     }
     var modifier: Modifier = Modifier
@@ -112,7 +84,7 @@ internal fun renderTree(node: UiTree.Node, slots: List<Any>, root: Modifier = Mo
     modifier = root.then(modifier)
     when (node.kind) {
         "box" -> Box(modifier = modifier, contentAlignment = alignment(node.alignment)) {
-            node.children.forEach { renderTree(it, slots, box = this, registry = registry) }
+            node.children.forEach { renderTree(it, slots, box = this, registry = registry, session = session) }
         }
         "text" -> Text(
             text = slots[node.slot] as String,

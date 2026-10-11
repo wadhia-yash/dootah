@@ -127,8 +127,8 @@ class NativeAdapterDeviceTest {
         // At composition time a refused call composes nothing and the caller keeps its native body.
         rule.setContent {
             MaterialTheme {
-                if (!NativeAdapterHost.render(registry, unknown, listOf("3"))) DownloadsBadge(5)
-                if (!NativeAdapterHost.render(registry, adapter, listOf(3))) DownloadsBadge(6)
+                if (!NativeAdapterHost.render(registry, unknown, Values(listOf("3")))) DownloadsBadge(5)
+                if (!NativeAdapterHost.render(registry, adapter, Values(listOf(3)))) DownloadsBadge(6)
             }
         }
         rule.onNodeWithText("5").assertExists()
@@ -177,4 +177,11 @@ class NativeAdapterDeviceTest {
         rule.runOnIdle { remote.value = false }
         rule.onNodeWithText("1").assertExists()
     }
+}
+
+/** A call carrying data values only; refused before it could render content or fire callbacks. */
+private class Values(override val arguments: List<Any?>) : NativeCall() {
+    @androidx.compose.runtime.Composable
+    override fun content(slot: Int, child: @androidx.compose.runtime.Composable (id: String, call: NativeCall) -> Unit) = error("No content")
+    override fun fire(index: Int, type: String?, value: Any?) = error("No callbacks")
 }

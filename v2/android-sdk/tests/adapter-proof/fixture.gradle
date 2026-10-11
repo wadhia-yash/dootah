@@ -23,12 +23,15 @@ def generate = tasks.register('generateDootahAdapters', JavaExec) {
 }
 sourceSets.main.kotlin {
     srcDir files(generated).builtBy(generate)
-    // The SDK's registry source, compiled unchanged; it needs only the Compose runtime.
+    // The SDK's registry and override sources, compiled unchanged; they need only the Compose runtime
+    // and the shared portable grammar.
     srcDir '../../../runtime/src/main/java'
-    include 'dev/dootah/runtime/NativeAdapters.kt', 'dev/dootah/proof/**', 'dev/dootah/generated/**'
+    include 'dev/dootah/runtime/NativeAdapters.kt', 'dev/dootah/runtime/PortableOverride.kt', 'dev/dootah/proof/**', 'dev/dootah/generated/**'
 }
+sourceSets.main.java.srcDir '../../../../portable/src/main/java'
 dependencies {
     dootahGenerator project(':generator')
     implementation 'org.jetbrains.compose.runtime:runtime-desktop:1.7.3'
+    implementation 'org.json:json:20250517'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit:2.1.20'
 }

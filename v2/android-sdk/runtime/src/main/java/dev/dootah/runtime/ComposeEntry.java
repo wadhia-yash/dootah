@@ -11,9 +11,6 @@ public final class ComposeEntry {
     public static boolean tryRenderV2(String functionId, String types, Object[] values, Composer composer, int changed) {
         RenderValue value = ComposeDispatchKt.dispatchValue(composer, 0);
         if (value == null || value.getProgram() == null || !value.getProgram().has(functionId)) return false;
-        dev.dootah.portable.UiTree.Result title = ComposeDispatchKt.portableText(functionId, types, values, value, composer, 0);
-        if (title == null) return false;
-        ComposeDispatchKt.renderOverride(title, value, composer, 0);
-        return true;
+        return ComposeDispatchKt.portableEntry(functionId, types, values, value, composer, 0);
     }
 }

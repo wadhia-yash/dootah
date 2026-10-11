@@ -90,8 +90,16 @@ class SourceAnalyzer implements Closeable {
         require(refs.size() <= 9 && f.valueParameters.every {
             !it.isVarArg() && it.annotationEntries.empty && it.name != 'androidx'
         }, 'Unsupported parameter form')
+        def tokens = []
         def descriptors = refs.collect { ref ->
             require(ref != null, 'Parameter type required')
+            String callback = dev.dootah.adapters.AdapterGen.type(ref.text)
+            if (ref.parent instanceof KtParameter && callback ==~ dev.dootah.adapters.AdapterGen.CALLBACK) {
+                // An installed callback: a plain Kotlin function type, passed to the hook as a native FunctionN.
+                require(!ref.text.contains('@') && !ref.text.contains('suspend'), 'Only plain callback types supported')
+                tokens << callback
+                return 'Lkotlin/jvm/functions/Function' + (callback.startsWith('()') ? 0 : 1) + ';'
+            }
             String name = ref.text
             boolean nullable = name.endsWith('?')
             String base = nullable ? name[0..-2] : name
@@ -99,6 +107,7 @@ class SourceAnalyzer implements Closeable {
             require(TYPES.containsKey(base) && (!nullable || base in ['String','Int','Boolean']), 'Only primitive/nonboxed or String parameters supported')
             require(!imports.any { it != "kotlin.$base" && (it.endsWith(".$base") || it.contains(' as ')) }, 'Ambiguous type import')
             require(!file.declarations.any { it.name == base }, 'Shadowed builtin type')
+            tokens << (base + (nullable ? '?' : ''))
             nullable && base == 'Int' ? 'Ljava/lang/Integer;' : nullable && base == 'Boolean' ? 'Ljava/lang/Boolean;' : TYPES[base]
         }
         String descriptor = '(' + descriptors.join('') + 'Landroidx/compose/runtime/Composer;I' +
@@ -108,9 +117,31 @@ class SourceAnalyzer implements Closeable {
         String jvmOwner = (pkg ? pkg + '/' : '') + className
         String nullability = refs.collect { it.text.endsWith('?') ? '?' : '!' }.join('')
         [owner:jvmOwner, method:f.name, descriptor:descriptor, isStatic:owner == null,
-            extension:f.receiverTypeReference != null, nullability:nullability,
+            extension:f.receiverTypeReference != null, nullability:nullability, types:tokens,
             id:FunctionIdentity.of(jvmOwner, f.name, descriptor, owner == null,
-                f.receiverTypeReference != null, null, nullability)]
+                f.receiverTypeReference != null, genericSignature(descriptor, tokens), nullability)]
+    }
+
+    /**
+     * The only generic JVM signature a hook may carry: Kotlin's for its callback parameters, derived from the
+     * validated callback tokens (`Function1<in P, out Unit>` -> `Function1<-LP;Lkotlin/Unit;>`). Scalar-only hooks have none.
+     */
+    static String genericSignature(String descriptor, List types) {
+        def callbacks = (types ?: []).collect { dev.dootah.portable.PortableProgram.callbackType(it) ? dev.dootah.portable.PortableProgram.callbackArguments(it) : null }.findAll { it != null }
+        if (callbacks.empty) return null
+        def boxed = [String:'java/lang/String', Int:'java/lang/Integer', Boolean:'java/lang/Boolean']
+        def signature = new StringBuilder(), rest = descriptor
+        callbacks.each { List arguments ->
+            def raw = "Lkotlin/jvm/functions/Function${arguments.size()};"
+            int at = rest.indexOf(raw)
+            require(at >= 0, 'Callback descriptor mismatch')
+            signature << rest.substring(0, at) << "Lkotlin/jvm/functions/Function${arguments.size()}<" <<
+                arguments.collect { "-L${boxed[it]};" }.join('') << 'Lkotlin/Unit;>;'
+            rest = rest.substring(at + raw.length())
+        }
+        require(!rest.contains('Lkotlin/jvm/functions/Function'), 'Callback descriptor mismatch')
+        signature << rest
+        signature.toString()
     }
 
     Map lower(Map entry) {

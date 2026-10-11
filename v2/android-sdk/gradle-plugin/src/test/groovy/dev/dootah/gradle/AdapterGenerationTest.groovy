@@ -46,7 +46,7 @@ import androidx.compose.runtime.Composable
         def generated = out.listFiles().collectMany { it.isDirectory() ? it.listFiles().toList() : [it] }
         def adapters = new File(out, 'demo').listFiles().find { it.name.startsWith('DootahAdaptersKt_') }
         assertNotNull(generated.toString(), adapters)
-        assertTrue(adapters.text.contains('Badge(text = a0)'))
+        assertTrue(adapters.text, adapters.text.contains('Badge(text = (dootahCall.arguments[0] as kotlin.String))'))
         def index = new File(out, 'dev/dootah/generated/DootahAdapterIndex.kt').text
         assertTrue(index.contains('NativeAdapterRegistry.of('))
         def report = new JsonSlurper().parse(new File(module, 'build/adapters.json'))

@@ -13,12 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @androidx.compose.runtime.Composable
-private fun dootahAdapter_8e20570244c48d05(dootahContent: dev.dootah.runtime.NativeContent) {
+private fun dootahAdapter_8e20570244c48d05(dootahCall: dev.dootah.runtime.NativeCall) {
     Row(modifier = Modifier.padding(4.dp)) {
-        dootahContent.render { dootahChild, dootahArguments ->
-            when (dootahChild) {
+        dootahCall.content(0) { dootahChild1, dootahCall1 ->
+            when (dootahChild1) {
+                "androidx.compose.foundation.layout.Row#8e20570244c48d05/dev.dootah.fixture.CountBadge#87057e2c14154650" -> CountBadge(text = (dootahCall1.arguments[0] as kotlin.String), color = MaterialTheme.colorScheme.tertiary)
                 "androidx.compose.foundation.layout.Row#8e20570244c48d05/androidx.compose.material3.Text#f2eaf0bcbbd9571a" -> Text(text = "items", modifier = Modifier.weight(1f))
-                "androidx.compose.foundation.layout.Row#8e20570244c48d05/dev.dootah.fixture.CountBadge#87057e2c14154650" -> CountBadge(text = (dootahArguments[0] as kotlin.String), color = MaterialTheme.colorScheme.tertiary)
                 else -> kotlin.error("Unknown native child")
             }
         }
@@ -26,8 +26,8 @@ private fun dootahAdapter_8e20570244c48d05(dootahContent: dev.dootah.runtime.Nat
 }
 
 @androidx.compose.runtime.Composable
-private fun dootahAdapter_5775a1c464047e0b(a0: kotlin.String) {
-    CountBadge(text = a0, color = MaterialTheme.colorScheme.tertiary)
+private fun dootahAdapter_5775a1c464047e0b(dootahCall: dev.dootah.runtime.NativeCall) {
+    CountBadge(text = (dootahCall.arguments[0] as kotlin.String), color = MaterialTheme.colorScheme.tertiary)
 }
 
 internal object DootahAdapters_92e9f59b7d70 : dev.dootah.runtime.NativeAdapterRegistry {
@@ -39,10 +39,10 @@ internal object DootahAdapters_92e9f59b7d70 : dev.dootah.runtime.NativeAdapterRe
     )
 
     @androidx.compose.runtime.Composable
-    override fun render(id: kotlin.String, arguments: kotlin.collections.List<kotlin.Any?>, content: dev.dootah.runtime.NativeContent?) {
+    override fun render(id: kotlin.String, call: dev.dootah.runtime.NativeCall) {
         when (id) {
-            "androidx.compose.foundation.layout.Row#8e20570244c48d05" -> dootahAdapter_8e20570244c48d05(content!!)
-            "dev.dootah.fixture.CountBadge#5775a1c464047e0b" -> dootahAdapter_5775a1c464047e0b(arguments[0] as kotlin.String)
+            "androidx.compose.foundation.layout.Row#8e20570244c48d05" -> dootahAdapter_8e20570244c48d05(call)
+            "dev.dootah.fixture.CountBadge#5775a1c464047e0b" -> dootahAdapter_5775a1c464047e0b(call)
             else -> kotlin.error("Unknown native adapter")
         }
     }
