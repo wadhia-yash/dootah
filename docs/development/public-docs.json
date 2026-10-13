@@ -24,7 +24,8 @@
     "v2/native-consumer/README.md",
     "v2/publishing/ONBOARDING.md",
     "v2/runtime-spike/patches/README.md",
-    "v2/server/XPREM-LICENSE.md"
+    "v2/server/XPREM-LICENSE.md",
+    "v2/web/README.md"
   ],
   "historical_files": [
     "v2/runtime-spike/README.md"

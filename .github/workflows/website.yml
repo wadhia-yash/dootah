@@ -1,0 +1,49 @@
+name: Website
+# Static landing page and demo console on GitHub Pages. No Cloud runs here:
+# VITE_DOOTAH_CLOUD=none replaces sign-in with self-hosting guidance.
+on:
+  push:
+    branches: [main]
+    paths: ['v2/web/**', '.github/workflows/website.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: website-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.20.0
+      - name: Test and build the static site
+        working-directory: v2/web
+        env:
+          DOOTAH_WEB_BASE: /dootah/
+          VITE_DOOTAH_CLOUD: none
+        run: |
+          npm ci --ignore-scripts
+          npm test
+          npm run build
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: v2/web/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
