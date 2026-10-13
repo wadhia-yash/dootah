@@ -23,7 +23,11 @@ private, outside the repository.
 Local module suites passed on the alpha.2 source. Rollback, offline and signing
 lifecycle checks were not repeated for the adapter, nested and interaction slices;
 they reuse the structural and alpha.1 evidence because delivery is unchanged.
-**Hosted CI must still pass on the alpha.2 release commit.**
+
+**GitHub-hosted V2 Actions passed on the alpha.2 release commit `51b991c`** in this
+repository: push run 38147839773 (2026-10-11) and scheduled run 38231238658
+(2026-10-12). The SDK, server and security jobs and the **V2 required suites**
+aggregate succeeded in both. They prove only that commit.
 
 ## Alpha.1 (Runtime ABI 2) evidence
 

@@ -13,17 +13,19 @@ New native libraries, permissions, manifest changes and capabilities require a n
 build a local Maven stage from this checkout (see the quickstart). Maven Central/JFrog
 artifacts are not announced as available. Runtime ABI 3 is incompatible with
 alpha.1's ABI 2: apps need a new baseline APK and a new runtime version/environment.
-Hosted CI must pass on the release commit itself; earlier hosted runs prove only their
-own commits. See [validation status](docs/reference/status.md).
+GitHub-hosted CI passed on the release commit `51b991c`. See
+[validation status](docs/reference/status.md).
 
 ## Start here
 
+- [Website and interactive demo console](https://wadhia-yash.github.io/dootah/)
 - [Quickstart: integrate, publish, verify and roll back](docs/getting-started/quickstart.md)
 - [Minimal Kotlin example](v2/examples/basic-text/README.md)
 - [Supported source and unsupported changes](docs/reference/support.md)
 - [Android requirements and alpha limits](docs/reference/platform.md)
 - [Security model](docs/security/README.md)
 - [Self-host Cloud](docs/self-hosting/README.md)
+- [Report a bug or share OTA trial feedback](https://github.com/wadhia-yash/dootah/issues/new/choose)
 - [Documentation index](docs/README.md) · [Contributing](CONTRIBUTING.md)
 
 ## How it stays native

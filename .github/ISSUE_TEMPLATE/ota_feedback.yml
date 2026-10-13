@@ -1,0 +1,28 @@
+name: OTA trial feedback
+description: Tell us how a real Kotlin/Compose change went, whether it shipped or was refused.
+labels: [feedback]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Refusals are useful too: they show which ordinary changes developers expect
+        to ship. Do not include secrets or proprietary source you cannot share.
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options: [Shipped over the air and verified on a device, Refused by the analyzer, Published but did not appear on the device, Did not get to publishing]
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: The source change you tried
+      description: A minimal before/after snippet or a description.
+      render: kotlin
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: What would have made this easier?

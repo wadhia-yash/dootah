@@ -1,0 +1,47 @@
+name: Bug report
+description: Something in the SDK, CLI, Cloud or website behaves differently from the documentation.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying the alpha. Never paste credentials, private keys, enrollment
+        tokens, update certificates' private material or operator files.
+  - type: input
+    id: version
+    attributes:
+      label: Dootah version or commit
+      placeholder: 0.1.0-alpha.2 / v0.1.0-alpha.2
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Gradle plugin / build, Runtime on device, CLI (analyze/publish/rollout/rollback), Self-hosted Cloud, Website / console, Documentation]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the smallest Kotlin/Compose change that shows the problem, if any.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Device and Android version, WebView provider, AGP/Kotlin/Gradle versions, host OS.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized output
+      description: CLI output or logcat excerpts with secrets, tokens and hostnames removed.
+      render: text

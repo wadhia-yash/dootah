@@ -24,7 +24,7 @@ availability is not claimed.
 | Telemetry | Best-effort check/download/activation/render-health/rollback events, not crash-free analytics; no managed alerting |
 | Hosting | Operator-managed single-host Compose, explicit migrations, encrypted off-host backups; no HA, clustering, PITR or zero-downtime upgrade claim |
 | Hosting evidence | Local Docker Desktop ARM64 and emulated AMD64 acceptance; no external production deployment or native Ubuntu qualification |
-| CI | GitHub-hosted V2 required gates passed on alpha.1-era commits (latest `3c9d3c1`, Linux AMD64); alpha.2 needs its own hosted run on the release commit |
+| CI | GitHub-hosted V2 required gates passed on the alpha.2 release commit `51b991c` (Linux AMD64); later commits need their own hosted runs |
 | Upgrading from alpha.1 | Runtime ABI 2 → 3 is incompatible. Build, retain and install a **new baseline APK** with alpha.2, give it a **new runtime version and Cloud environment**, and import/register its contract. Existing ABI 2 installations keep their native code and alpha.1 updates but never receive ABI 3 programs. Self-hosted Cloud must run the alpha.2 validator before publishing ABI 3 updates |
 
 [Support matrix](support.md) gives precise Kotlin limits. [Status](status.md) separates
