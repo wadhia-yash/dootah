@@ -10,12 +10,16 @@
     "docs/development/README.md",
     "docs/getting-started/quickstart.md",
     "docs/history/README.md",
+    "docs/reference/api.md",
+    "docs/reference/instrumentation.md",
     "docs/reference/platform.md",
     "docs/reference/status.md",
     "docs/reference/support.md",
+    "docs/reference/telemetry.md",
     "docs/security/README.md",
     "docs/self-hosting/README.md",
     "docs/self-hosting/ngrok.md",
+    "docs/v2/COMPOSE_INSTRUMENTATION.md",
     "v2/android-sdk/release/README.md",
     "v2/ci/README.md",
     "v2/deploy/DEPLOYMENT.md",
@@ -23,14 +27,11 @@
     "v2/examples/basic-text/README.md",
     "v2/native-consumer/README.md",
     "v2/publishing/ONBOARDING.md",
+    "v2/runtime-spike/README.md",
     "v2/runtime-spike/patches/README.md",
     "v2/server/XPREM-LICENSE.md",
     "v2/web/README.md"
   ],
-  "historical_files": [
-    "v2/runtime-spike/README.md"
-  ],
-  "historical_roots": [
-    "docs/v2/"
-  ]
+  "historical_files": [],
+  "historical_roots": []
 }

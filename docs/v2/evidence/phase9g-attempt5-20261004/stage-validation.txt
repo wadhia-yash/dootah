@@ -1,1 +1,0 @@
-Validated 19 Maven publications, notices, checksums and dependency metadata.

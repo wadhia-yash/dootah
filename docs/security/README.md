@@ -107,13 +107,12 @@ an OTA program. Restore needs matching secrets and storage, not only a database 
 Prior ABI 2 negative tests and one physical Android 13 device support the previously
 accepted model. The bounded ABI 3 structural slice passed signed OTA, native rollback
 and per-app offline persistence checks on a physical Vivo running Android 12; see
-the [acceptance record and its limits](../v2/MINIMAL_STRUCTURAL_OTA.md). Native adapters,
+the [validation scope and limits](../reference/status.md). Native adapters,
 nested components and state with installed callbacks passed same-APK device acceptance
 with the same signed delivery; failure paths for those slices are covered by focused
 JVM and instrumentation tests. This does not constitute broader security certification.
 There has been no claim of independent security audit, broad device qualification,
 standardized SBOM, comprehensive vulnerability scan or guaranteed protection against
-all denial-of-service attacks. Historical investigation of the superseded shared host
-is preserved in [the security record](../v2/SECURITY_MODEL.md); its failures are not the
-current design. Report vulnerabilities privately as described in
+all denial-of-service attacks. Historical shared-host and sandbox observations are retained as labeled security
+fixtures; they are not fresh device certification. Report vulnerabilities privately as described in
 [SECURITY.md](../../SECURITY.md). Contributor expectations are in [CONTRIBUTING](../../CONTRIBUTING.md).

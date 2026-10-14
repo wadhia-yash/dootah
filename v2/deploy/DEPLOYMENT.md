@@ -2,7 +2,7 @@
 
 This is a single-VM Docker Compose deployment. Local acceptance ran Linux/ARM64
 and emulated Linux/AMD64 containers on Docker Desktop; no native Ubuntu VM or external
-deployment has been qualified. See the [CI record](../../docs/v2/PHASE9E_CI.md). It does not deploy anything, create
+deployment has been qualified. See the [validation status](../../docs/reference/status.md). It does not deploy anything, create
 accounts or request certificates until **you** run the production startup commands.
 Runtime ABI 3, Logic ABI 1, SDK `0.1.0-alpha.2`. Installed trust/fallback semantics
 are unchanged from alpha.1; build the Cloud image from the alpha.2 source so it includes

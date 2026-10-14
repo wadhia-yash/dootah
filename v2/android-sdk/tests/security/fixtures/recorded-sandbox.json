@@ -1,0 +1,64 @@
+{
+  "provenance": {
+    "kind": "recorded-observations",
+    "date": "2026-09-28",
+    "sourceCommit": "1e021f9f490a8ce59447557794285bc36f153de9",
+    "sourceSha256": "dcfb6d028be15df7ee8781da2f205d9976a52b6c10ea29b7a878cbe277b0e99a",
+    "scope": "Historical Android observations; not a fresh execution or current-device certification."
+  },
+  "observations": {
+    "status": "PASS",
+    "remoteResult": "80",
+    "blockedGlobals": {
+      "NativeModules": "undefined",
+      "TurboModuleRegistry": "undefined",
+      "nativeModuleProxy": "undefined",
+      "__turboModuleProxy": "undefined",
+      "expo": "undefined",
+      "require": "undefined",
+      "__r": "undefined",
+      "__d": "undefined",
+      "Context": "undefined",
+      "Activity": "undefined",
+      "Java": "undefined",
+      "Packages": "undefined",
+      "fetch": "undefined",
+      "XMLHttpRequest": "undefined",
+      "WebSocket": "undefined",
+      "File": "undefined",
+      "FileReader": "undefined",
+      "localStorage": "undefined",
+      "indexedDB": "undefined",
+      "setTimeout": "undefined",
+      "setInterval": "undefined",
+      "nativeCallSyncHook": "undefined",
+      "__fbBatchedBridge": "undefined",
+      "process": "undefined"
+    },
+    "nativeAttempts": {
+      "NativeModules.Networking": "EvaluationFailedException",
+      "TurboModuleRegistry.get('Networking')": "EvaluationFailedException",
+      "expo.modules.ExponentFileSystem": "EvaluationFailedException",
+      "android.getContext()": "EvaluationFailedException",
+      "Java.type('java.io.File')": "EvaluationFailedException",
+      "fetch('http://127.0.0.1:3101/')": "EvaluationFailedException",
+      "require('fs').readFileSync('/data/local/tmp/test')": "EvaluationFailedException",
+      "(()=>{}).constructor('return nativeModuleProxy.Networking')()": "EvaluationFailedException"
+    },
+    "unknownNamedData": "BLOCKED",
+    "eval": "3",
+    "Function": "3",
+    "constructorNative": "undefined",
+    "import": "BLOCKED",
+    "timeout": "terminated",
+    "afterTimeout": "PASS",
+    "resultLimit": "EvaluationResultSizeLimitExceededException",
+    "heapLimit": "MemoryLimitExceededException",
+    "afterHeap": "PASS",
+    "freshIsolate": "PASS",
+    "portable": {
+      "rejections": 17,
+      "result": "80"
+    }
+  }
+}

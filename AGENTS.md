@@ -10,9 +10,9 @@ commands.
 2. Read the [public docs](docs/README.md), the [support boundary](docs/reference/support.md)
    and the [architecture overview](docs/concepts/architecture.md).
 3. For security-sensitive areas, read the [security model](docs/security/README.md).
-4. `docs/v2/` holds dated engineering records. Use them for provenance, not as current
-   instructions; see [history](docs/history/README.md).
-5. Prefer targeted searches. Do not scan `docs/v2/evidence/`, Git history or the whole
+4. Use maintained references in `docs/reference/`. Historical observation fixtures
+   are not current execution evidence; see [status](docs/reference/status.md).
+5. Prefer targeted searches. Do not scan private archives, Git history or the whole
    repository unless the task needs it.
 
 ## Product goal
