@@ -1,8 +1,9 @@
+// Recorded historical observations only; assertions do not execute a device probe.
 // Assertions over curated physical Android evidence; this is not a Node sandbox claim.
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-const proof = JSON.parse(readFileSync(new URL('../../../../docs/v2/evidence/phase6-20260928/sandbox-proof.json', import.meta.url)));
+const proof = JSON.parse(readFileSync(new URL('./fixtures/recorded-sandbox.json', import.meta.url))).observations;
 test('physical separate sandbox blocks tested native registries and APIs', () => {
   assert.equal(proof.status, 'PASS');
   assert.equal(proof.remoteResult, '80');

@@ -1,3 +1,4 @@
+// Recorded historical observations only; assertions do not execute a device probe.
 // These tests reproduce an UNSAFE Phase 5 host; passing is NOT an isolation pass.
 // Set DOOTAH_EXPOSURE_LOG to test fresh physical-device logcat output.
 import { readFileSync } from 'node:fs';
@@ -16,7 +17,7 @@ if (process.env.DOOTAH_EXPOSURE_LOG) {
   }
 } else {
   records = JSON.parse(readFileSync(new URL(
-    '../../../../docs/v2/evidence/phase6-20260928/exposure.json', import.meta.url), 'utf8'));
+    './fixtures/recorded-exposure.json', import.meta.url), 'utf8')).observations;
 }
 const result = name => {
   assert.equal(records[name]?.ok, true, `${name} must actually execute`);

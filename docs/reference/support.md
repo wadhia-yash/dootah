@@ -1,7 +1,6 @@
 # Supported Kotlin and Compose changes
 
-This matrix describes **0.1.0-alpha.2**, Runtime ABI **3**, Logic ABI **1**. Structural Compose UI, build-generated native adapters, nested components and Compose state with installed callbacks each passed same-APK OTA on a physical device in a separate Mihon test install (see [status](status.md) and the
-[structural record](../v2/MINIMAL_STRUCTURAL_OTA.md)). Alpha.1 used Runtime ABI 2; moving to ABI 3 requires a new baseline APK and a new runtime version/environment (see [upgrading](platform.md)).
+This matrix describes **0.1.0-alpha.2**, Runtime ABI **3**, Logic ABI **1**. Structural Compose UI, build-generated native adapters, nested components and Compose state with installed callbacks each passed same-APK OTA on a physical device in a separate Mihon test install (see [validation status](status.md)). Alpha.1 used Runtime ABI 2; moving to ABI 3 requires a new baseline APK and a new runtime version/environment (see [upgrading](platform.md)).
 The installed APK must contain the hook and every required capability. An eligible
 hook is necessary but not sufficient: the source analyzer is deliberately narrower
 than bytecode instrumentation. Use `dootah analyze` against the exact retained release.

@@ -26,7 +26,7 @@ operator configures PostgreSQL, user provisioning and a dedicated xprem delivery
 binding/public signing certificate for each app. Creating an app is an authenticated
 customer action; provisioning its signing/storage backend is an operator action.
 There is no customer DB credential or hidden admin endpoint. See
-[Cloud API](../../docs/v2/CLOUD_API.md) for these existing operator prerequisites.
+[Cloud API](../../docs/reference/api.md) for these existing operator prerequisites.
 
 ## Authenticate and create the app
 

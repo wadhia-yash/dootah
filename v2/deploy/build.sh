@@ -27,7 +27,7 @@ fi
 cp "$root/v2/deploy/Xprem.Dockerfile" "$work/xprem/Dockerfile"
 cp "$root/v2/deploy/entrypoint.sh" "$work/xprem/entrypoint.sh"
 mkdir -p "$work/xprem/notices"
-cp "$root/docs/v2/evidence/phase2b-20260926/licenses.csv" "$root/v2/server/XPREM-LICENSE.md" "$root/LICENSE" "$work/xprem/notices/"
+cp "$root/v2/server/licenses.csv" "$root/v2/server/XPREM-LICENSE.md" "$root/LICENSE" "$work/xprem/notices/"
 # Keep audit output available separately; never ship it or a full upstream checkout.
 rm -f "$work/xprem/dootah-server" "$work/xprem/"*.json "$work/xprem/"*.txt
 # go.mod/go.sum are retained; package-lock is in the other context.

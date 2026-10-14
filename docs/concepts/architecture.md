@@ -31,13 +31,11 @@ compatibility string, distinct from SDK and ABI versions; do not change it for e
 OTA. A new incompatible native baseline needs an appropriate new runtime/environment.
 
 See [supported source](../reference/support.md), [delivery](delivery.md) and
-[security](../security/README.md). Detailed implementation and dated experiments
-remain in [engineering history](../history/README.md).
+[security](../security/README.md). See [instrumentation](../reference/instrumentation.md) for hook selection and diagnostics.
 
 Alpha.2 uses Runtime ABI 3, which requires a new baseline APK; alpha.1 and its
 acceptance records describe ABI 2. ABI 3 adds bounded structural UI, build-generated
 native adapters with nested content, and Compose state with installed callbacks
 (negotiated as `compose.interaction.v1`). Each passed physical-device acceptance
-(see [status](../reference/status.md) and the
-[structural record](../v2/MINIMAL_STRUCTURAL_OTA.md)). The `tryRenderV2` hook
+(see [validation scope](../reference/status.md)). The `tryRenderV2` hook
 signature remains unchanged.

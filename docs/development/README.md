@@ -1,9 +1,8 @@
 # Documentation maintenance
 
-The [public documentation inventory](public-docs.json) explicitly separates maintained
-product/operational guides from engineering records. New Markdown files outside the
-history/evidence roots must be classified; the validator fails on unclassified files.
-History paths remain accessible, but public navigation starts at [docs](../README.md).
+The [public documentation inventory](public-docs.json) lists maintained
+product and operational guides. Every public Markdown file must be classified; the validator fails on unclassified files.
+Public navigation starts at [docs](../README.md).
 
 From the repository root:
 
@@ -19,7 +18,7 @@ paths in public guides, personal home-directory paths in all tracked Markdown (g
 patterns, no hardcoded user name), SDK/ABI values against source, forbidden obsolete
 setup/marketing claims and CLI command/option spellings against live help/parser
 declarations. It checks
-historical document banners and deliberate boundaries, not the truth of every prose
+document classification and deliberate boundaries, not the truth of every prose
 sentence. External links are not fetched. It never contacts Cloud or publishes anything.
 
 `--examples` requires JDK 21, Node 24 and the publisher distribution built above. It
@@ -44,12 +43,13 @@ obvious private-key/credential literals and is not a replacement for Gitleaks.
 
 ## Evidence policy
 
-Public documentation is addable normally. `docs/v2/evidence/` remains ignored for
-**new** files; already tracked, reviewed sanitized receipts remain versioned. Add a
-new curated receipt only after reviewing its contents and using `git add -f` for that
-specific path. Do not force-add directories or raw acceptance workspaces.
+Keep internal reports, investigations, raw logs, screenshots and operator state in a
+private archive outside the repository. Maintain concise public validation scope in
+[status](../reference/status.md), including unsuccessful cases and limitations.
 
-Private planning/handoff files remain ignored. Build directories, local SDK paths,
-node_modules, private keys, environment files, publisher sessions/tokens/tickets,
-retained contracts/releases and operator state remain ignored or outside Git.
-A `.gitignore` is not a secret scanner; inspect every staged diff.
+Focused recorded-observation fixtures may support tests, but must state their date,
+source digest and historical scope. They must not be presented as fresh device tests
+or replace executable security regressions. Preserve required third-party attribution.
+
+Never stage secrets, retained customer code/APKs, local configuration or private
+handoffs. Review explicit staged paths; `.gitignore` is not a secret scanner.
