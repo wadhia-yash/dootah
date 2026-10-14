@@ -15,6 +15,7 @@ Start with the product workflow, then consult the references as needed.
 | Release/rollout behavior | [Delivery and rollback](concepts/delivery.md) |
 | Test or contribute | [Contributor guide](../CONTRIBUTING.md) |
 | See what has actually passed | [Validation status](reference/status.md) |
+| Report a bug or share trial feedback | [GitHub issues](https://github.com/wadhia-yash/dootah/issues/new/choose) |
 
 [Engineering history and acceptance evidence](history/README.md) are preserved
 separately. Older records may describe superseded SDKs or failed intermediate designs;

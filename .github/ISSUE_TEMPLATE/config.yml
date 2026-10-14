@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/wadhia-yash/dootah/blob/main/SECURITY.md
+    about: Do not open a public issue for vulnerabilities. Follow the security policy.
+  - name: Check what can ship over the air
+    url: https://github.com/wadhia-yash/dootah/blob/main/docs/reference/support.md
+    about: Unsupported edits are refused by design. Check the support matrix first.
