@@ -188,7 +188,7 @@ DOOTAH_INGRESS_PREFIX={ingress}
             assert bad.returncode
         ok('packaged production startup rejects HTTP, missing DB and unavailable Java')
 
-        result=c('exec','-T','-u','10001','-e','NODE_EXTRA_CA_CERTS=/tmp/root.crt','-e','DOOTAH_TEST_ORIGIN=https://proxy','-e','DOOTAH_TEST_TENANTS=/tmp/tenants.json','-e','DOOTAH_TEST_ARTIFACT=/tmp/artifact.json','-e','DOOTAH_TEST_PASSWORD_FILE=/tmp/initial-password','cloud','node','--test','--test-reporter=tap','test/api.test.mjs','test/core.test.mjs','test/database.test.mjs','test/release.test.mjs','test/client.test.mjs','test/proxy.test.mjs')
+        result=c('exec','-T','-u','10001','-e','NODE_EXTRA_CA_CERTS=/tmp/root.crt','-e','DOOTAH_TEST_ACCOUNTS=true','-e','DOOTAH_TEST_ORIGIN=https://proxy','-e','DOOTAH_TEST_TENANTS=/tmp/tenants.json','-e','DOOTAH_TEST_ARTIFACT=/tmp/artifact.json','-e','DOOTAH_TEST_PASSWORD_FILE=/tmp/initial-password','cloud','node','--test','--test-reporter=tap','test/accounts.test.mjs','test/api.test.mjs','test/core.test.mjs','test/database.test.mjs','test/release.test.mjs','test/client.test.mjs','test/proxy.test.mjs')
         tap=result.stdout.decode();(work/'cloud-tests.tap').write_text(tap);assert '# fail 0' in tap and '# skipped 0' in tap
         cloud_passed=int(re.search(r'^# pass (\d+)$',tap,re.M).group(1))
         (work/'cloud-tests.tap').write_text(tap);ok('all Cloud tests including database privileges and signed backend')

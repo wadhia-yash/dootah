@@ -1,8 +1,7 @@
 # Dootah website and release console
 
 React + TypeScript + Vite, Tailwind CSS and shadcn/ui (Radix). This is a local-first
-frontend for the existing Dootah Cloud APIs. It changes no SDK, ABI, Cloud endpoint,
-authorization rule or delivery behavior. The original Cloud dashboard remains intact.
+frontend for the existing Dootah Cloud APIs. It preserves the SDK, ABI, release authorization and delivery behavior. The original Cloud dashboard remains intact.
 
 The landing page, sign-in and console share a neutral dark theme, white actions and
 blue accents. The landing composition follows the Expo reference with an original
@@ -51,8 +50,9 @@ Keep the actual API listening on `127.0.0.1:3100` (Cloud `PORT=3100`). The brows
 Origin remains the preview origin through the proxy. CSRF/origin validation stays
 enabled. Do not weaken those checks or rewrite the Origin header to make login work.
 
-Sign in with an existing operator-provisioned account. Session cookies remain
-HttpOnly; CSRF tokens stay in memory and reloading requires signing in again. The
+Register with an email and a password of at least 14 characters, or sign in with an
+existing account. Session cookies remain HttpOnly; CSRF tokens stay in memory and
+reload restores an unexpired session from Cloud. The
 frontend accepts no bearer-token input and writes no credentials to browser storage.
 Viewer accounts see read-only controls. Server authorization remains authoritative.
 
@@ -65,8 +65,9 @@ the refreshed release and confirming again. Rollback/kill restore the embedded n
 baseline for the environment/runtime; they do not select an older OTA release and
 are not instantaneous for offline or running devices.
 
-This preview focuses on release management. Existing app/team/token administration
-continues through the original dashboard and CLI; it is not replaced by this app.
+The console also creates an initial organization and registers applications for Owners.
+Team/token administration and installed-contract registration continue through the
+existing dashboard and CLI.
 
 ## Verify and build
 
@@ -124,5 +125,6 @@ handle               { reverse_proxy cloud:3100 { ... existing settings ... } }
 
 Everything else, including `/v1/*`, `/updates/*`, `/assets/*` and the original
 dashboard at `/`, stays on Cloud. Keep all production security headers. Do not
-expose xprem, database ports, bindings, keys or operator files. The shipped
-`v2/deploy` Compose files do not mount the website; adding it is an operator choice.
+expose xprem, database ports, bindings, keys or operator files. The optional `v2/deploy/compose.web.yaml` mounts the build and uses
+`Caddyfile.web` to serve the landing page and console beside Cloud. See
+[Neon deployment](../deploy/NEON.md).

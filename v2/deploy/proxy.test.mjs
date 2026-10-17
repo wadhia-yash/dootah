@@ -49,7 +49,7 @@ test('production Compose trusts forwarded identity only from Caddy\'s pinned ing
 
 test('every Caddy configuration replaces X-Forwarded-For with its own client address', () => {
   const image = docker(['compose', '-f', join(root, 'compose.yaml'), 'config', '--format', 'json']).services.proxy.image;
-  for (const file of ['Caddyfile', 'Caddyfile.local', 'Caddyfile.ngrok']) {
+  for (const file of ['Caddyfile', 'Caddyfile.local', 'Caddyfile.ngrok', 'Caddyfile.web']) {
     const adapted = docker(['run', '--rm', '--network', 'none', '-e', 'DOOTAH_SITE=ci.example.invalid', '-v',
       join(root, file) + ':/etc/caddy/Caddyfile:ro', image, 'caddy', 'adapt', '--config', '/etc/caddy/Caddyfile']);
     const proxies = [];
@@ -66,4 +66,33 @@ test('every Caddy configuration replaces X-Forwarded-For with its own client add
       assert.equal(server.client_ip_headers, undefined, file);
     }
   }
+});
+
+test('Neon override grants only Cloud egress and keeps the frontend on the same proxy', () => {
+ const config = docker(['compose', '-f', join(root, 'compose.yaml'), '-f', join(root, 'compose.neon.yaml'), '-f', join(root, 'compose.web.yaml'), '--profile', 'operator', 'config', '--format', 'json'], {DOOTAH_WEB_DIST:'/nonexistent-web-dist'});
+ assert.deepEqual(Object.keys(config.services.cloud.networks).sort(), ['backend','ingress','neon-egress']);
+ assert.equal(config.services.cloud.depends_on?.postgres, undefined);
+ assert.deepEqual(Object.keys(config.services.xprem.networks), ['backend']);
+ assert.deepEqual(Object.keys(config.services.proxy.networks).sort(), ['edge','ingress']);
+ for (const service of ['cloud','xprem','postgres']) assert.equal(config.services[service].ports, undefined);
+ assert(config.services.proxy.volumes.some(v => v.target === '/srv/web' && v.read_only));
+ assert.equal(config.services.cloud.environment.DOOTAH_CLOUD_DATABASE_URL_FILE, '/run/private/cloud-runtime-url');
+});
+
+test('operator helper uses the same optional Compose files as the running deployment', () => {
+  const result = spawnSync('python3', ['-c', `
+import sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import ops
+ops.COMPOSE_OVERRIDES[:] = [Path(sys.argv[1])/'compose.neon.yaml']
+r = ops.compose(Path('/dev/null'), '--profile', 'operator', 'config', '--format', 'json', capture=True)
+sys.stdout.buffer.write(r.stdout)
+`, root], {encoding:'utf8', env:{...process.env,
+    DOOTAH_CLOUD_ORIGIN:'https://validation.example.test', DOOTAH_SITE:'validation.example.test',
+    DOOTAH_OPERATOR_EMAIL:'operator@example.test', DOOTAH_SECRETS_DIR:'/nonexistent-validation-secrets',
+    DOOTAH_CADDYFILE:join(root,'Caddyfile')}});
+  assert.equal(result.status, 0, result.stderr);
+  const config = JSON.parse(result.stdout);
+  for (const name of ['cloud','cloud-migrate','cloud-user']) assert('neon-egress' in config.services[name].networks);
 });

@@ -15,7 +15,14 @@ export function secretInput(name, env = process.env) {
     return readFileSync(env[name + "_FILE"], "utf8").trimEnd();
   } catch { fail(name + "_FILE unreadable or not private"); }
 }
-export const databaseURL = secretInput("DOOTAH_CLOUD_DATABASE_URL");
+export function databaseInput(env = process.env) {
+  // Explicit Dootah operator/runtime credentials take precedence over Neon exports.
+  // Cloud's pg pools send search_path and statement_timeout startup options.
+  // Neon PgBouncer rejects these; retain the existing bounded pg pools on direct TLS.
+  return secretInput("DOOTAH_CLOUD_DATABASE_URL", env) ??
+    secretInput("DATABASE_URL_UNPOOLED", env) ?? secretInput("DATABASE_URL", env);
+}
+export const databaseURL = databaseInput();
 export function configuration(env = process.env) {
   const mode = env.DOOTAH_MODE ?? "development";
   if (!["development", "production"].includes(mode)) fail("DOOTAH_MODE");
@@ -36,7 +43,7 @@ export function configuration(env = process.env) {
   try { proxies = trustedProxies(env.DOOTAH_TRUSTED_PROXIES); } catch { fail("DOOTAH_TRUSTED_PROXIES"); }
   if (production) {
     let db;
-    try { db = new URL(secretInput("DOOTAH_CLOUD_DATABASE_URL", env)); } catch { fail("DOOTAH_CLOUD_DATABASE_URL"); }
+    try { db = new URL(databaseInput(env)); } catch { fail("DOOTAH_CLOUD_DATABASE_URL"); }
     if (!["postgres:", "postgresql:"].includes(db.protocol) || !db.hostname || !db.username || decodeURIComponent(db.password).length < 24 || db.pathname.length < 2) fail("DOOTAH_CLOUD_DATABASE_URL");
     let upstream;
     try { upstream = new URL(env.DOOTAH_XPREM_ORIGIN); } catch { fail("DOOTAH_XPREM_ORIGIN"); }
@@ -92,7 +99,7 @@ export async function runtimeDatabaseReady(pool) {
       pg_has_role(current_user,(SELECT nspowner FROM pg_namespace WHERE nspname='dootah_cloud'),'MEMBER') AS owner_member,
       (SELECT max(version) FROM dootah_cloud.migrations) AS version
       FROM pg_roles WHERE rolname=current_user`);
-    if (!r || r.version !== 7 || [r.rolsuper,r.rolcreatedb,r.rolcreaterole,r.rolbypassrls,r.schema_create,r.public_create,r.database_create,r.owner_member].some(Boolean)) throw Error();
+    if (!r || r.version !== 8 || [r.rolsuper,r.rolcreatedb,r.rolcreaterole,r.rolbypassrls,r.schema_create,r.public_create,r.database_create,r.owner_member].some(Boolean)) throw Error();
     await pool.query("SELECT id FROM dootah_cloud.apps LIMIT 1");
   } catch { fail("runtime database unavailable, unmigrated, or overprivileged"); }
 }
