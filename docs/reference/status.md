@@ -1,9 +1,10 @@
 # Alpha status and evidence
 
-As of 2026-10-11, the public SDK is **0.1.0-alpha.2**, an experimental source-only
-alpha: development SDK **0.7.5-local**, Runtime ABI **3**, Logic ABI **1**. Dootah-owned
-code is Apache-2.0. Public Maven/JFrog publication is not claimed; consumers build a
-local Maven stage from the tagged source.
+As of 2026-10-18, the public SDK is **0.1.0-alpha.2**, an experimental alpha:
+development SDK **0.7.5-local**, Runtime ABI **3**, Logic ABI **1**. Dootah-owned code is
+Apache-2.0. The SDK and plugin are served by JitPack from the release's validated stage.
+Maven Central and JFrog publication are not claimed. An experimental hosted Cloud runs at
+https://dootah.pages.dev.
 
 ## Alpha.2 (Runtime ABI 3) evidence
 
