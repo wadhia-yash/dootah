@@ -1,8 +1,8 @@
 # Quickstart: native Kotlin to first OTA
 
-This is the authoritative V2 alpha quickstart. It uses the experimental source-only
-alpha **0.1.0-alpha.2**, Runtime ABI **3** and Logic ABI **1**. The walkthrough edits a
-small logic helper rendered by `BasicText`; the same workflow publishes structural UI,
+This is the authoritative V2 alpha quickstart. It uses the experimental alpha
+**0.1.0-alpha.2** from JitPack, Runtime ABI **3** and Logic ABI **1**. The walkthrough
+edits a small logic helper rendered by `BasicText`; the same workflow publishes structural UI,
 native-adapter, nested-component and state/callback changes within the
 [supported subset](../reference/support.md). Read the
 [platform limits](../reference/platform.md) before changing an existing app.
