@@ -8,17 +8,16 @@ Compose structure, installed app components, Compose state and callback wiring w
 rebuilding an installed APK, provided its native capabilities already support them.
 New native libraries, permissions, manifest changes and capabilities require a new APK.
 
-**Experimental source-only alpha.** Public SDK **0.1.0-alpha.2**; development SDK
-**0.7.5-local**; Runtime ABI **3**; Logic ABI **1**. There are no registry artifacts:
-build a local Maven stage from this checkout (see the quickstart). Maven Central/JFrog
-artifacts are not announced as available. Runtime ABI 3 is incompatible with
-alpha.1's ABI 2: apps need a new baseline APK and a new runtime version/environment.
-GitHub-hosted CI passed on the release commit `51b991c`. See
-[validation status](docs/reference/status.md).
+**Experimental alpha.** Public SDK **0.1.0-alpha.2**; development SDK **0.7.5-local**;
+Runtime ABI **3**; Logic ABI **1**. The SDK and Gradle plugin install from JitPack
+(`v0.1.0-alpha.2`; see the quickstart). An experimental hosted Cloud runs at
+https://dootah.pages.dev. Maven Central and JFrog artifacts are not available. Runtime
+ABI 3 is incompatible with alpha.1's ABI 2: apps need a new baseline APK and a new
+runtime version/environment. See [validation status](docs/reference/status.md).
 
 ## Start here
 
-- [Website and interactive demo console](https://wadhia-yash.github.io/dootah/)
+- [Website, console and experimental Cloud](https://dootah.pages.dev)
 - [Quickstart: integrate, publish, verify and roll back](docs/getting-started/quickstart.md)
 - [Minimal Kotlin example](v2/examples/basic-text/README.md)
 - [Supported source and unsupported changes](docs/reference/support.md)
