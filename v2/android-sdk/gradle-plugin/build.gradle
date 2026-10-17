@@ -31,14 +31,18 @@ java { withSourcesJar() }
 publishing { repositories { maven { url = dootahRepository } } }
 
 // The plugin adds the runtime-v2 artifact of its own version; one source for both.
+// Repositories that serve under their own coordinates (JitPack) override the module.
+def runtimeModule = providers.gradleProperty('dootahRuntimeModule').getOrElse("dev.dootah:runtime-v2:$sdkVersion")
 def versionResource = tasks.register('generateDootahVersionResource') {
     def output = layout.buildDirectory.dir('generated/dootah-version')
     inputs.property('version', sdkVersion)
+    inputs.property('runtimeModule', runtimeModule)
     outputs.dir(output)
     doLast {
         def file = output.get().file('dev/dootah/gradle/sdk-version.txt').asFile
         file.parentFile.mkdirs()
         file.text = sdkVersion
+        output.get().file('dev/dootah/gradle/runtime-module.txt').asFile.text = runtimeModule
     }
 }
 sourceSets.main.resources.srcDir(versionResource)

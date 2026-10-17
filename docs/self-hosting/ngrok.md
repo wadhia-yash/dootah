@@ -209,7 +209,7 @@ dootah org list --session-file "$DOOTAH_PRIVATE/session"
 ```
 
 Only after this preflight passes, stage `0.1.0-alpha.2` into a new directory under
-`DOOTAH_WORK` using the [official staging commands](../getting-started/quickstart.md#current-pre-publication-setup).
+`DOOTAH_WORK` using `v2/android-sdk/release/stage.sh` (see [SDK installation](../getting-started/quickstart.md#sdk-installation-jitpack)).
 Never use `android-sdk/build/maven`, `mavenLocal()` or `0.7.5-local` for this trial.
 
 ## Create the app binding and build the final native baseline

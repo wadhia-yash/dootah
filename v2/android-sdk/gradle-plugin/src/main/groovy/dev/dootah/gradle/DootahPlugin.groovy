@@ -31,6 +31,7 @@ class DootahExtension {
 
 class DootahPlugin implements Plugin<Project> {
     static final String SDK_VERSION = DootahPlugin.getResource('sdk-version.txt').getText('UTF-8').trim()
+    static final String RUNTIME_MODULE = DootahPlugin.getResource('runtime-module.txt').getText('UTF-8').trim()
     // Parser used for adapter generation; the same version as the publisher's analyzer.
     static final String PARSER = 'org.jetbrains.kotlin:kotlin-compiler-embeddable:2.1.20'
 
@@ -38,7 +39,7 @@ class DootahPlugin implements Plugin<Project> {
         def config = project.extensions.create('dootah', DootahExtension)
         project.pluginManager.withPlugin('com.android.application') {
             def android = project.extensions.getByName('android')
-            project.dependencies.add('implementation', "dev.dootah:runtime-v2:$SDK_VERSION")
+            project.dependencies.add('implementation', RUNTIME_MODULE)
             android.packaging.jniLibs.useLegacyPackaging = false
             // Same shared-runtime collision policy as the pinned RN Gradle plugin.
             android.packaging.jniLibs.pickFirsts.addAll(['**/libc++_shared.so', '**/libfbjni.so'])
