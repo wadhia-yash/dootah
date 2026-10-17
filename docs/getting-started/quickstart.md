@@ -41,36 +41,20 @@ You can copy the entire `build/install/dootah-publishing` directory elsewhere; k
 its `lib`, `tooling` and `bin` together. The executable then needs no Dootah checkout
 or Android workspace. See the [CLI reference](../../v2/publishing/ONBOARDING.md).
 
-## Current pre-publication setup
+## SDK installation (JitPack)
 
-For **ALPHA / CLEAN-ROOM VALIDATION USING NGROK**, complete the
-[ngrok live HTTPS preflight](../self-hosting/ngrok.md) **before staging or building
-the Android app**. Obtain the final URL first and retain it throughout the trial.
-
-**This alpha is source-only; no public Maven repository availability is claimed.**
-Check out the reviewed `v0.1.0-alpha.2` source (or obtain an intact reviewed stage from
-your operator) and build a local public-version Maven stage from it. The stage contains
-unsigned `0.1.0-alpha.2` plugin, marker and runtime artifacts; your app resolves Dootah
-only from that directory. Do not point consumers at a historical stage whose plugin
-predates release retention, or at an alpha.1 stage.
-
-```sh
-export DOOTAH_STAGE="$HOME/dootah-work/sdk-stage-alpha-2"
-mkdir -p "$(dirname "$DOOTAH_STAGE")"
-"$DOOTAH_REPO/v2/android-sdk/release/stage.sh" "$DOOTAH_STAGE"
-python3 "$DOOTAH_REPO/v2/android-sdk/release/validate.py" "$DOOTAH_STAGE"
-export DOOTAH_MAVEN_REPOSITORY="$DOOTAH_STAGE/repository"
-```
-
-The stage directory must not already exist. This builds local unsigned Maven files;
-it uploads nothing and does not use `mavenLocal()`. Keep the complete stage/checksums.
-See [artifact staging](../../v2/android-sdk/release/README.md).
+Alpha.2 artifacts are public on JitPack and need no credentials:
+`com.github.wadhia-yash.dootah:runtime-v2:v0.1.0-alpha.2` and the Gradle plugin
+`dev.dootah` (`com.github.wadhia-yash.dootah:dootah-android-plugin:v0.1.0-alpha.2`). JitPack
+serves the release's validated SDK stage; see [artifact staging](../../v2/android-sdk/release/README.md).
+To build the stage yourself instead, use `v2/android-sdk/release/stage.sh` and point both
+repository scopes at its `repository/` directory.
 
 ## Create the Cloud app and obtain its certificate
 
-Cloud must already be running over HTTPS with your user provisioned. If you operate
-it yourself, follow [self-hosting](../self-hosting/README.md). No publicly operated
-Dootah Cloud endpoint is supplied. The operator provisions a separate xprem delivery
+Cloud must be running over HTTPS with your user registered. The experimental Alpha.2
+Cloud is `https://dootah.pages.dev`: register in its console, then use that origin as
+`DOOTAH_CLOUD_URL`. To operate your own, follow [self-hosting](../self-hosting/README.md). The operator provisions a separate xprem delivery
 identity/binding for each app after you create its Cloud record.
 
 For an ngrok trial, keep the [ngrok guide's](../self-hosting/ngrok.md)
@@ -101,26 +85,26 @@ Android project. Never embed the signing private key or publisher credentials.
 ## Dependency, plugin and Application setup
 
 The following snippets use Groovy Gradle files. Merge with your app's existing
-Android setup. Use the environment variable above for both repository scopes in
-`settings.gradle`; exclusive resolution prevents mixing staged and stale Dootah files:
+Android setup. Add JitPack to **both** repository scopes in `settings.gradle`, and map the
+`dev.dootah` plugin ID to its JitPack module:
 
 ```groovy
 pluginManagement {
     repositories {
-        exclusiveContent {
-            forRepository { maven { url = uri(System.getenv('DOOTAH_MAVEN_REPOSITORY')) } }
-            filter { includeGroupByRegex('dev[.]dootah([.].*)?') }
-        }
         google(); mavenCentral(); gradlePluginPortal()
+        maven { url = uri('https://jitpack.io') }
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == 'dev.dootah')
+                useModule("com.github.wadhia-yash.dootah:dootah-android-plugin:${requested.version}")
+        }
     }
 }
 dependencyResolutionManagement {
     repositories {
-        exclusiveContent {
-            forRepository { maven { url = uri(System.getenv('DOOTAH_MAVEN_REPOSITORY')) } }
-            filter { includeGroupByRegex('dev[.]dootah([.].*)?') }
-        }
         google(); mavenCentral()
+        maven { url = uri('https://jitpack.io') }
     }
 }
 rootProject.name = 'MyDootahApp'
@@ -134,7 +118,7 @@ plugins {
     id 'com.android.application' version '8.12.0'
     id 'org.jetbrains.kotlin.android' version '2.1.20'
     id 'org.jetbrains.kotlin.plugin.compose' version '2.1.20'
-    id 'dev.dootah' version '0.1.0-alpha.2'
+    id 'dev.dootah' version 'v0.1.0-alpha.2'
 }
 android {
     namespace 'example.dootah'
@@ -360,13 +344,9 @@ baseline. Then verify offline restart. Rollback is signed and asynchronous; offl
 clients cannot receive it immediately. `pause` stops offers without removing cached
 updates; see [delivery controls](../concepts/delivery.md).
 
-## Post-publication expected setup
+## Registry
 
-Only after an authorized public release identifies the actual registry, replace the
-local exclusive Maven blocks with that registry in **both** plugin and dependency
-repository scopes. If Maven Central is chosen, use `mavenCentral()` in both plus
-`google()` for Android dependencies. If Artifactory is chosen, use its announced URL
-and access policy. Keep `id 'dev.dootah' version '0.1.0-alpha.2'` only if that exact
-version is released to that registry. No Plugin Portal listing, Central/JFrog availability or upload
-is implied by these prospective instructions. The integration and retained-release
-workflow otherwise stays the same.
+Alpha.2 resolves from JitPack as above. JitPack serves under `com.github.wadhia-yash.dootah`.
+The plugin and runtime keep their `dev.dootah` package names, and the plugin adds its
+matching runtime automatically. No Maven Central, Artifactory or Plugin Portal listing exists.
+

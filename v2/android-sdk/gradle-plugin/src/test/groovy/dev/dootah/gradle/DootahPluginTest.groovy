@@ -88,6 +88,11 @@ class DootahPluginTest {
         task
     }
 
+    // Without an override the plugin adds exactly the runtime of its own version.
+    @Test void runtimeModuleDefaultsToOwnRuntimeVersion() {
+        assertEquals("dev.dootah:runtime-v2:${DootahPlugin.SDK_VERSION}".toString(), DootahPlugin.RUNTIME_MODULE)
+    }
+
     // E2E: a build with zero instrumented entry points passed silently until import refused it.
     @Test void hookReportCountsEntryPointsAndWarnsOrFailsOnZero() {
         assertTrue(DootahPlugin.SDK_VERSION ==~ /\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?/)

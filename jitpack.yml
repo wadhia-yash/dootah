@@ -1,0 +1,6 @@
+# JitPack serves the Alpha.2 SDK as com.github.wadhia-yash.dootah:MODULE:TAG from the
+# release's validated stage; see v2/android-sdk/release/README.md.
+jdk:
+  - openjdk21
+install:
+  - bash v2/android-sdk/release/jitpack-install.sh
