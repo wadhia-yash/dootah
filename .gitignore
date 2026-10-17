@@ -59,6 +59,7 @@ dootah-signing-key*
 # --- Private operator/publisher state (never public documentation) ---
 .env
 .env.*
+.neon
 !.env.example
 *.token
 *.ticket

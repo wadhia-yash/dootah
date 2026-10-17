@@ -200,3 +200,29 @@ describe("release state and metrics", () => {
     ).toBe("rolled_back");
   });
 });
+
+describe("account sessions", () => {
+  it("registers before login without persisting credentials in browser storage", async () => {
+    const transport = vi.fn()
+      .mockResolvedValueOnce(json({ id: 'user' }, 201))
+      .mockResolvedValueOnce(json({ csrf: 'csrf' }))
+      .mockResolvedValueOnce(json({ items: [] }));
+    const c = new Cloud(transport);
+    await c.register('test@example.invalid', 'test-password-only');
+    expect(transport.mock.calls.map(c => c[0])).toEqual(['/v1/users', '/v1/sessions', '/v1/organizations']);
+    expect(c.csrf).toBe('csrf');
+  });
+  it("restores CSRF from the HttpOnly session cookie and rejects expired sessions", async () => {
+    const transport = vi.fn()
+      .mockResolvedValueOnce(json({ csrf: 'restored' }))
+      .mockResolvedValueOnce(json({ items: [{ id: 'org' }] }));
+    const c = new Cloud(transport);
+    c.org = 'stale';
+    expect(await c.restore()).toEqual({ items: [{ id: 'org' }] });
+    expect(c.csrf).toBe('restored');
+    expect(c.org).toBe('');
+    expect(transport.mock.calls[0][1].credentials).toBe('same-origin');
+    const expired = new Cloud(vi.fn().mockResolvedValue(json({ error: { code: 'unauthenticated' } }, 401)));
+    await expect(expired.restore()).rejects.toMatchObject({ status: 401 });
+  });
+});

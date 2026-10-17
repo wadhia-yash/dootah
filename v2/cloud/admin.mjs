@@ -31,7 +31,7 @@ try {
             "utf8",
           ),
         );
-      for (const version of [3, 4, 5, 6, 7])
+      for (const version of [3, 4, 5, 6, 7, 8])
         if (!applied.rows.some((r) => r.version === version))
           await db.query(
             await readFile(

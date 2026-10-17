@@ -29,8 +29,11 @@ and 60 GiB SSD for a small controlled alpha; these are estimates, not load-teste
 capacity promises. The local qualification used Docker Desktop ARM64 and emulated
 AMD64; no external deployment or native Ubuntu host has been qualified here.
 
-Operators provision Cloud users and app delivery bindings. Customers create orgs/apps
-and register installed contracts through the [CLI](../getting-started/quickstart.md).
+Users can register and sign in through Cloud; operators still provision app delivery
+bindings. Customers create orgs/apps through the console or
+[CLI](../getting-started/quickstart.md), and register installed contracts through the CLI.
+For the existing backend with hosted PostgreSQL, see the
+[Neon deployment guide](../../v2/deploy/NEON.md).
 There is no zero-configuration production enrollment: the customer still needs an
 authenticated backend to mint short-lived tickets for its native integration.
 

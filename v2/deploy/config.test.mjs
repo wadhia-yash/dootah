@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-import {configuration, secretInput, loadBindings, validatorReady, runtimeDatabaseReady} from '../cloud/config.mjs';
+import {configuration, databaseInput, secretInput, loadBindings, validatorReady, runtimeDatabaseReady} from '../cloud/config.mjs';
 const key=randomBytes(32).toString('hex');
 const valid=()=>({DOOTAH_MODE:'production',NODE_ENV:'production',DOOTAH_CLOUD_ORIGIN:'https://updates.example.test',DOOTAH_CLOUD_HOST:'0.0.0.0',DOOTAH_CLOUD_DATABASE_URL:`postgresql://runtime:${key}@postgres/cloud`,DOOTAH_XPREM_ORIGIN:'http://xprem:3100',DOOTAH_DELIVERY_BINDINGS:'/private/bindings.json',DOOTAH_JAVA:'/java',DOOTAH_VALIDATOR_CLASSPATH:'/validator'});
 test('production accepts explicit HTTPS configuration and container host',()=>{assert.equal(configuration(valid()).host,'0.0.0.0');});
@@ -32,10 +32,10 @@ test('malformed bindings are redacted and fail closed; empty bindings bootstrap 
 test('missing Java or validator cannot report readiness',async()=>{await assert.rejects(validatorReady({DOOTAH_JAVA:'/missing',DOOTAH_VALIDATOR_CLASSPATH:'/missing'}),/DOOTAH_JAVA/);});
 test('runtime readiness rejects migration owner and unavailable DB without leaking errors',async()=>{
  await assert.rejects(runtimeDatabaseReady({query:async()=>{throw Error(key);}}),e=>!e.stack.includes(key));
- await runtimeDatabaseReady({query:async()=>({rows:[{version:7}]})});
- for(const version of [6,8]) await assert.rejects(runtimeDatabaseReady({query:async()=>({rows:[{version}]})}),/unmigrated/);
+ await runtimeDatabaseReady({query:async()=>({rows:[{version:8}]})});
+ for(const version of [7,9]) await assert.rejects(runtimeDatabaseReady({query:async()=>({rows:[{version}]})}),/unmigrated/);
  for(const flag of ['rolsuper','rolcreatedb','rolcreaterole','rolbypassrls','schema_create','public_create','database_create','owner_member']) {
-  await assert.rejects(runtimeDatabaseReady({query:async()=>({rows:[{version:7,[flag]:true}]})}),/overprivileged/);
+  await assert.rejects(runtimeDatabaseReady({query:async()=>({rows:[{version:8,[flag]:true}]})}),/overprivileged/);
  }
 });
 test('bindings enforce private endpoint, public origin, app exclusivity and certificate',()=>{
@@ -53,4 +53,14 @@ test('bindings enforce private endpoint, public origin, app exclusivity and cert
   }
   writeFileSync(p,JSON.stringify({[app]:b,[xp]:b}));assert.throws(()=>loadBindings(env));
  }finally{rmSync(d,{recursive:true});}
+});
+
+test('Neon DATABASE_URL fallback preserves explicit runtime credentials and private-file checks',()=>{
+ assert.equal(databaseInput({DATABASE_URL:'neon'}),'neon');
+ assert.equal(databaseInput({DATABASE_URL:'pooled',DATABASE_URL_UNPOOLED:'direct'}),'direct');
+ assert.equal(databaseInput({DATABASE_URL:'owner',DOOTAH_CLOUD_DATABASE_URL:'runtime'}),'runtime');
+ assert.throws(()=>databaseInput({DATABASE_URL:'secret',DATABASE_URL_FILE:'/missing'}),e=>!e.message.includes('secret'));
+ assert.throws(()=>databaseInput({DATABASE_URL:'owner',DOOTAH_CLOUD_DATABASE_URL_FILE:'/missing'}));
+ const env=valid(); env.DATABASE_URL=env.DOOTAH_CLOUD_DATABASE_URL; delete env.DOOTAH_CLOUD_DATABASE_URL;
+ assert.equal(configuration(env).production,true);
 });

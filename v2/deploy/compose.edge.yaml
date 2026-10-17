@@ -1,0 +1,22 @@
+# Origin for the Cloudflare Pages edge (v2/web/functions). The proxy publishes no host
+# ports; a private tunnel agent on the proxy's edge network is the only route in, and
+# Caddyfile.edge refuses requests without the edge secret. Requires Compose >= 2.24.4.
+services:
+  proxy:
+    ports: !reset []
+    volumes:
+      - ${DOOTAH_EDGE_DIR:?set private edge secret directory}:/run/edge:ro
+  tunnel:
+    image: ngrok/ngrok:3-alpine@sha256:85bea0e9c697bdad142b09cd9704420812cc44b5ae417ec4c7ac74d0a49d72f2
+    restart: unless-stopped
+    networks: [edge]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    # Agent config (authtoken, endpoint URL) lives only in a private tmpfs directory.
+    volumes:
+      - ${DOOTAH_TUNNEL_DIR:?set private tunnel config directory}:/run/ngrok:ro
+    command: [start, --all, --config, /run/ngrok/ngrok.yml]
+    depends_on:
+      proxy: {condition: service_started}

@@ -1,0 +1,47 @@
+# Origin behind the Cloudflare Pages edge (v2/web/functions). Its only route in is
+# the private tunnel; requests without the edge secret are refused before Cloud.
+{
+ admin off
+ auto_https off
+ servers {
+  timeouts {
+   read_header 10s
+   read_body 30s
+   write 120s
+   idle 60s
+  }
+  max_header_size 32KB
+ }
+}
+:80 {
+ header {
+  X-Content-Type-Options nosniff
+  Referrer-Policy no-referrer
+  -Server
+ }
+ request_body {
+  max_size 128KB
+ }
+ # Both must hold: an exact match with the private secret file, and a well-formed
+ # value, so a missing or empty secret file can never match an empty header.
+ @edge {
+  header X-Dootah-Edge {file./run/edge/secret}
+  header_regexp X-Dootah-Edge ^[0-9a-f]{64}$
+ }
+ handle @edge {
+  reverse_proxy cloud:3100 {
+   # The authenticated edge supplies the Cloudflare-observed client address.
+   header_up X-Forwarded-For {header.X-Dootah-Client-Ip}
+   header_up -X-Dootah-Edge
+   header_up -X-Dootah-Client-Ip
+   header_up -Ngrok-Skip-Browser-Warning
+   transport http {
+    dial_timeout 5s
+    response_header_timeout 30s
+   }
+  }
+ }
+ handle {
+  respond 403
+ }
+}

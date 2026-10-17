@@ -101,6 +101,17 @@ export class Cloud {
     this.csrf = session.csrf;
     return this.request<{ items: Org[] }>("organizations");
   }
+  async register(email: string, password: string) {
+    await this.request("users", "POST", { email, password });
+    return this.login(email, password);
+  }
+  async restore() {
+    this.csrf = "";
+    this.org = "";
+    const session = await this.request<{ csrf: string }>("sessions/current");
+    this.csrf = session.csrf;
+    return this.request<{ items: Org[] }>("organizations");
+  }
   async all<T>(path: string): Promise<T[]> {
     const items: T[] = [];
     let cursor: string | null = null;
@@ -172,6 +183,10 @@ export function errorMessage(error: unknown) {
   return (
     (
       {
+        weak_password: "Use a password with at least 14 characters.",
+        invalid_email: "Enter a valid email address.",
+        conflict: "This account or resource already exists. Try signing in.",
+        rate_limited: "Too many attempts. Wait a minute and try again.",
         stale_version:
           "This release changed in another session. Refresh and review the latest version before confirming again.",
         operation_pending:

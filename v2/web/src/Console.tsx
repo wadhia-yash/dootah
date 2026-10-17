@@ -98,6 +98,21 @@ export default function Console() {
   const [org, setOrg] = useState(demo ? demoOrg.id : "");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [restoring, setRestoring] = useState(!demo && cloudAvailable);
+  useEffect(() => {
+    if (demo || !cloudAvailable) return;
+    let active = true;
+    const c = new Cloud();
+    c.restore().then(({ items }) => {
+      if (!active) return;
+      setSession({ csrf: c.csrf, orgs: items });
+      setOrg(items[0]?.id ?? "");
+    }).catch((e) => {
+      if (active && !(e instanceof ApiError && e.status === 401)) setError(errorMessage(e));
+    }).finally(() => { if (active) setRestoring(false); });
+    return () => { active = false; };
+  }, [demo]);
   const cloud = useMemo(() => {
     const c = new Cloud();
     c.csrf = session?.csrf ?? "";
@@ -111,7 +126,7 @@ export default function Console() {
     setError("");
     const c = new Cloud();
     try {
-      const { items } = await c.login(
+      const { items } = await c[registering ? "register" : "login"](
         String(data.get("email")),
         String(data.get("password")),
       );
@@ -146,6 +161,19 @@ export default function Console() {
     } finally {
       setBusy(false);
     }
+  }
+  async function createOrganization(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const name = String(new FormData(e.currentTarget).get("name"));
+    setBusy(true);
+    setError("");
+    try {
+      const { id } = await cloud.request<{ id: string }>("organizations", "POST", { name });
+      const { items } = await cloud.request<{ items: Org[] }>("organizations");
+      setSession({ csrf: cloud.csrf, orgs: items });
+      setOrg(id);
+    } catch (e) { setError(errorMessage(e)); }
+    finally { setBusy(false); }
   }
   const expired = () => {
     setSession(null);
@@ -189,8 +217,8 @@ export default function Console() {
             </span>
             {cloudAvailable ? (
               <>
-                <h2>Welcome back</h2>
-                <p>Sign in to your self-hosted Dootah Cloud.</p>
+                <h2>{registering ? "Create your account" : "Welcome back"}</h2>
+                <p>{restoring ? "Checking your session…" : registering ? "Start with your email and a password of at least 14 characters." : "Sign in to your Dootah Cloud."}</p>
                 <form onSubmit={login}>
                   <Label htmlFor="email">Email address</Label>
                   <Input
@@ -206,14 +234,19 @@ export default function Console() {
                     id="password"
                     name="password"
                     type="password"
-                    autoComplete="current-password"
+                    autoComplete={registering ? "new-password" : "current-password"}
+                    minLength={registering ? 14 : undefined}
+                    maxLength={256}
                     required
                   />
-                  <Button type="submit" disabled={busy}>
-                    {busy ? <Loader2 className="spin" size={16} /> : "Sign in"}
+                  <Button type="submit" disabled={busy || restoring}>
+                    {busy ? <Loader2 className="spin" size={16} /> : registering ? "Create account" : "Sign in"}
                     <ArrowRight size={16} />
                   </Button>
                 </form>
+                <Button variant="ghost" disabled={busy || restoring} onClick={() => { setRegistering(!registering); setError(""); }}>
+                  {registering ? "Already have an account? Sign in" : "Create an account"}
+                </Button>
                 {error && (
                   <p className="error-box" role="alert">
                     {error}
@@ -238,7 +271,7 @@ export default function Console() {
               <div className="login-help">
                 <CircleHelp size={15} />
                 <span>
-                  Accounts are provisioned by your Cloud operator.{" "}
+                  Need help connecting to your Cloud?{" "}
                   <a href={`${docs}/self-hosting/README.md`}>Setup guide</a>
                 </span>
               </div>
@@ -352,10 +385,12 @@ export default function Console() {
           <div className="empty-state">
             <Box />
             <h2>No workspace yet</h2>
-            <p>
-              Ask your operator for organization access, or create one with the
-              existing Dootah CLI.
-            </p>
+            <p>Create an organization to register your applications.</p>
+            <form onSubmit={createOrganization}>
+              <Label htmlFor="organization-name">Organization name</Label>
+              <Input id="organization-name" name="name" required maxLength={128} />
+              <Button type="submit" disabled={busy}>Create organization</Button>
+            </form>
             <a href={`${docs}/getting-started/quickstart.md`}>
               Open setup guide
             </a>
@@ -427,6 +462,20 @@ function Workspace({
     } finally {
       if (mounted.current) setLoading(false);
     }
+  }
+  async function registerApp(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const name = String(new FormData(form).get("name"));
+    setBusy(true);
+    setError("");
+    try {
+      await cloud.request("apps", "POST", { name });
+      form.reset();
+      await refresh();
+      setNotice("Application registered. Use the Dootah CLI to register its installed contract and publish releases.");
+    } catch (e) { fail(e); }
+    finally { setBusy(false); }
   }
   useEffect(() => {
     mounted.current = true;
@@ -571,6 +620,13 @@ function Workspace({
           <RefreshCw size={15} className={loading ? "spin" : ""} /> Refresh
         </Button>
       </div>
+      {!demo && role === "Owner" && (
+        <form className="list-filters" onSubmit={registerApp}>
+          <Label htmlFor="application-name">Application name</Label>
+          <Input id="application-name" name="name" required maxLength={128} />
+          <Button type="submit" disabled={busy}>Register application</Button>
+        </form>
+      )}
       <div className="overview-stats">
         <div>
           <span>
