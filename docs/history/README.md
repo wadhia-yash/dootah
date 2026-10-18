@@ -1,32 +1,7 @@
-# Engineering history and preserved evidence
+# Archived versions
 
-[Current product documentation](../README.md) is the starting point for users.
-This page is for provenance and repository maintenance. Earlier records contain
-superseded claims, failed intermediate designs, SDK versions and machine paths.
-Do not apply their setup commands to the current alpha.
-
-## V2 records
-
-[docs/v2](../v2/) retains the development record in its original location so evidence
-links stay stable. In particular:
-
-- [Real-app acceptance](../v2/REAL_APP_ACCEPTANCE.md) and [matrix](../v2/REAL_APP_MATRIX.md)
-- [Packaging](../v2/PHASE9B_RELEASE.md), [CLI/onboarding](../v2/PHASE9C_ONBOARDING.md),
-  [deployment](../v2/PHASE9D_DEPLOYMENT.md), [CI](../v2/PHASE9E_CI.md),
-  [public documentation](../v2/PHASE9F_DOCS.md)
-- [Security investigation and replacement](../v2/SECURITY_MODEL.md),
-  [portable logic development](../v2/PORTABLE_LOGIC.md),
-  [SDK development](../v2/ANDROID_SDK.md)
-
-Current public security, support and integration guides supersede instructional
-claims in these records. Personal home-directory paths were generalized; temporary
-scratch paths remain as provenance, not public setup examples.
-Curated evidence bytes are not rewritten.
-Raw logs, credentials, retained customer source/classes, dumps and private state
-must remain outside Git. Add only reviewed sanitized receipts explicitly; see
-[the evidence policy](../development/README.md#evidence-policy).
-
-<a id="v1-preservation-and-deferred-cleanup"></a>
+Current integration instructions are in the [documentation index](../README.md).
+Development diaries and raw acceptance evidence are not maintained public documentation.
 
 ## V1 archive
 

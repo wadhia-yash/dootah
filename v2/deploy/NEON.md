@@ -7,7 +7,7 @@ service configuration; it does not deploy Dootah's HTTP server or frontend.
 
 ## Connection and migration boundary
 
-The root `neon.ts` declares PostgreSQL-only configuration. `.neon`, `.env*` and
+An optional local `neon.ts` (not committed) may declare PostgreSQL-only Neon configuration. `.neon`, `.env*` and
 `dootah-private/` are ignored; never put their contents into frontend variables,
 commits or logs. Neon agent skills and MCP configuration belong in user-level
 agent configuration, outside the repository.
@@ -134,8 +134,8 @@ signed transport test is not physical-device OTA proof or production readiness.
 
 ## Integration verification — 2026-10-14
 
-- Neon CLI 8.4.4 authenticated and linked organization `org-dry-king-79120141`,
-  project `lively-dew-47637138`, branch `production`. Organization reported `free`.
+- Neon CLI 8.4.4 authenticated and linked the operator's Neon organization and
+  project (`production` branch, free plan).
 - Reviewed `neon config plan`; `neon deploy` completed with no service changes.
 - Production was inspected as empty before migration. Migrations 1–8 applied;
   repeat migration succeeded. Separate runtime credentials passed schema and

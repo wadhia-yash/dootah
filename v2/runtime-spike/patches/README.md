@@ -24,11 +24,11 @@ ongoing business-logic health or a secure JS capability sandbox.
 
 Host verification: the patch applies cleanly to pristine expo-updates@57.0.23
 npm sources; all three resulting Kotlin files match the build inputs. Device
-verification belongs in docs/v2/RUNTIME_SPIKE.md. Upstream acceptance or ongoing
+verification belongs in docs/reference/status.md. Upstream acceptance or ongoing
 version-pinned maintenance remains necessary before a reusable production SDK.
 
 
-Phase 6 adds `startNativeMonitoring()` without a ReactMarker listener or React host,
+The native integration adds `startNativeMonitoring()` without a ReactMarker listener or React host,
 and `rejectNativeLaunch(UUID)` through StartupProcedure to Expo's existing DAO failed
 launch counter. Selection, signature verification, asset download/cache, success
 accounting and rollback remain Expo-owned. The SDK never starts ReactHost or evaluates
@@ -38,4 +38,5 @@ a separate AndroidX JavaScriptSandbox. The adapter itself is not the execution s
 An update with a prior successful launch can remain eligible under Expo's existing
 selection policy after a later rejection. Native validation still runs on every launch;
 this patch does not claim permanent quarantine of a previously healthy release.
-Physical Phase 6 verification is recorded in `docs/v2/SECURITY_MODEL.md`.
+See `docs/security/README.md` for the trust boundary and
+`docs/reference/status.md` for validation scope.

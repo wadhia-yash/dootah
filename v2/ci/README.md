@@ -109,9 +109,8 @@ labelled SPDX/CycloneDX or a universal supply-chain/security audit. Container OS
 package versions are not fully locked by this phase.
 
 Gitleaks scans all tracked source without scanning ignored local configuration or
-the full Git history. Five reviewed false positives are listed in
-`secret-exceptions.json`, all public Expo asset content keys in sanitized evidence
-receipts. Exceptions bind path, rule, line and the SHA-256 of the entire file. A
+the full Git history. Reviewed false positives, when necessary, are listed in
+`secret-exceptions.json`; the current list is empty. Exceptions bind path, rule, line and the SHA-256 of the entire file. A
 changed file or new finding fails. No blanket directory or generic PEM allowance is
 used.
 

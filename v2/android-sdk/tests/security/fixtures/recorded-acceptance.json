@@ -1,0 +1,340 @@
+{
+  "provenance": {
+    "kind": "recorded-observations",
+    "date": "2026-09-28",
+    "sourceCommit": "1e021f9f490a8ce59447557794285bc36f153de9",
+    "sourceSha256": "65ecc9ce2eed2791dc3aa7e90c2b90924ac2c2608c5a1b6abbbed3fca39a4e63",
+    "scope": "Historical Android observations; not a fresh execution or current-device certification."
+  },
+  "observations": {
+    "status": "PASS",
+    "installedBeforeSha256": "95c18eda921fd4f00b804ea8b7166f1e05d8db93df8f02b9a436f1704a9647f2",
+    "installedAfterSha256": "95c18eda921fd4f00b804ea8b7166f1e05d8db93df8f02b9a436f1704a9647f2",
+    "reinstallDuringAcceptedSequence": false,
+    "dataClear": false,
+    "manualAcceptanceJS": false,
+    "manualFunctionIds": false,
+    "stages": {
+      "baseline": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Discount: 10",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      },
+      "business": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Discount: 20",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      },
+      "combined": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Special discount: 20",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      },
+      "online": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Special discount: 20",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      },
+      "offline": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Special discount: 20",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      },
+      "invalid-signature": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Special discount: 20",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      },
+      "invalid-manifest": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Discount: 10",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      },
+      "recovered-combined": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Special discount: 20",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      },
+      "rollback": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Discount: 10",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      },
+      "rollback-offline": {
+        "lastUpdateTime": "2026-09-28 19:32:40",
+        "fatalException": false,
+        "text": [
+          "Discount: 10",
+          "Receipt via Kotlin OTA",
+          "String overload via Kotlin OTA",
+          "Int: 7",
+          "Unsupported stays native",
+          "Default",
+          "Extension native",
+          "Member",
+          "Member explicit",
+          "Bridge native",
+          "Generic: Generic native",
+          "Private",
+          "Count: 0"
+        ]
+      }
+    },
+    "lastUpdateTime": "2026-09-28 19:32:40",
+    "recomposition": [
+      "Special discount: 20",
+      "Receipt via Kotlin OTA",
+      "String overload via Kotlin OTA",
+      "Int: 7",
+      "Unsupported stays native",
+      "Default",
+      "Extension native",
+      "Member",
+      "Member explicit",
+      "Bridge native",
+      "Generic: Generic native",
+      "Private",
+      "Count: 1"
+    ],
+    "signedReleases": {
+      "business": {
+        "signatureVerified": true
+      },
+      "combined": {
+        "signatureVerified": true
+      },
+      "recovered-combined": {
+        "signatureVerified": true
+      },
+      "rollback": {
+        "signatureVerified": true
+      }
+    },
+    "signedNegativeArtifacts": [
+      {
+        "case": "undeclared",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "unknown-capability",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "wrong-version",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "unknown-operation",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "abi",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "malformed-value",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "input-mismatch",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "budget",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "rn",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "expo",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "dynamic",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      },
+      {
+        "case": "trailing",
+        "rejected": true,
+        "manifestSignatureVerified": true,
+        "nativeRowsPreserved": true,
+        "nativeText": "Discount: 10",
+        "healthAcknowledged": false
+      }
+    ],
+    "invalidManifestSignatureRejected": true,
+    "invalidDirectiveSignatureRejected": true
+  }
+}

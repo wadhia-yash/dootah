@@ -128,9 +128,6 @@ def check(root=ROOT):
     for name in subprocess.check_output(['git', 'ls-files', '--cached', '*.md'], cwd=root, text=True).splitlines():
         if name not in files and HOME.search((root / name).read_text()):
             errors.append(f'{name}: personal home path in historical document')
-    for path in (root / 'docs/v2').glob('*.md'):
-        if 'Engineering history / dated acceptance record' not in path.read_text()[:300]:
-            errors.append(f'{path.relative_to(root)}: missing historical banner')
     for name in ['README.md', 'docs/getting-started/quickstart.md', 'docs/reference/platform.md']:
         if props['dootah.public.version'] not in (root / name).read_text():
             errors.append(f'{name}: public version missing')

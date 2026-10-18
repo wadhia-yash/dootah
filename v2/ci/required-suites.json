@@ -127,9 +127,9 @@
         "--test",
         "--test-reporter=tap",
         "v2/deploy/config.test.mjs",
+        "v2/deploy/edge.test.mjs",
         "v2/deploy/ngrok.test.mjs",
-        "v2/deploy/proxy.test.mjs",
-        "v2/deploy/edge.test.mjs"
+        "v2/deploy/proxy.test.mjs"
       ]
     },
     {

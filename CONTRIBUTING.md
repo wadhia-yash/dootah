@@ -24,7 +24,7 @@ need Docker/Compose, Bash, curl, OpenSSL and GnuPG. See [CI resource estimates](
 | `v2/deploy/` | Single-host deployment and lifecycle acceptance |
 | `v2/ci/` | Required-suite manifest, isolated gates, scanner/signing checks |
 | `docs/`, `v2/examples/` | Current public docs and small Kotlin example |
-| `docs/v2/` | Dated engineering/evidence records; see [history](docs/history/README.md) |
+| `docs/reference/` | Compatibility, API, instrumentation and validation references |
 
 There is no root Gradle build. Each V2 project under `v2/` has its own wrapper. Historical
 V1 is preserved on the `archive/dootah-v1-final` tag; see [history](docs/history/README.md).

@@ -28,6 +28,26 @@ transitive dependencies from their existing repositories, not Dootah rehosts.
 Node, Metro, Gradle/Android tooling, producer application and xprem server are
 build-time or separate-server inputs, not SDK publications.
 
+## JitPack distribution (Alpha.2)
+
+Alpha.2 is distributed through JitPack as `com.github.wadhia-yash.dootah:MODULE:v0.1.0-alpha.2`.
+JitPack does not rebuild the native SDK. The release attaches the validated stage,
+re-coordinated by `jitpack.py`:
+
+```sh
+ORG_GRADLE_PROJECT_dootahRuntimeModule=com.github.wadhia-yash.dootah:runtime-v2:v0.1.0-alpha.2 \
+  release/stage.sh "$STAGE"
+python3 release/jitpack.py "$STAGE" com.github.wadhia-yash.dootah v0.1.0-alpha.2 \
+  dootah-v0.1.0-alpha.2-jitpack-maven.zip
+```
+
+`dootahRuntimeModule` makes the plugin add the JitPack runtime coordinate. The default
+remains `dev.dootah:runtime-v2:<version>`. `jitpack.py` maps both Dootah groups to the
+JitPack group and every Dootah version to the tag. It rewrites POMs, module metadata and
+checksums; archive bytes are unchanged. The root `jitpack.yml` installs the release asset
+only if it matches the SHA-256 in `jitpack.sha256` from the same tagged commit. Consumer
+setup is in the [quickstart](../../../docs/getting-started/quickstart.md).
+
 ## Integration reference
 
 Set minSdk 29 and compileSdk 36; use AGP 8.9.1 or newer and arm64-v8a. Configure

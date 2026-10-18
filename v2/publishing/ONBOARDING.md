@@ -26,7 +26,7 @@ operator configures PostgreSQL, user provisioning and a dedicated xprem delivery
 binding/public signing certificate for each app. Creating an app is an authenticated
 customer action; provisioning its signing/storage backend is an operator action.
 There is no customer DB credential or hidden admin endpoint. See
-[Cloud API](../../docs/v2/CLOUD_API.md) for these existing operator prerequisites.
+[Cloud API](../../docs/reference/api.md) for these existing operator prerequisites.
 
 ## Authenticate and create the app
 
@@ -55,12 +55,11 @@ List commands return API pagination cursors; pass `--after` for the next page.
 
 ## Integrate, build and retain
 
-Use a fresh public-version Maven stage built from the current checkout until
-public publication is authorized. The current staged plugin includes release retention;
-there is no need for a plugin composite build or a frozen older stage. Follow the
-[quickstart repository setup](../../docs/getting-started/quickstart.md#current-pre-publication-setup).
+Resolve the Alpha.2 plugin and runtime from JitPack (`v0.1.0-alpha.2`). The plugin includes
+release retention; no composite build or older stage is needed. Follow the
+[quickstart SDK installation](../../docs/getting-started/quickstart.md#sdk-installation-jitpack).
 The plugin supplies its matching runtime dependency automatically. Source development
-uses `0.7.5-local`; the staged public version is `0.1.0-alpha.2`.
+uses `0.7.5-local`; the public version is `0.1.0-alpha.2`.
 
 Apply `dev.dootah` to the application module, use `DootahApplication` as its Application
 superclass, and configure:

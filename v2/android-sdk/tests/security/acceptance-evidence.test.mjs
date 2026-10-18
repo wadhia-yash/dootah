@@ -1,8 +1,9 @@
+// Recorded historical observations only; assertions do not execute a device probe.
 // Physical consumer observations, kept separate from the direct sandbox probe.
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-const proof = JSON.parse(readFileSync(new URL('../../../../docs/v2/evidence/phase6-20260928/acceptance.json', import.meta.url)));
+const proof = JSON.parse(readFileSync(new URL('./fixtures/recorded-acceptance.json', import.meta.url))).observations;
 test('Kotlin logic and UI activate on the same accepted APK and rollback together', () => {
   assert.equal(proof.status, 'PASS');
   assert.equal(proof.installedBeforeSha256, proof.installedAfterSha256);
