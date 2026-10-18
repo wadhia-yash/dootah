@@ -45,7 +45,19 @@ export async function client(config) {
     const response = await fetch(new URL(path, base), { method, headers: { ...headers, ...extra },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }), redirect: 'error', signal: AbortSignal.timeout(30000) });
     // Never echo server bodies or request headers: either may contain credentials.
-    assert(response.ok, `Cloud request rejected (${response.status})`);
+    if (!response.ok) {
+      // Allowlist safe quota metadata; never echo arbitrary server text or credentials.
+      let data; try { data = await response.json(); } catch {}
+      const q = data?.error?.quota;
+      const safe = q && ['apps','environments','organizations','publishes','installations'].includes(q.resource) &&
+        Number.isSafeInteger(q.limit) && Number.isSafeInteger(q.remaining);
+      const metadata = safe ? { resource: q.resource, limit: q.limit, remaining: q.remaining,
+        resetAt: typeof q.resetAt === 'string' && /^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/.test(q.resetAt) ? q.resetAt : null } : undefined;
+      const retry = response.headers.get('retry-after');
+      const retryAfter = retry && /^\d{1,9}$/.test(retry) ? Number(retry) : undefined;
+      throw Object.assign(Error(`Cloud request rejected (${response.status})${metadata ? ' ' + JSON.stringify(metadata) : ''}${retryAfter ? ` Retry-After: ${retryAfter}s` : ''}`),
+        { status: response.status, quota: metadata, retryAfter });
+    }
     return response.json();
   };
 }

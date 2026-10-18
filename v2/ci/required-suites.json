@@ -232,6 +232,40 @@
       "format": "acceptance",
       "report": "reports/acceptance.json",
       "minimum": 1
+    },
+    {
+      "id": "hosted-policy",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/hosted-policy.tap",
+      "minimum": 13
+    },
+    {
+      "id": "hosted-paused",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/hosted-paused.tap",
+      "minimum": 1
+    },
+    {
+      "id": "hosted-exhausted",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/hosted-exhausted.tap",
+      "minimum": 1
+    },
+    {
+      "id": "hosted-admission",
+      "job": "server",
+      "format": "tap",
+      "report": "reports/hosted-admission.tap",
+      "minimum": 3,
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "v2/cloud/test/policy.test.mjs"
+      ]
     }
   ]
 }

@@ -226,3 +226,13 @@ describe("account sessions", () => {
     await expect(expired.restore()).rejects.toMatchObject({ status: 401 });
   });
 });
+
+it('passes invitation only in the registration body and retains quota metadata', async () => {
+  const transport = vi.fn().mockResolvedValueOnce(json({ id: 'user' }, 201)).mockResolvedValueOnce(json({ csrf: 'csrf' })).mockResolvedValueOnce(json({ items: [] }));
+  await new Cloud(transport).register('invited@example.test', 'example-password', 'invitation-value');
+  expect(JSON.parse(transport.mock.calls[0][1].body)).toEqual({ email: 'invited@example.test', password: 'example-password', invitation: 'invitation-value' });
+  expect(transport.mock.calls[0][0]).toBe('/v1/users');
+  const quota = { resource: 'publishes', limit: 10, remaining: 0, resetAt: null };
+  const cloud = new Cloud(vi.fn().mockResolvedValue(json({ error: { code: 'quota_exceeded', quota } }, 429)));
+  await expect(cloud.request('releases', 'POST', {})).rejects.toMatchObject({ status: 429, quota });
+});

@@ -43,7 +43,7 @@ export async function proxy(request: Request, env: EdgeEnv, transport: typeof fe
   if (!isCloudPath(url.pathname)) return fail(404, "Not found");
   const origin = upstreamOrigin(env.DOOTAH_UPSTREAM);
   const secret = env.DOOTAH_EDGE_SECRET ?? "";
-  if (!origin || secret.length < 32) return fail(503, "Edge not configured");
+  if (!origin || !/^[0-9a-f]{64}$/.test(secret)) return fail(503, "Edge not configured");
   // Cloudflare sets this from the TCP peer; without it per-client limits cannot hold.
   const client = request.headers.get("cf-connecting-ip");
   if (!client) return fail(400, "Client address unavailable");
@@ -55,13 +55,34 @@ export async function proxy(request: Request, env: EdgeEnv, transport: typeof fe
   headers.set("x-dootah-client-ip", client);
   headers.set("ngrok-skip-browser-warning", "1");
   const hasBody = !["GET", "HEAD"].includes(request.method);
+  // Existing proxy/Cloud envelope bound, enforced before spending tunnel transfer.
+  let body: Uint8Array | undefined;
+  if (hasBody) {
+    const max = 131072;
+    if (Number(request.headers.get('content-length') ?? 0) > max) return fail(413, 'Request too large');
+    const reader = request.body?.getReader();
+    const chunks: Uint8Array[] = [];
+    let length = 0;
+    try {
+      while (reader) {
+        const part = await reader.read();
+        if (part.done) break;
+        length += part.value.byteLength;
+        if (length > max) { await reader.cancel(); return fail(413, 'Request too large'); }
+        chunks.push(part.value);
+      }
+    } catch { return fail(400, 'Invalid request body'); }
+    body = new Uint8Array(length);
+    let offset = 0;
+    for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.length; }
+  }
   let response: Response;
   try {
     response = await transport(origin + url.pathname + url.search, {
       method: request.method,
       headers,
       redirect: "manual",
-      ...(hasBody ? { body: request.body, duplex: "half" } : {}),
+      ...(hasBody ? { body, duplex: "half" } : {}),
     } as RequestInit);
   } catch {
     return fail(502, "Cloud unavailable");

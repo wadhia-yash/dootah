@@ -105,3 +105,26 @@ receipt. It does not automatically enable rollout. An optional `cloud.idempotenc
 allows retrying the same generated publication. Source edits/unsupported Kotlin still
 cannot affect normal Android builds. The old direct self-hosted publisher remains
 available for operators; the Cloud workflow does not expose its credentials.
+
+## Hosted Alpha.2 access and quotas
+
+Self-hosted quotas remain opt-in. The hosted deployment requires an email-bound,
+single-use invitation for `POST /v1/users` (`email`, `password`, `invitation`).
+Registration requires the exact Origin; successful registration returns `201 {id}`.
+Missing/invalid/expired/revoked/consumed invitations and existing-email refusal return
+`403 registration_unavailable`. An invitation is not email verification. Sign in
+through the existing session endpoint afterward; users and sessions are preserved.
+
+Quota refusal uses `429 quota_exceeded` with `error.quota` containing `resource`,
+`limit`, `used`, `remaining`, and nullable ISO `resetAt`. Rolling resets include
+`Retry-After` when known; fixed resource caps require an operator/resource change.
+Burst limits return `429 rate_limited` and `Retry-After: 60`. Oversized requests and
+artifacts return `413`. Emergency pauses return `403 registrations_paused` or
+`403 publications_paused`; release controls remain available.
+
+`GET /v1/usage` requires organization-wide `app:read` authorization. For hosted Cloud
+it returns publish `limit`, successful `used`, pending `reserved`, `remaining`, and
+`resetAt`, plus resource limits. Self-hosted Cloud returns `{hosted:false}`.
+Invitation administration and aggregate usage are available only through the local
+platform operator CLI, not organization Owner tokens. See [hosted limits](hosted-alpha.md)
+and the [operator workflow](../../v2/deploy/HOSTED_ALPHA.md).

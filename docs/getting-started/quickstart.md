@@ -53,7 +53,7 @@ repository scopes at its `repository/` directory.
 ## Create the Cloud app and obtain its certificate
 
 Cloud must be running over HTTPS with your user registered. The experimental Alpha.2
-Cloud is `https://dootah.pages.dev`: register in its console, then use that origin as
+Cloud is `https://dootah.pages.dev`: register using your invitation link, then use that origin as
 `DOOTAH_CLOUD_URL`. To operate your own, follow [self-hosting](../self-hosting/README.md). The operator provisions a separate xprem delivery
 identity/binding for each app after you create its Cloud record.
 
@@ -252,6 +252,8 @@ zero installed identities; `requireHooks` catches zero at build time.
 
 Open the installed app and verify **Discount: 10**. Record its APK hash/install time.
 This baseline check requires a device; a build alone is not OTA proof.
+
+Hosted access is subject to the [Alpha.2 quotas](../reference/hosted-alpha.md); existing accounts can still sign in.
 
 ## Create the environment and register the contract
 

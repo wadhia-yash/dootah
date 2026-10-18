@@ -58,6 +58,9 @@ import {
   demoReleases,
 } from "@/lib/demo";
 import { cloudAvailable, consoleHref, docs, site } from "@/lib/site";
+// Fragments are never sent to the server. Remove immediately; keep only in memory.
+const invitation = new URLSearchParams(window.location.hash.slice(1)).get('invitation') ?? '';
+if (invitation) window.history.replaceState(null, '', window.location.pathname + window.location.search);
 const statuses: Record<string, string> = {
   rolling_out: "Rolling out",
   active: "Active",
@@ -98,7 +101,7 @@ export default function Console() {
   const [org, setOrg] = useState(demo ? demoOrg.id : "");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [registering, setRegistering] = useState(false);
+  const [registering, setRegistering] = useState(Boolean(invitation));
   const [restoring, setRestoring] = useState(!demo && cloudAvailable);
   useEffect(() => {
     if (demo || !cloudAvailable) return;
@@ -126,10 +129,8 @@ export default function Console() {
     setError("");
     const c = new Cloud();
     try {
-      const { items } = await c[registering ? "register" : "login"](
-        String(data.get("email")),
-        String(data.get("password")),
-      );
+      const email = String(data.get('email')), password = String(data.get('password'));
+      const { items } = registering ? await c.register(email, password, invitation || String(data.get('invitation') || '')) : await c.login(email, password);
       setSession({ csrf: c.csrf, orgs: items });
       setOrg(items[0]?.id ?? "");
     } catch (e) {
@@ -219,7 +220,9 @@ export default function Console() {
               <>
                 <h2>{registering ? "Create your account" : "Welcome back"}</h2>
                 <p>{restoring ? "Checking your session…" : registering ? "Start with your email and a password of at least 14 characters." : "Sign in to your Dootah Cloud."}</p>
+                <p>Hosted Alpha.2 is free experimental, invitation-only access. No paid plans or billing.</p>
                 <form onSubmit={login}>
+                  {registering && !invitation && <><Label htmlFor="invitation">Invitation token (hosted Cloud)</Label><Input id="invitation" name="invitation" type="password" autoComplete="off" maxLength={43} /></>}
                   <Label htmlFor="email">Email address</Label>
                   <Input
                     id="email"
@@ -282,7 +285,7 @@ export default function Console() {
           </div>
         </main>
         <footer className="login-footer">
-          Experimental alpha.2 · No publicly hosted account service
+          Experimental alpha.2 · Hosted access by invitation · Self-hosting available
         </footer>
       </div>
     );

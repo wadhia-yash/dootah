@@ -25,6 +25,9 @@ import {
 import { validate, binding, manifest } from "./adapter.mjs";
 import { work } from "./worker.mjs";
 import { configuration, productionReady } from "./config.mjs";
+import { policy } from "./policy.mjs";
+import { controls, normalizedEmail, redeemInvitation, organizationQuota, resourceQuota, installationQuota, publishQuota, publishUsage, lockOrganization } from "./hosted.mjs";
+import { admission, memoryLimit, usageMeter } from "./traffic.mjs";
 import { clientAddress } from "./client.mjs";
 const settings = configuration();
 const origin = settings.origin;
@@ -58,10 +61,12 @@ const clean = (row) => {
   return rest;
 };
 async function body(req, max = 131072) {
+  requireValue(!req.headers["content-length"] || Number(req.headers["content-length"]) <= max, "body_too_large", 413);
   let bytes = 0,
     parts = [];
   for await (const chunk of req) {
     bytes += chunk.length;
+    req.usageBytes = bytes;
     requireValue(bytes <= max, "body_too_large", 413);
     parts.push(chunk);
   }
@@ -407,14 +412,23 @@ async function api(req, res, url, b, client) {
       method = req.method;
     if (p === "/v1/users" && method === "POST") {
       requireValue(req.headers.origin === origin, "origin", 403);
-      await limit(pool, `register-ip:${client}`, 5);
-      fields(b, ["email", "password"]);
+      await limit(pool, `register-ip:${client}`, policy.rates.registration);
+      fields(b, ["email", "password", "invitation"], ["email", "password"]);
       str(b.email);
       requireValue(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email), "invalid_email");
       requireValue(str(b.password, 256).length >= 14, "weak_password");
       const id = randomUUID();
-      await db.query("INSERT INTO users(id,email,password_hash) VALUES($1,$2,$3)",
-        [id, b.email, password(b.password)]);
+      let redeem;
+      if (policy.enabled) {
+        await controls(db, 'registrations');
+        if (policy.inviteOnly) redeem = await redeemInvitation(db, b.email, b.invitation, id);
+      }
+      // Public duplicate failures never identify an existing account.
+      const email = policy.enabled ? normalizedEmail(b.email) : b.email;
+      const inserted = await db.query("INSERT INTO users(id,email,password_hash) VALUES($1,$2,$3) ON CONFLICT(email) DO NOTHING RETURNING id",
+        [id, email, password(b.password)]);
+      requireValue(inserted.rowCount === 1, 'registration_unavailable', 403);
+      if (redeem) await redeem();
       res.statusCode = 201;
       return { id };
     }
@@ -423,11 +437,11 @@ async function api(req, res, url, b, client) {
       str(b.email);
       str(b.password, 256);
       requireValue(req.headers.origin === origin, "origin", 403);
-      await limit(pool, `login-ip:${client}`, 20);
-      await limit(pool, `login:${b.email}`, 10);
+      await limit(pool, `login-ip:${client}`, policy.rates.login);
+      await limit(pool, `login:${normalizedEmail(b.email)}`, policy.rates.loginEmail);
       const {
         rows: [user],
-      } = await db.query("SELECT * FROM users WHERE email=$1", [b.email]);
+      } = await db.query("SELECT * FROM users WHERE email=$1 OR (email=$2 AND EXISTS (SELECT 1 FROM invitations i WHERE i.redeemed_by=users.id)) ORDER BY (email=$1) DESC LIMIT 1", [b.email, normalizedEmail(b.email)]);
       requireValue(
         checkPassword(b.password, user?.password_hash ?? dummyPassword) && user,
         "unauthenticated",
@@ -441,7 +455,14 @@ async function api(req, res, url, b, client) {
       return { csrf: sha(token.secret + "csrf"), userId: user.id };
     }
     const a = await auth(req, db);
-    await limit(pool, `api:${a.id}`, a.kind === "installation" ? 180 : 300);
+    req.usageOrganization = a.organization_id;
+    await limit(pool, `api:${a.id}`, a.kind === "installation" ? 180 : policy.rates.user);
+    if (policy.enabled && a.user_id) {
+      await limit(pool, `user:${a.user_id}`, policy.rates.user);
+      if (method === 'GET') await limit(pool, `read:${a.user_id}`, policy.rates.read);
+      if (method === 'POST' && ['/v1/organizations','/v1/apps','/v1/environments','/v1/tokens','/v1/enrollment-tickets'].includes(p))
+        await limit(pool, `create:${a.user_id}`, policy.rates.mutation);
+    }
     if (p === "/v1/sessions/current" && method === "GET") {
       requireValue(a.kind === "session", "session_required", 403);
       const raw = req.headers.authorization?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1] ??
@@ -471,6 +492,7 @@ async function api(req, res, url, b, client) {
         };
       if (method === "POST") {
         fields(b, ["name"]);
+        await organizationQuota(db, a.user_id);
         const id = randomUUID();
         await db.query("INSERT INTO organizations(id,name) VALUES($1,$2)", [
           id,
@@ -502,6 +524,7 @@ async function api(req, res, url, b, client) {
       requireValue(uuid(b.installationId) && uuid(b.embeddedId));
       const env = await owned(db, a, "environments", a.environment_id);
       requireValue(b.runtime === env.runtime);
+      await installationQuota(db, a.organization_id, b.installationId);
       const {
         rows: [existing],
       } = await db.query(
@@ -552,6 +575,13 @@ async function api(req, res, url, b, client) {
     }
     if (p === "/v1/events" && method === "POST") return ingest(db, a, b);
     requireValue(a.user_id && a.role, "user_required", 403);
+    if (p === '/v1/usage' && method === 'GET') {
+      permit(a, 'app:read');
+      requireValue(!a.app_id && !a.environment_id, 'organization_scope_required', 403);
+      if (!policy.enabled) return { hosted: false };
+      return { hosted: true, publishes: await publishUsage(db, a.organization_id),
+        limits: { apps: policy.apps, environments: policy.environments, installations: policy.installations, artifactBytes: policy.artifactBytes } };
+    }
     if (p === "/v1/enrollment-tickets" && method === "POST") {
       permit(a, "release:publish");
       fields(b, ["environmentId"]);
@@ -741,6 +771,7 @@ async function api(req, res, url, b, client) {
     if (table === "apps" && !id && method === "POST") {
       owner(a);
       fields(b, ["name"]);
+      await resourceQuota(db, a.organization_id, 'apps');
       const id = randomUUID();
       await db.query(
         "INSERT INTO apps(id,organization_id,name,delivery_key) VALUES($1,$2,$3,$4)",
@@ -753,6 +784,7 @@ async function api(req, res, url, b, client) {
       owner(a);
       fields(b, ["appId", "name", "runtime", "contract"]);
       await owned(db, a, "apps", b.appId);
+      await resourceQuota(db, a.organization_id, 'environments', b.appId);
       requireValue(
         b.contract &&
           Object.keys(b.contract).length === 2 &&
@@ -777,6 +809,9 @@ async function api(req, res, url, b, client) {
     if (table === "releases" && !id && method === "POST") {
       permit(a, "release:publish");
       fields(b, ["environmentId", "revision", "artifact"]);
+      const artifactSize = Buffer.byteLength(JSON.stringify(b.artifact));
+      requireValue(artifactSize <= Math.min(65536, policy.enabled ? policy.artifactBytes : 65536), 'artifact_too_large', 413);
+      if (policy.enabled) await lockOrganization(db, a.organization_id);
       const env = await owned(db, a, "environments", b.environmentId, true);
       const key = str(req.headers["idempotency-key"], 128),
         digest = sha(JSON.stringify(b));
@@ -795,7 +830,8 @@ async function api(req, res, url, b, client) {
         await owned(db, a, "releases", old.resource_id);
         return clean(old);
       }
-      await limit(db, `publish-org:${a.organization_id}`, 30);
+      await limit(db, `publish-org:${a.organization_id}`, policy.rates.publish);
+      await publishQuota(db, a.organization_id);
       await validate(b.artifact, env.runtime, env.contract);
       const id = randomUUID();
       const {
@@ -817,8 +853,8 @@ async function api(req, res, url, b, client) {
         ],
       );
       await db.query(
-        "UPDATE releases SET artifact_bytes=$3 WHERE organization_id=$1 AND id=$2",
-        [a.organization_id, r.id, JSON.stringify(b.artifact)],
+        "UPDATE releases SET artifact_bytes=$3,size_bytes=$4 WHERE organization_id=$1 AND id=$2",
+        [a.organization_id, r.id, JSON.stringify(b.artifact), artifactSize],
       );
       return operation(db, a, r, "publish", key, digest);
     }
@@ -923,7 +959,7 @@ async function delivery(req, res, url, client) {
   const app = req.headers["expo-app-id"],
     installation = req.headers["eas-client-id"];
   requireValue(uuid(app) && uuid(installation), "not_found", 404);
-  await limit(pool, `delivery:${client}`, 600);
+  if (!policy.enabled) await limit(pool, `delivery:${client}`, policy.rates.delivery);
   const {
     rows: [env],
   } = await pool.query(
@@ -935,6 +971,8 @@ async function delivery(req, res, url, client) {
     ],
   );
   requireValue(env, "not_found", 404);
+  req.usageOrganization = env.organization_id;
+  if (policy.enabled) deliveryLimit(`org:${env.organization_id}`, policy.rates.delivery);
   const c = await binding(app),
     headers = {};
   for (const h of [
@@ -965,7 +1003,7 @@ async function delivery(req, res, url, client) {
       ) {
         branch = r.branch;
         await pool.query(
-          "INSERT INTO grants VALUES($1,$2,$3) ON CONFLICT DO NOTHING",
+          "INSERT INTO grants SELECT $1,$2,$3 WHERE NOT EXISTS (SELECT 1 FROM grants WHERE organization_id=$1 AND installation_id=$2 AND release_id=$3) ON CONFLICT DO NOTHING",
           [env.organization_id, installation, r.id],
         );
       }
@@ -1030,8 +1068,11 @@ async function delivery(req, res, url, client) {
   res.writeHead(response.status);
   res.end(bytes);
 }
+const deliveryLimit = memoryLimit();
+export const meter = usageMeter();
 export function createServer(trustedProxies = settings.trustedProxies) {
-  return http.createServer(
+  const admit = admission();
+  const server = http.createServer(
     { maxHeaderSize: 16384, requestTimeout: 30000, headersTimeout: 10000 },
     async (req, res) => {
       res.setHeader("X-Content-Type-Options", "nosniff");
@@ -1041,10 +1082,23 @@ export function createServer(trustedProxies = settings.trustedProxies) {
         "Content-Security-Policy",
         "default-src 'self'; script-src 'self'; style-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
       );
+      let release = () => {};
+      let path = '';
+      if (policy.enabled) {
+        let bytes = 0;
+        const end = res.end;
+        res.end = function(chunk, ...args) {
+          if (chunk) bytes += Buffer.byteLength(chunk);
+          return end.call(this, chunk, ...args);
+        };
+        res.once('finish', () => meter.record(req.usageOrganization, path, bytes + (req.usageBytes ?? 0)));
+      }
       try {
         const url = new URL(req.url, origin);
+        path = url.pathname;
         const client = clientAddress(req, trustedProxies);
         requireValue(req.url.length <= 2048);
+        release = admit(client, url.pathname);
         if (
           req.method === "GET" &&
           ["/manifest", "/assets"].includes(url.pathname)
@@ -1079,7 +1133,7 @@ export function createServer(trustedProxies = settings.trustedProxies) {
           } = await pool.query(
             "SELECT max(version) AS version FROM migrations",
           );
-          requireValue(schema.version === 8, "migrations_required", 503);
+          requireValue(schema.version === 9, "migrations_required", 503);
           res.end("ready");
           return;
         }
@@ -1093,11 +1147,12 @@ export function createServer(trustedProxies = settings.trustedProxies) {
         const status =
           error.status ?? (["23505", "23503"].includes(error.code) ? 409 : 500);
         res.statusCode = status;
-        if (status === 429) res.setHeader("Retry-After", "60");
+        if (status === 429 && (!error.quota || error.retryAfter)) res.setHeader("Retry-After", String(error.retryAfter ?? 60));
         res.setHeader("Content-Type", "application/json");
         res.end(
           JSON.stringify({
             error: {
+              ...(error.quota ? { quota: error.quota } : {}),
               code:
                 status === 500
                   ? "internal_error"
@@ -1116,9 +1171,15 @@ export function createServer(trustedProxies = settings.trustedProxies) {
         );
         if (status === 500)
           console.error(JSON.stringify({event:"request_failed", code:"internal_error"}));
-      }
+      } finally { release(); }
     },
   );
+  if (policy.enabled) {
+    const flush = setInterval(() => meter.flush(pool), 60000);
+    flush.unref();
+    server.once('close', () => clearInterval(flush));
+  }
+  return server;
 }
 if (
   process.argv[1] &&
@@ -1157,6 +1218,7 @@ if (
     clearInterval(timer);
     clearInterval(cleanup);
     server.close(async () => {
+      if (policy.enabled) await meter.flush(pool);
       await pool.end();
       process.exit(0);
     });

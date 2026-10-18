@@ -10,6 +10,7 @@ Start with the product workflow, then consult the references as needed.
 | Check whether a change can ship OTA | [Support matrix](reference/support.md) |
 | Toolchain, platform and operational constraints | [Alpha platform limits](reference/platform.md) |
 | Understand trust and fallback | [Security model](security/README.md) |
+| Hosted invitations and quotas | [Hosted Alpha.2](reference/hosted-alpha.md) |
 | Run Cloud yourself | [Self-hosting](self-hosting/README.md) |
 | CLI options, private files and enrollment | [CLI operator reference](../v2/publishing/ONBOARDING.md) |
 | Release/rollout behavior | [Delivery and rollback](concepts/delivery.md) |

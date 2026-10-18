@@ -192,6 +192,26 @@ DOOTAH_INGRESS_PREFIX={ingress}
         tap=result.stdout.decode();(work/'cloud-tests.tap').write_text(tap);assert '# fail 0' in tap and '# skipped 0' in tap
         cloud_passed=int(re.search(r'^# pass (\d+)$',tap,re.M).group(1))
         (work/'cloud-tests.tap').write_text(tap);ok('all Cloud tests including database privileges and signed backend')
+        # Exercise hosted policy with real signed delivery, without touching any live stack.
+        c('stop','cloud')
+        for paused in [False,True]:
+            c('exec','-T','postgres','psql','-X','-U','postgres','-d','cloud','-v','ON_ERROR_STOP=1',
+              data=f"UPDATE dootah_cloud.hosted_controls SET registrations_paused={str(paused).lower()},publications_paused={str(paused).lower()}".encode())
+            result=c('run','--rm','--no-deps','-T',
+                '-e','DOOTAH_HOSTED_ALPHA=true','-e','DOOTAH_HOSTED_PUBLISHES=1',
+                '-e','DOOTAH_HOSTED_MONTHLY_REQUESTS=20000','-e','DOOTAH_HOSTED_MONTHLY_BYTES=1000000000',
+                '-e','DOOTAH_TEST_PUBLICATIONS_PAUSED='+str(paused).lower(),
+                '-e','DOOTAH_TEST_TENANTS=/run/private/test-tenants','-e','DOOTAH_TEST_ARTIFACT=/run/private/test-artifact',
+                '-v',str(work/'tenants.json')+':/run/input/test-tenants:ro',
+                '-v',str(work/'artifact.json')+':/run/input/test-artifact:ro',
+                'cloud','node','--test','--test-reporter=tap','test/hosted-delivery.test.mjs')
+            output=result.stdout.decode();assert '# fail 0' in output and '# skipped 0' in output
+            (work/('hosted-paused.tap' if paused else 'hosted-exhausted.tap')).write_text(output)
+        c('exec','-T','postgres','psql','-X','-U','postgres','-d','cloud','-v','ON_ERROR_STOP=1',
+          data=b'UPDATE dootah_cloud.hosted_controls SET registrations_paused=false,publications_paused=false')
+        c('start','cloud');wait('cloud')
+        ok('hosted quota exhaustion and emergency pause preserve cryptographically verified rollback; worker respects pause')
+
         c('restart','postgres','xprem','cloud');wait('postgres');wait('xprem');wait('cloud');copy_inputs();client('verify');ok('restart preserves state and signed delivery')
         logs=c('logs','--no-color').stdout
         values=[]
@@ -230,7 +250,8 @@ DOOTAH_INGRESS_PREFIX={ingress}
                 receipt['cleanupPassed']=True
                 (target/'acceptance.json').write_text(json.dumps(receipt,indent=2)+'\n')
                 # The CI caller keeps this raw test report private and exports counts only.
-                shutil.copy2(work/'cloud-tests.tap',target/'cloud-tests.tap')
+                for report in ['cloud-tests.tap','hosted-paused.tap','hosted-exhausted.tap']:
+                    shutil.copy2(work/report,target/report)
         finally:
             if evidence:
                 shutil.rmtree(work)

@@ -99,7 +99,7 @@ export async function runtimeDatabaseReady(pool) {
       pg_has_role(current_user,(SELECT nspowner FROM pg_namespace WHERE nspname='dootah_cloud'),'MEMBER') AS owner_member,
       (SELECT max(version) FROM dootah_cloud.migrations) AS version
       FROM pg_roles WHERE rolname=current_user`);
-    if (!r || r.version !== 8 || [r.rolsuper,r.rolcreatedb,r.rolcreaterole,r.rolbypassrls,r.schema_create,r.public_create,r.database_create,r.owner_member].some(Boolean)) throw Error();
+    if (!r || r.version !== 9 || [r.rolsuper,r.rolcreatedb,r.rolcreaterole,r.rolbypassrls,r.schema_create,r.public_create,r.database_create,r.owner_member].some(Boolean)) throw Error();
     await pool.query("SELECT id FROM dootah_cloud.apps LIMIT 1");
   } catch { fail("runtime database unavailable, unmigrated, or overprivileged"); }
 }

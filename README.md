@@ -10,7 +10,7 @@ New native libraries, permissions, manifest changes and capabilities require a n
 
 **Experimental alpha.** Public SDK **0.1.0-alpha.2**; development SDK **0.7.5-local**;
 Runtime ABI **3**; Logic ABI **1**. The SDK and Gradle plugin install from JitPack
-(`v0.1.0-alpha.2`; see the quickstart). An experimental hosted Cloud runs at
+(`v0.1.0-alpha.2`; see the quickstart). Free experimental, [invitation-only hosted Cloud](docs/reference/hosted-alpha.md) runs at
 https://dootah.pages.dev. Maven Central and JFrog artifacts are not available. Runtime
 ABI 3 is incompatible with alpha.1's ABI 2: apps need a new baseline APK and a new
 runtime version/environment. See [validation status](docs/reference/status.md).

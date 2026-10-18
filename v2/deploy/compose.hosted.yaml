@@ -1,0 +1,9 @@
+# Explicit opt-in overlay. Do not add to production until migration/tests are approved.
+# Use the same private env_file for Cloud and the existing operator CLI container.
+services:
+  cloud:
+    env_file: ["${DOOTAH_HOSTED_POLICY_FILE:?set reviewed hosted policy file}"]
+  cloud-user:
+    # Invitation links are displayed only to the interactive operator, not Docker logs.
+    logging: {driver: "none"}
+    env_file: ["${DOOTAH_HOSTED_POLICY_FILE:?set reviewed hosted policy file}"]

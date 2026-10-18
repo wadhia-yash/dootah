@@ -34,7 +34,7 @@ rm -f "$work/xprem/dootah-server" "$work/xprem/"*.json "$work/xprem/"*.txt
 docker build -t dootah-xprem:9d "$work/xprem"
 mkdir -p "$work/cloud/cloud" "$work/cloud/server" "$work/cloud/validator" "$work/cloud/notices"
 cp "$root/LICENSE" "$work/cloud/notices/"
-for file in adapter.mjs admin.mjs client.mjs config.mjs core.mjs server.mjs worker.mjs package.json package-lock.json dashboard.html dashboard.css dashboard.js; do
+for file in policy.mjs hosted.mjs traffic.mjs adapter.mjs admin.mjs client.mjs config.mjs core.mjs server.mjs worker.mjs package.json package-lock.json dashboard.html dashboard.css dashboard.js; do
   cp "$root/v2/cloud/$file" "$work/cloud/cloud/"
 done
 mkdir -p "$work/cloud/cloud/migrations" "$work/cloud/cloud/test"
