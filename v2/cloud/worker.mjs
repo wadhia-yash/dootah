@@ -1,8 +1,10 @@
 import { pool, tx, audit, requireValue } from "./core.mjs";
 import * as adapter from "./adapter.mjs";
+import { policy } from './policy.mjs';
 export async function work() {
   const { rows: pending } = await pool.query(
-    "SELECT * FROM operations WHERE status IN ('pending','running') AND next_attempt_at<=now() ORDER BY next_attempt_at,created_at LIMIT 10",
+    "SELECT * FROM operations WHERE status IN ('pending','running') AND next_attempt_at<=now() AND (NOT $1::boolean OR action<>'publish' OR EXISTS (SELECT 1 FROM hosted_controls WHERE id=true AND NOT publications_paused)) ORDER BY next_attempt_at,created_at LIMIT 10",
+    [policy.enabled],
   );
   for (const op of pending) {
     const db = await pool.connect();
@@ -23,6 +25,10 @@ export async function work() {
         [op.id, op.organization_id],
       );
       if (!["pending", "running"].includes(current.status)) continue;
+      if (policy.enabled && op.action === 'publish') {
+        const { rows: [control] } = await db.query('SELECT publications_paused FROM hosted_controls WHERE id=true');
+        if (!control || control.publications_paused) continue;
+      }
       await db.query(
         "UPDATE operations SET status='running',attempts=attempts+1,next_attempt_at=now()+interval '30 seconds' WHERE id=$1 AND organization_id=$2",
         [op.id, op.organization_id],
@@ -81,7 +87,7 @@ export async function work() {
           );
         }
         await conn.query(
-          "UPDATE operations SET status='succeeded',receipt=$3 WHERE organization_id=$1 AND id=$2",
+          "UPDATE operations SET status='succeeded',receipt=$3,completed_at=now() WHERE organization_id=$1 AND id=$2",
           [
             op.organization_id,
             op.id,

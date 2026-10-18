@@ -50,7 +50,7 @@ Keep the actual API listening on `127.0.0.1:3100` (Cloud `PORT=3100`). The brows
 Origin remains the preview origin through the proxy. CSRF/origin validation stays
 enabled. Do not weaken those checks or rewrite the Origin header to make login work.
 
-Register with an email and a password of at least 14 characters, or sign in with an
+Hosted registration requires an invitation bound to the email and a password of at least 14 characters. Self-hosted policy is opt-in. Sign in with an
 existing account. Session cookies remain HttpOnly; CSRF tokens stay in memory and
 reload restores an unexpired session from Cloud. The
 frontend accepts no bearer-token input and writes no credentials to browser storage.
@@ -128,3 +128,5 @@ dashboard at `/`, stays on Cloud. Keep all production security headers. Do not
 expose xprem, database ports, bindings, keys or operator files. The optional `v2/deploy/compose.web.yaml` mounts the build and uses
 `Caddyfile.web` to serve the landing page and console beside Cloud. See
 [Neon deployment](../deploy/NEON.md).
+
+Hosted limits and the approval-gated operator workflow are documented in [HOSTED_ALPHA.md](../deploy/HOSTED_ALPHA.md).

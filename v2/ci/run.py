@@ -236,6 +236,16 @@ def run(job, output, keep=False):
             command(['git','-C',upstream,'fetch','--depth=1','origin',UPSTREAM])
             command(['git','-C',upstream,'checkout','--detach',UPSTREAM])
             command(['bash','v2/deploy/build.sh',upstream],extra={'DOOTAH_BUILD_EVIDENCE':str(reports)})
+            status('running hosted invitation and quota races on disposable PostgreSQL')
+            validator_container='dootah-validator-'+uuid.uuid4().hex
+            command(['docker','create','--name',validator_container,'dootah-cloud:9d'])
+            try:
+                command(['docker','cp',validator_container+':/app/validator',work/'validator'])
+            finally:
+                command(['docker','rm',validator_container])
+            command(['node','v2/cloud/test/run-hosted.mjs'],extra={
+                'DOOTAH_TEST_VALIDATOR_CLASSPATH':str(work/'validator')+os.pathsep+str(work/'validator/json.jar'),
+                'DOOTAH_HOSTED_REPORT':str(reports/'hosted-policy.tap')})
             audit=json.loads((reports/'audit.json').read_text())
             require(audit['unchangedUpstreamFilesVerified']==341 and not audit['eeDependencies'] and audit['packages']>0 and audit['sourceFiles']>0,'Incomplete xprem graph audit')
             images=[]

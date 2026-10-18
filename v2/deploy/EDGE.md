@@ -34,13 +34,13 @@ browser / CLI / Android -> https://PROJECT.pages.dev  (Pages static + Function)
 
 ## Limits
 
-- Pages Functions free plan: 100,000 requests per day. Static pages don't count (`_routes.json`).
-- With the ngrok free plan as the upstream: 20,000 requests and 1 GB out per month.
-  - The Function sends `ngrok-skip-browser-warning`, so no interstitial is shown.
-  - When a quota is exhausted, Cloud is unreachable until reset. Installed apps keep their
-    embedded or last verified update.
-  - Requests that reach the tunnel URL directly still count toward the quota even though Caddy
-    refuses them, so keep the tunnel URL private.
+Provider request/transfer budgets depend on the current account and must be checked
+in the operator's dashboards. Configure conservative application budgets using the
+[hosted Alpha.2 policy](HOSTED_ALPHA.md); application estimates are not provider meters.
+The Function rejects oversized bodies before forwarding. Origin admission limits
+protect database/CPU work, but requests reaching the tunnel can already consume ngrok
+quota even when refused. Keep its URL private. A provider hard quota can interrupt
+Cloud and network rollback until reset; installed apps retain verified offline state.
 
 ## Configuration
 

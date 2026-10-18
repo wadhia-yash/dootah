@@ -44,6 +44,7 @@ export class ApiError extends Error {
   constructor(
     public code: string,
     public status: number,
+    public quota?: { resource: string; limit: number; remaining: number; resetAt: string | null },
   ) {
     super(code);
   }
@@ -88,7 +89,7 @@ export class Cloud {
       );
     }
     if (!response.ok)
-      throw new ApiError(data.error?.code || "request_failed", response.status);
+      throw new ApiError(data.error?.code || "request_failed", response.status, data.error?.quota);
     return data as T;
   }
   async login(email: string, password: string) {
@@ -101,8 +102,8 @@ export class Cloud {
     this.csrf = session.csrf;
     return this.request<{ items: Org[] }>("organizations");
   }
-  async register(email: string, password: string) {
-    await this.request("users", "POST", { email, password });
+  async register(email: string, password: string, invitation?: string) {
+    await this.request("users", "POST", { email, password, ...(invitation ? { invitation } : {}) });
     return this.login(email, password);
   }
   async restore() {
@@ -180,9 +181,18 @@ export function percent(value: number | null | undefined) {
 }
 export function errorMessage(error: unknown) {
   const code = error instanceof ApiError ? error.code : "";
+  if (error instanceof ApiError && error.code === 'quota_exceeded' && error.quota) {
+    const q = error.quota;
+    return `Hosted ${q.resource} limit reached (${q.limit}); ${q.remaining} remaining.${q.resetAt ? ` Next capacity release: ${q.resetAt}.` : ' Contact the platform operator.'}`;
+  }
   return (
     (
       {
+        registration_unavailable: "Registration is unavailable. Use a valid invitation for this email, or sign in to an existing account.",
+        registrations_paused: "New registrations are temporarily paused. Existing accounts can sign in.",
+        publications_paused: "New publications are temporarily paused. Existing release controls remain available.",
+        artifact_too_large: "The OTA artifact exceeds the accepted size limit.",
+        body_too_large: "The request exceeds the accepted size limit.",
         weak_password: "Use a password with at least 14 characters.",
         invalid_email: "Enter a valid email address.",
         conflict: "This account or resource already exists. Try signing in.",

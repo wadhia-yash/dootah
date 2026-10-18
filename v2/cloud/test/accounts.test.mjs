@@ -34,7 +34,7 @@ test('registration, persistent sessions, organization/app persistence and role b
   ip++;
   const account = await request('users', 'POST', { email, password: pass });
   assert.equal(account.status, 201);
-  assert.equal((await request('users', 'POST', { email, password: pass })).status, 409);
+  assert.equal((await request('users', 'POST', { email, password: pass })).status, 403);
   const stored = (await pool.query('SELECT password_hash FROM users WHERE id=$1', [account.body.id])).rows[0];
   assert.notEqual(stored.password_hash, pass);
   await assert.rejects(pool.query('UPDATE users SET email=email WHERE id=$1', [account.body.id]), e => e.code === '42501');

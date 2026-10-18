@@ -42,7 +42,7 @@ DOOTAH_CLOUD_DATABASE_URL_FILE=/private/cloud-owner-url node v2/cloud/admin.mjs 
 
 Migration 008 grants user INSERT for registration; runtime cannot UPDATE/DELETE
 users. Migrations remain explicit, transactional and advisory-locked. HTTP startup
-requires version 8 and refuses owner/overprivileged credentials. Run migration twice
+requires version 9 and refuses owner/overprivileged credentials. Run migration twice
 to verify idempotency. Store runtime and owner URLs separately with mode 0600.
 
 ## Public backend and frontend deployment
@@ -100,6 +100,8 @@ CLI before publishing. Registration alone does not provision signing identities.
 Keep backups of both databases plus xprem assets and matching keys; the existing
 local-only backup script is not a Neon backup implementation. Do not claim a public
 production deployment until Neon backup/restore and host operations are validated.
+
+See [hosted Alpha.2](HOSTED_ALPHA.md) for opt-in invitations, quotas and migration 009.
 
 ## Account and release behavior
 

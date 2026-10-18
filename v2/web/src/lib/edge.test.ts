@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { isCloudPath, proxy } from "./edge";
 
-const env = { DOOTAH_UPSTREAM: "https://upstream.example", DOOTAH_EDGE_SECRET: "s".repeat(64) };
+const env = { DOOTAH_UPSTREAM: "https://upstream.example", DOOTAH_EDGE_SECRET: "a".repeat(64) };
 const site = "https://dootah.pages.dev";
 const call = (path: string, init: RequestInit = {}, headers: Record<string, string> = {}) =>
   new Request(site + path, { ...init, headers: { "cf-connecting-ip": "203.0.113.7", ...headers } });
@@ -75,3 +75,12 @@ describe("Pages edge proxy", () => {
     expect((await proxy(call("/v1/apps"), env, down)).status).toBe(502);
   });
 });
+
+ it("rejects declared and streamed oversized bodies before tunnel transfer", async () => {
+   const transport = upstream();
+   for (const headers of [{}, { 'content-length': '131073' }] as Record<string, string>[]) {
+     const response = await proxy(call('/v1/releases', { method: 'POST', body: 'x'.repeat(131073) }, headers), env, transport);
+     expect(response.status).toBe(413);
+   }
+   expect(transport).not.toHaveBeenCalled();
+ });

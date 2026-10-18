@@ -112,3 +112,17 @@ test('retained ABI 2 records cannot be imported as an ABI 3 baseline', () => fix
   await writePrivate(record, { schema: 1, runtimeAbi: 2, logicAbi: 1 });
   await assert.rejects(importRecord(record, directory, join(directory, 'config.json')), /Retained release ABI mismatch/);
 }));
+
+test('CLI reports only bounded quota metadata and retry timing, never arbitrary server error content', async () => {
+  const dir=await mkdtemp(join(tmpdir(),'dootah-quota-cli-'));
+  const token=join(dir,'token');await writePrivate(token,'test-only');
+  const server=createServer((req,res)=>{
+    res.writeHead(429,{'Content-Type':'application/json','Retry-After':'120'});
+    res.end(JSON.stringify({error:{message:'sensitive-response-marker',quota:{resource:'publishes',limit:10,remaining:0,resetAt:'2026-11-01T00:00:00.000Z',secret:'sensitive-response-marker'}}}));
+  });
+  await new Promise(r=>server.listen(0,'127.0.0.1',r));
+  try {
+    const call=await client({url:`http://127.0.0.1:${server.address().port}`,allowLocalHttp:true,tokenFile:token});
+    await assert.rejects(call('/v1/releases','POST',{}),e=>e.status===429&&e.quota.remaining===0&&e.retryAfter===120&&!JSON.stringify(e).includes('sensitive-response-marker')&&!e.message.includes('sensitive-response-marker'));
+  } finally {await new Promise(r=>server.close(r));await rm(dir,{recursive:true,force:true});}
+});
