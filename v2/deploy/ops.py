@@ -11,6 +11,7 @@ import subprocess
 import sys
 
 HERE = Path(__file__).resolve().parent
+COMPOSE_OVERRIDES = []
 
 def read_env(path):
     result = {}
@@ -37,7 +38,8 @@ def generate(directory):
             private(directory / f'{service}-{role}-url', f'postgresql://{service}_{role}:{pw}@postgres:5432/{service}?sslmode=disable')
 
 def compose(envfile, *args, data=None, capture=False, check=True):
-    return subprocess.run(['docker','compose','--env-file',str(envfile),'-f',str(HERE/'compose.yaml'),*map(str,args)],
+    files = [item for path in COMPOSE_OVERRIDES for item in ['-f', str(path)]]
+    return subprocess.run(['docker','compose','--env-file',str(envfile),'-f',str(HERE/'compose.yaml'),*files,*map(str,args)],
         input=data, stdout=subprocess.PIPE if capture else None,
         stderr=subprocess.PIPE if capture else None, check=check)
 
@@ -102,9 +104,11 @@ def restore(envfile, source):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--env',type=Path)
+    p.add_argument('--compose-file', type=Path, action='append', default=[], help='Additional Compose override; repeat in deployment order')
     p.add_argument('command',choices=['secrets','bootstrap','grant-xprem','backup','restore','bindings-list','binding-put'])
     p.add_argument('args',nargs='*')
     a=p.parse_args()
+    COMPOSE_OVERRIDES[:] = [path.resolve(strict=True) for path in a.compose_file]
     if a.command == 'secrets': generate(Path(a.args[0])); return
     if not a.env: p.error('--env required')
     if a.command == 'bootstrap': bootstrap(a.env)

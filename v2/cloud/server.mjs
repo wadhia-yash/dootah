@@ -405,6 +405,19 @@ async function api(req, res, url, b, client) {
   return tx(async (db) => {
     const p = url.pathname,
       method = req.method;
+    if (p === "/v1/users" && method === "POST") {
+      requireValue(req.headers.origin === origin, "origin", 403);
+      await limit(pool, `register-ip:${client}`, 5);
+      fields(b, ["email", "password"]);
+      str(b.email);
+      requireValue(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email), "invalid_email");
+      requireValue(str(b.password, 256).length >= 14, "weak_password");
+      const id = randomUUID();
+      await db.query("INSERT INTO users(id,email,password_hash) VALUES($1,$2,$3)",
+        [id, b.email, password(b.password)]);
+      res.statusCode = 201;
+      return { id };
+    }
     if (p === "/v1/sessions" && method === "POST") {
       fields(b, ["email", "password"]);
       str(b.email);
@@ -429,6 +442,12 @@ async function api(req, res, url, b, client) {
     }
     const a = await auth(req, db);
     await limit(pool, `api:${a.id}`, a.kind === "installation" ? 180 : 300);
+    if (p === "/v1/sessions/current" && method === "GET") {
+      requireValue(a.kind === "session", "session_required", 403);
+      const raw = req.headers.authorization?.match(/^Bearer ([A-Za-z0-9_-]{43})$/)?.[1] ??
+        req.headers.cookie?.match(/(?:^|; )dootah=([A-Za-z0-9_-]{43})(?:;|$)/)?.[1];
+      return { csrf: sha(raw + "csrf"), userId: a.user_id };
+    }
     if (p === "/v1/sessions/current" && method === "DELETE") {
       await db.query("UPDATE credentials SET revoked_at=now() WHERE id=$1", [
         a.id,
@@ -1060,7 +1079,7 @@ export function createServer(trustedProxies = settings.trustedProxies) {
           } = await pool.query(
             "SELECT max(version) AS version FROM migrations",
           );
-          requireValue(schema.version === 7, "migrations_required", 503);
+          requireValue(schema.version === 8, "migrations_required", 503);
           res.end("ready");
           return;
         }

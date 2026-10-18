@@ -1,0 +1,6 @@
+# Serve the built React console and Cloud APIs from the same HTTPS origin.
+services:
+  proxy:
+    volumes:
+      - ./Caddyfile.web:/etc/caddy/Caddyfile:ro
+      - ${DOOTAH_WEB_DIST:?set absolute path to v2/web/dist}:/srv/web:ro

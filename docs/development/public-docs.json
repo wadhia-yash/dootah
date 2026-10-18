@@ -19,6 +19,7 @@
     "v2/android-sdk/release/README.md",
     "v2/ci/README.md",
     "v2/deploy/DEPLOYMENT.md",
+    "v2/deploy/NEON.md",
     "v2/deploy/secrets/README.md",
     "v2/examples/basic-text/README.md",
     "v2/native-consumer/README.md",

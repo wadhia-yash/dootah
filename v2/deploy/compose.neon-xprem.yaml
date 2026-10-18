@@ -1,0 +1,11 @@
+# Run xprem against its own Neon database (`xprem`) instead of the local PostgreSQL
+# container. Layer after compose.yaml and compose.neon.yaml. Direct Neon TLS URLs
+# (sslmode=verify-full) go in the xprem-runtime-url / xprem-owner-url secret files.
+services:
+  postgres:
+    profiles: [local-postgres]
+  xprem:
+    networks: [backend, neon-egress]
+    depends_on: !reset {}
+  xprem-migrate:
+    networks: [backend, neon-egress]

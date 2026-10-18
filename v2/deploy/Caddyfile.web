@@ -1,0 +1,39 @@
+{
+ admin off
+ servers {
+  timeouts {
+   read_header 10s
+   read_body 30s
+   write 120s
+   idle 60s
+  }
+  max_header_size 32KB
+ }
+}
+{$DOOTAH_SITE} {
+ header {
+  Strict-Transport-Security "max-age=31536000"
+  X-Content-Type-Options nosniff
+  Referrer-Policy no-referrer
+  Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+  -Server
+ }
+ request_body {
+  max_size 128KB
+ }
+ @web path / /console /console/* /web-assets/* /favicon.svg
+ handle @web {
+  root * /srv/web
+  try_files {path} /index.html
+  file_server
+ }
+ handle {
+  reverse_proxy cloud:3100 {
+   header_up X-Forwarded-For {client_ip}
+   transport http {
+    dial_timeout 5s
+    response_header_timeout 30s
+   }
+  }
+ }
+}

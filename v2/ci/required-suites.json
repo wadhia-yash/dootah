@@ -150,13 +150,14 @@
       "job": "server",
       "format": "tap",
       "report": "reports/cloud-tests.tap",
-      "minimum": 5,
+      "minimum": 6,
       "names": [
         "tenant isolation and scoped tokens across all control/read paths",
         "sessions require CSRF and exact origin; untrusted ids and oversized bodies fail",
         "installation authorization, tenant boundaries, deduplication and bounded telemetry",
         "same-organization app scopes deny sibling apps and invalid list filters fail validation",
-        "membership changes restrict existing tokens; last owner cannot be removed"
+        "membership changes restrict existing tokens; last owner cannot be removed",
+        "registration, persistent sessions, organization/app persistence and role boundaries"
       ]
     },
     {

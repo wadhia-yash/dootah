@@ -1,0 +1,13 @@
+# Cloud uses a restricted Neon login from the existing secret files.
+# xprem retains its existing private PostgreSQL and asset storage.
+# Requires Docker Compose supporting !reset (2.24.4+).
+services:
+  cloud:
+    networks: [ingress, backend, neon-egress]
+    depends_on: !reset {}
+  cloud-migrate:
+    networks: [backend, neon-egress]
+  cloud-user:
+    networks: [backend, neon-egress]
+networks:
+  neon-egress: {}
