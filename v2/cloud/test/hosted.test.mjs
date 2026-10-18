@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import pg from 'pg';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { pool, tx, password, secret, sha } from '../core.mjs';
 import { policy } from '../policy.mjs';
 import { issueInvitation, platformOperator, publishUsage } from '../hosted.mjs';
@@ -55,6 +57,19 @@ if (enabled) {
     const auth=await login('LegacyOwner@example.invalid');
     assert.equal((await request('sessions/current','GET',undefined,auth)).status,200);
     assert.equal((await request('invitations','POST',{email:'x@x.test'},auth)).status,403);
+  });
+  test('operator CLI issues fragment links, lists only metadata and revokes; runtime CLI is refused',async()=>{
+    const cli=async(args,owner=true)=>promisify(execFile)(process.execPath,[new URL('../admin.mjs',import.meta.url).pathname,...args],{
+      env:{...process.env,DOOTAH_CLOUD_DATABASE_URL_FILE:owner?process.env.DOOTAH_TEST_HOSTED_OWNER_FILE:process.env.DOOTAH_CLOUD_DATABASE_URL_FILE},timeout:10000});
+    const email=randomUUID()+'@example.invalid';
+    const issued=await cli(['invite',email]);const value=JSON.parse(issued.stdout.split('\n')[0]);
+    const link=new URL(value.link);assert.equal(link.search,'');assert.equal(link.pathname,'/console');
+    const token=new URLSearchParams(link.hash.slice(1)).get('invitation');assert.match(token,/^[A-Za-z0-9_-]{43}$/);
+    assert(!issued.stderr.includes(token));
+    const listed=await cli(['invitations']);assert(listed.stdout.includes(value.id));assert(!listed.stdout.includes(token));
+    await cli(['revoke-invitation',value.id]);
+    assert.equal((await request('users','POST',{email,password:pass,invitation:token})).status,403);
+    await assert.rejects(cli(['invite',email],false),e=>e.code===1&&!e.stdout.includes('invitation='));
   });
   test('uninvited, invalid, expired, revoked and wrong-email registration share a bounded response',async()=>{
     const email=randomUUID()+'@example.invalid';const invite=await issue(email);

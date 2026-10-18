@@ -238,7 +238,7 @@
       "job": "server",
       "format": "tap",
       "report": "reports/hosted-policy.tap",
-      "minimum": 12
+      "minimum": 13
     },
     {
       "id": "hosted-paused",
